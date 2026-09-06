@@ -5,6 +5,7 @@ Runs a lightweight local HTTP server on port 8000 with a dedicated
 AI Proxy endpoint for Google Gemini API integration and local key storage.
 """
 import http.server
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import socketserver
 import os
 import sys
@@ -12,21 +13,33 @@ import json
 import sqlite3
 import datetime
 import tempfile
+import signal
 import urllib.request
 import urllib.error
 
 PORT = int(os.environ.get('PORT', 8000))
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-KEY_FILE = os.path.join(DIRECTORY, ".gemini_key")
-DB_FILE = os.path.join(DIRECTORY, "emma_health.db")
-BACKUP_FILE = os.path.join(DIRECTORY, "emma_backup.json")
+DATA_DIR = os.environ.get('DATA_DIR', DIRECTORY)
+if not os.path.exists(DATA_DIR):
+    os.makedirs(DATA_DIR, exist_ok=True)
+
+KEY_FILE = os.path.join(DATA_DIR, ".gemini_key")
+DB_FILE = os.path.join(DATA_DIR, "emma_health.db")
+BACKUP_FILE = os.path.join(DATA_DIR, "emma_backup.json")
 
 PRIMARY_MODEL = "gemini-3.8-flash"
 FALLBACK_MODEL = "gemini-3.7-flash"
 
+def get_db_connection():
+    conn = sqlite3.connect(DB_FILE, timeout=10.0)
+    conn.execute("PRAGMA journal_mode=WAL;")
+    conn.execute("PRAGMA busy_timeout=5000;")
+    conn.execute("PRAGMA synchronous=NORMAL;")
+    return conn
+
 def init_db():
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("""
             CREATE TABLE IF NOT EXISTS checkins (
@@ -50,6 +63,44 @@ def init_db():
             )
         """)
         conn.commit()
+
+        cur.execute("SELECT COUNT(*) FROM checkins")
+        count = cur.fetchone()[0]
+        if count == 0:
+            for seed_file in [os.path.join(DIRECTORY, "seed_data.json"), os.path.join(DIRECTORY, "emma_backup.json")]:
+                if os.path.isfile(seed_file):
+                    try:
+                        with open(seed_file, "r", encoding="utf-8") as f:
+                            seed = json.load(f)
+                        for item in seed.get("logs", []):
+                            d_str = item.get("date")
+                            if d_str:
+                                cur.execute("""
+                                    INSERT OR REPLACE INTO checkins
+                                    (date, cycle_day, cycle_phase, bristol_stool, bloating_score, motility_speed, abdominal_pain, splenic_pressure, data_json)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                """, (
+                                    d_str,
+                                    item.get('cycleDay'),
+                                    item.get('cyclePhase'),
+                                    item.get('bristol'),
+                                    item.get('bloatScore'),
+                                    item.get('motilitySpeed'),
+                                    item.get('abPain'),
+                                    item.get('splenicPressure'),
+                                    json.dumps(item)
+                                ))
+                        for k, v in seed.get("app_states", {}).items():
+                            cur.execute("""
+                                INSERT OR REPLACE INTO app_state (key, value)
+                                VALUES (?, ?)
+                            """, (k, v if isinstance(v, str) else json.dumps(v)))
+                        conn.commit()
+                        print(f"📦 Seeded {len(seed.get('logs', []))} initial records from {os.path.basename(seed_file)}")
+                        break
+                    except Exception as s_err:
+                        print(f"⚠️ Seeding notice: {s_err}")
+
         conn.close()
     except Exception as e:
         print(f"⚠️ SQLite Init Warning: {e}")
@@ -108,7 +159,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        if self.path == '/api/get-gemini-status':
+        if self.path in ('/health', '/api/health'):
+            self._send_json(200, {
+                "status": "healthy",
+                "app": "Emma Health Tracker",
+                "version": "1.0.0",
+                "timestamp": datetime.datetime.now().isoformat()
+            })
+        elif self.path == '/api/get-gemini-status':
             self.handle_get_status()
         elif self.path == '/api/load-data':
             self.handle_load_data()
@@ -137,7 +195,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def handle_load_data(self):
         try:
-            conn = sqlite3.connect(DB_FILE)
+            conn = get_db_connection()
             cur = conn.cursor()
             cur.execute("SELECT data_json FROM checkins ORDER BY date DESC")
             rows = cur.fetchall()
@@ -191,7 +249,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             specialist_tracking = payload.get('specialistTracking')
             oura_token = payload.get('ouraToken')
 
-            conn = sqlite3.connect(DB_FILE)
+            conn = get_db_connection()
             cur = conn.cursor()
 
             # Upsert logs into checkins table
@@ -275,7 +333,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def handle_export_backup(self):
         try:
-            conn = sqlite3.connect(DB_FILE)
+            conn = get_db_connection()
             cur = conn.cursor()
             cur.execute("SELECT data_json FROM checkins ORDER BY date DESC")
             logs = [json.loads(r[0]) for r in cur.fetchall()]
@@ -316,7 +374,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             logs = payload.get('logs', [])
             app_states = payload.get('app_states', {})
 
-            conn = sqlite3.connect(DB_FILE)
+            conn = get_db_connection()
             cur = conn.cursor()
             for log in logs:
                 if not isinstance(log, dict) or not log.get('date'):
@@ -611,19 +669,34 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 if __name__ == '__main__':
     os.chdir(DIRECTORY)
-    socketserver.TCPServer.allow_reuse_address = True
+    init_db()
+    ThreadingHTTPServer.allow_reuse_address = True
+
+    httpd = None
     try:
-        with socketserver.TCPServer(("", PORT), Handler) as httpd:
-            print(f"============================================================")
-            print(f"🌸 Emma Butler's Health & Gut Rhythm Tracker is Live!")
-            print(f"👉 Local URL: http://localhost:{PORT}")
-            print(f"👉 Directory: {DIRECTORY}")
-            print(f"👉 AI Proxy: /api/gemini-audit enabled")
-            print(f"Press Ctrl+C to stop the server at any time.")
-            print(f"============================================================")
-            httpd.serve_forever()
-    except OSError as e:
+        httpd = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
+    except OSError:
         FALLBACK_PORT = 8080
-        with socketserver.TCPServer(("", FALLBACK_PORT), Handler) as httpd:
-            print(f"🌸 Emma Butler's Tracker running on fallback port: http://localhost:{FALLBACK_PORT}")
-            httpd.serve_forever()
+        httpd = ThreadingHTTPServer(("0.0.0.0", FALLBACK_PORT), Handler)
+
+    def graceful_shutdown(signum, frame):
+        print("\n🌸 Shutting down gracefully...")
+        if httpd:
+            httpd.server_close()
+        sys.exit(0)
+
+    try:
+        signal.signal(signal.SIGINT, graceful_shutdown)
+        signal.signal(signal.SIGTERM, graceful_shutdown)
+    except Exception:
+        pass
+
+    print(f"============================================================")
+    print(f"🌸 Emma Butler's Health & Gut Rhythm Tracker is Live (Production Threading)!")
+    print(f"👉 Listening on: 0.0.0.0:{PORT}")
+    print(f"👉 Static Directory: {DIRECTORY}")
+    print(f"👉 Data Directory: {DATA_DIR}")
+    print(f"👉 AI Proxy: /api/gemini-audit enabled")
+    print(f"👉 Health Check: /health")
+    print(f"============================================================")
+    httpd.serve_forever()

@@ -10,4 +10,8 @@
 __pycache__/
 
 # Database binary lock files (keep backup json)
+*.db
 *.db-journal
+*.db-wal
+*.db-shm
+emma_backup.json
