@@ -274,6 +274,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 "logs": logs,
                 "chronoTrial": app_states.get('chrono_trial'),
                 "specialistTracking": app_states.get('specialist_tracking'),
+                "foodDiary": app_states.get('food_diary'),
                 "ouraToken": app_states.get('oura_token'),
                 "count": len(logs)
             })
@@ -289,6 +290,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             logs = payload.get('logs', [])
             chrono_trial = payload.get('chronoTrial')
             specialist_tracking = payload.get('specialistTracking')
+            food_diary = payload.get('foodDiary')
             oura_token = payload.get('ouraToken')
 
             conn = get_db_connection()
@@ -336,6 +338,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
                 """, (json.dumps(specialist_tracking),))
 
+            if food_diary is not None:
+                cur.execute("""
+                    INSERT INTO app_state (key, value, updated_at)
+                    VALUES ('food_diary', ?, CURRENT_TIMESTAMP)
+                    ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+                """, (json.dumps(food_diary),))
+
             if oura_token is not None:
                 cur.execute("""
                     INSERT INTO app_state (key, value, updated_at)
@@ -356,6 +365,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 "app_states": {
                     "chrono_trial": chrono_trial,
                     "specialist_tracking": specialist_tracking,
+                    "food_diary": food_diary,
                     "oura_token": oura_token
                 }
             }

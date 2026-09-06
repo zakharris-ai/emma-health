@@ -571,6 +571,7 @@ function syncDataToServer() {
       logs: logs,
       chronoTrial: typeof chronoTrialState !== 'undefined' ? chronoTrialState : null,
       specialistTracking: typeof specialistTrackingState !== 'undefined' ? specialistTrackingState : null,
+      foodDiary: typeof foodDiaryState !== 'undefined' ? foodDiaryState : null,
       ouraToken: localStorage.getItem('emma_oura_token') || ''
     };
 
@@ -626,12 +627,19 @@ function fetchServerDataOnLoad() {
           needsReRender = true;
         }
 
+        if (data.foodDiary && typeof data.foodDiary === 'object') {
+          foodDiaryState = { ...foodDiaryState, ...data.foodDiary };
+          localStorage.setItem('emma_food_diary_v1', JSON.stringify(foodDiaryState));
+          needsReRender = true;
+        }
+
         if (needsReRender) {
           initializeUI();
           renderDashboardTrends();
           renderHistoryLogs();
           if (typeof renderTrialUI === 'function') renderTrialUI();
           if (typeof renderSpecialistTrackingUI === 'function') renderSpecialistTrackingUI();
+          if (typeof renderFoodDiaryUI === 'function') renderFoodDiaryUI();
           triggerLucideIcons();
         }
 
@@ -1219,6 +1227,11 @@ function applyActiveDate(targetDateStr) {
 
   // 12. Re-render Specialist Missing Biomarkers suite for active day
   renderSpecialistTrackingUI();
+
+  // 13. Re-render Emma's Daily Food Diary for active day
+  if (typeof renderFoodDiaryUI === 'function') {
+    renderFoodDiaryUI();
+  }
 
   triggerLucideIcons();
 }
@@ -5072,11 +5085,626 @@ function renderClinicalAiAuditResult(container, data, source, modelUsed) {
       <button type="button" onclick="openAiSettingsModal()" class="text-purple-700 font-bold hover:underline">Connect Live Gemini 3.8 Flash →</button>
     </div>
     ` : ''}
+
+    <!-- Action to Log Directly to Food Diary -->
+    <div class="pt-1.5 flex items-center justify-between border-t ${borderSep}">
+      <span class="text-[10px] text-brand-textMuted font-semibold">Keep a record of what you eat:</span>
+      <button type="button" onclick="logQueriedFoodToDiary('${encodeURIComponent(JSON.stringify({
+        title: title,
+        name: (document.getElementById('foodQueryInput')?.value || title),
+        theme: theme,
+        badge: badge,
+        summary: summary,
+        topTip: topTip,
+        isSafe: (theme === 'green' || theme === 'purple')
+      }))}')" class="px-3 py-1.5 rounded-xl bg-white border ${borderSep} hover:bg-purple-50 text-purple-900 font-bold text-xs flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all">
+        <span>🍽️ + Add to Today's Food Diary</span>
+      </button>
+    </div>
   `;
 
   if (window.lucide && typeof lucide.createIcons === 'function') {
     lucide.createIcons();
   }
+}
+
+// ============================================================================
+// 7C. EMMA'S DAILY FOOD DIARY & GEMINI CYCLE AUDIT ENGINE
+// ============================================================================
+var defaultFoodDiary = {
+  "2026-09-06": [
+    {
+      id: "meal-1725610000000",
+      slot: "breakfast",
+      name: "Emma's Blueberry Form Protein Shake",
+      time: "08:30",
+      theme: "purple",
+      badge: "Cycle-Safe ✓",
+      title: "Ideal Luteal Morning Fuel",
+      summary: "100% plant-based (pea, rice, hemp) with wild blueberries. Empties stomach in under 30 minutes, preventing post-meal APD diaphragm descent.",
+      topTip: "Sip slowly 40–60 mins after waking Linaclotide dose.",
+      isSafe: true,
+      cycleDay: 22,
+      cyclePhase: "luteal",
+      source: "gemini-3.8-flash"
+    },
+    {
+      id: "meal-1725625000000",
+      slot: "lunch",
+      name: "Prawn Poke Bowl (Basmati rice, courgette, prawns, pickled cucumber, tamari)",
+      time: "13:15",
+      theme: "green",
+      badge: "Cycle-Safe ✓",
+      title: "Safe Nanny Shift Fuel",
+      summary: "Clean, room-temperature basmati rice and prawns digest rapidly with zero garlic or onion. Low-FODMAP and easy on sluggish luteal transit.",
+      topTip: "Take out of lunchbox 20 mins before eating so it warms to room temperature.",
+      isSafe: true,
+      cycleDay: 22,
+      cyclePhase: "luteal",
+      source: "gemini-3.8-flash"
+    }
+  ]
+};
+
+var foodDiaryState = (function() {
+  try {
+    const raw = localStorage.getItem('emma_food_diary_v1');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.warn('Error reading emma_food_diary_v1:', e);
+  }
+  return defaultFoodDiary;
+})();
+
+function saveFoodDiary() {
+  try {
+    localStorage.setItem('emma_food_diary_v1', JSON.stringify(foodDiaryState));
+  } catch (e) {
+    console.warn('Error saving emma_food_diary_v1:', e);
+  }
+  syncDataToServer();
+}
+
+function selectDiaryMealSlot(slot) {
+  const hiddenInput = document.getElementById('diaryMealSlotInput');
+  if (hiddenInput) hiddenInput.value = slot;
+
+  document.querySelectorAll('.diary-slot-btn').forEach(btn => {
+    btn.classList.remove('selected', 'bg-purple-600', 'text-white', 'border-purple-600', 'shadow-2xs');
+    btn.classList.add('bg-white', 'text-brand-textMuted', 'border-brand-border');
+  });
+
+  const activeBtn = document.getElementById(`slotBtn-${slot}`);
+  if (activeBtn) {
+    activeBtn.classList.remove('bg-white', 'text-brand-textMuted', 'border-brand-border');
+    activeBtn.classList.add('selected', 'bg-purple-600', 'text-white', 'border-purple-600', 'shadow-2xs');
+  }
+}
+
+function startDiaryVoiceInput() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("Speech recognition is not supported in this browser. Please type your meal.");
+    return;
+  }
+
+  const micIcon = document.getElementById('diaryMicIcon');
+  const micBtn = document.getElementById('diaryVoiceBtn');
+  const inputEl = document.getElementById('diaryMealTextInput');
+
+  try {
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-GB';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    if (micIcon) micIcon.classList.add('text-rose-600', 'animate-pulse');
+    if (micBtn) micBtn.classList.add('bg-rose-50');
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      const corrected = correctClinicalVoiceNote(transcript);
+      if (inputEl) {
+        inputEl.value = corrected;
+        analyzeAndAddDiaryMeal();
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.warn("Diary voice recognition error:", event.error);
+    };
+
+    recognition.onend = () => {
+      if (micIcon) micIcon.classList.remove('text-rose-600', 'animate-pulse');
+      if (micBtn) micBtn.classList.remove('bg-rose-50');
+    };
+
+    recognition.start();
+  } catch (err) {
+    console.warn("Speech start error:", err);
+  }
+}
+
+let pendingMealForLogging = null;
+
+function analyzeAndAddDiaryMeal() {
+  const inputEl = document.getElementById('diaryMealTextInput');
+  const rawMeal = (inputEl?.value || '').trim();
+  if (!rawMeal) {
+    if (inputEl) inputEl.focus();
+    return;
+  }
+
+  const card = document.getElementById('diaryAnalysisCard');
+  if (!card) return;
+
+  const slot = document.getElementById('diaryMealSlotInput')?.value || 'lunch';
+  const targetDate = activeDateStr || getTodayISOString();
+  const activeCycle = getCycleInfoForDate(targetDate);
+
+  card.classList.remove('hidden');
+  card.className = "p-4 rounded-2xl border transition-all bg-gradient-to-r from-purple-50/90 via-indigo-50/80 to-purple-50/90 border-purple-300 text-purple-950 shadow-xs space-y-3 animate-fadeIn";
+  card.innerHTML = `
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs animate-pulse">
+        <i data-lucide="sparkles" class="w-4 h-4 text-white animate-spin"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-1.5">
+          <h4 class="text-xs font-extrabold text-purple-950">Gemini 3.8 Flash is evaluating "${rawMeal}"...</h4>
+          <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-200 text-purple-900 uppercase tracking-wider">Cycle Day ${activeCycle.cycleDay}</span>
+        </div>
+        <p class="text-[11px] text-purple-800/80 mt-0.5">Checking gastric transit, APD diaphragmatic load & ${activeCycle.phaseLabel} motility</p>
+      </div>
+    </div>
+  `;
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
+
+  let storedKey = (localStorage.getItem('emma_gemini_api_key') || '').trim();
+  if (storedKey) {
+    storedKey = storedKey.split(/\s+/)[0].replace(/^["']|["']$/g, '');
+  }
+
+  fetch('/api/gemini-audit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: rawMeal,
+      cycleDay: activeCycle.cycleDay,
+      phase: activeCycle.phase,
+      phaseLabel: activeCycle.phaseLabel,
+      apiKey: storedKey || ''
+    })
+  })
+  .then(res => res.json())
+  .then(resData => {
+    let evalData = null;
+    let source = 'gemini-3.8-flash';
+    if (resData.success && resData.data) {
+      evalData = resData.data;
+    } else {
+      evalData = evaluateAutonomousClinicalReasoning(rawMeal, activeCycle);
+      source = 'autonomous';
+    }
+    renderDiaryAnalysisCard(evalData, rawMeal, slot, activeCycle, source);
+  })
+  .catch(() => {
+    const autoData = evaluateAutonomousClinicalReasoning(rawMeal, activeCycle);
+    renderDiaryAnalysisCard(autoData, rawMeal, slot, activeCycle, 'autonomous');
+  });
+}
+
+function renderDiaryAnalysisCard(evalData, mealName, slot, activeCycle, source) {
+  const card = document.getElementById('diaryAnalysisCard');
+  if (!card) return;
+
+  const theme = evalData.theme || 'green';
+  const isSafe = (theme === 'green' || theme === 'purple');
+  const title = evalData.title || (isSafe ? 'Cycle-Safe Meal' : 'Trigger Warning');
+  const badge = evalData.badge || (isSafe ? 'Safe to Enjoy' : 'Caution / High Risk');
+  const summary = evalData.summary || '';
+  const topTip = evalData.topTip || (evalData.freedomHacks && evalData.freedomHacks[0]) || '';
+
+  pendingMealForLogging = {
+    mealName: mealName,
+    slot: slot,
+    theme: theme,
+    title: title,
+    badge: badge,
+    summary: summary,
+    topTip: topTip,
+    isSafe: isSafe,
+    cycleDay: activeCycle.cycleDay,
+    cyclePhase: activeCycle.phase,
+    source: source
+  };
+
+  if (isSafe) {
+    card.className = "p-4 rounded-2xl border transition-all space-y-3 bg-emerald-50/90 border-emerald-300 text-emerald-950 shadow-xs animate-fadeIn";
+    card.innerHTML = `
+      <div class="flex items-center justify-between gap-2 border-b border-emerald-200/80 pb-2.5">
+        <div class="flex items-center space-x-2.5">
+          <span class="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">✓</span>
+          <div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <h4 class="font-extrabold text-xs sm:text-sm text-emerald-950">${title}</h4>
+              <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">✨ Cycle-Safe (Day ${activeCycle.cycleDay})</span>
+            </div>
+            <span class="text-[10px] text-emerald-800/80 font-medium">Gentle on your transit & diaphragm</span>
+          </div>
+        </div>
+        <span class="px-2.5 py-1 rounded-lg bg-emerald-200 text-emerald-950 text-[10px] font-black uppercase tracking-wide shrink-0 shadow-2xs">${badge}</span>
+      </div>
+
+      <div class="p-2.5 rounded-xl bg-white/90 border border-emerald-200/90 text-xs leading-relaxed font-medium">
+        ${summary}
+      </div>
+
+      ${topTip ? `
+        <div class="p-2 rounded-xl bg-white/80 border border-emerald-200/70 text-[11px] font-semibold text-emerald-900 flex items-center gap-1.5">
+          <span>💡 ${topTip.replace(/^💡\s*/, '')}</span>
+        </div>
+      ` : ''}
+
+      <div class="flex items-center justify-between gap-2 pt-1 border-t border-emerald-200/80">
+        <span class="text-[10px] text-emerald-800 font-semibold">Gemini approved for Day ${activeCycle.cycleDay}</span>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="cancelDiaryAnalysis()" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold transition-all">
+            Cancel
+          </button>
+          <button type="button" onclick="confirmCommitPendingMeal()" class="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1 active:scale-95">
+            <span>✓ Add to Diary</span>
+          </button>
+        </div>
+      </div>
+    `;
+  } else {
+    const isRed = (theme === 'red');
+    const bgClasses = isRed 
+      ? "bg-rose-50/95 border-rose-300 text-rose-950" 
+      : "bg-amber-50/95 border-amber-300 text-amber-950";
+    const iconBg = isRed ? "bg-rose-600" : "bg-amber-500";
+    const badgeBg = isRed ? "bg-rose-200 text-rose-950" : "bg-amber-200 text-amber-950";
+    const borderSep = isRed ? "border-rose-200/80" : "border-amber-200/80";
+    const cardBg = isRed ? "bg-white/90 border-rose-200/90" : "bg-white/90 border-amber-200/90";
+
+    card.className = `p-4 rounded-2xl border transition-all space-y-3 ${bgClasses} shadow-xs animate-fadeIn`;
+    card.innerHTML = `
+      <div class="flex items-center justify-between gap-2 border-b ${borderSep} pb-2.5">
+        <div class="flex items-center space-x-2.5">
+          <span class="w-7 h-7 rounded-xl ${iconBg} text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">⚠️</span>
+          <div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <h4 class="font-extrabold text-xs sm:text-sm">${title}</h4>
+              <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeBg}">
+                ⚠️ Notice for Cycle Day ${activeCycle.cycleDay}
+              </span>
+            </div>
+            <span class="text-[10px] opacity-80 font-medium">May provoke fermentation or APD tightness today</span>
+          </div>
+        </div>
+        <span class="px-2.5 py-1 rounded-lg ${badgeBg} text-[10px] font-black uppercase tracking-wide shrink-0 shadow-2xs">${badge}</span>
+      </div>
+
+      <div class="p-2.5 rounded-xl ${cardBg} border text-xs leading-relaxed font-medium">
+        ${summary}
+      </div>
+
+      ${topTip ? `
+        <div class="p-2 rounded-xl ${cardBg} border text-[11px] font-semibold flex items-center gap-1.5">
+          <span>💡 Recommendation: ${topTip.replace(/^💡\s*/, '')}</span>
+        </div>
+      ` : ''}
+
+      <div class="p-2.5 rounded-xl bg-amber-100/70 border border-amber-200/80 text-[11px] text-amber-950 leading-tight">
+        <strong>Gentle Note for Emma:</strong> It's completely okay if you had this! Keeping an accurate record helps us understand how your gut responds. You can log it anyway, or modify your entry.
+      </div>
+
+      <div class="flex items-center justify-between gap-2 pt-1 border-t ${borderSep}">
+        <button type="button" onclick="cancelDiaryAnalysis(true)" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all">
+          Modify / Swap
+        </button>
+        <button type="button" onclick="confirmCommitPendingMeal()" class="px-4 py-1.5 rounded-xl ${isRed ? 'bg-rose-600 hover:bg-rose-700' : 'bg-amber-600 hover:bg-amber-700'} text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 active:scale-95">
+          <span>Log It Anyway ➔</span>
+        </button>
+      </div>
+    `;
+  }
+
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
+}
+
+function confirmCommitPendingMeal() {
+  if (!pendingMealForLogging) return;
+  const targetDate = activeDateStr || getTodayISOString();
+  const mealItem = {
+    id: "meal-" + Date.now(),
+    slot: pendingMealForLogging.slot,
+    name: pendingMealForLogging.mealName,
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    theme: pendingMealForLogging.theme,
+    title: pendingMealForLogging.title,
+    badge: pendingMealForLogging.badge,
+    summary: pendingMealForLogging.summary,
+    topTip: pendingMealForLogging.topTip,
+    isSafe: pendingMealForLogging.isSafe,
+    cycleDay: pendingMealForLogging.cycleDay,
+    cyclePhase: pendingMealForLogging.cyclePhase,
+    source: pendingMealForLogging.source
+  };
+
+  commitMealToDiary(targetDate, mealItem);
+  cancelDiaryAnalysis();
+  const inputEl = document.getElementById('diaryMealTextInput');
+  if (inputEl) inputEl.value = '';
+}
+
+function cancelDiaryAnalysis(focusInput) {
+  pendingMealForLogging = null;
+  const card = document.getElementById('diaryAnalysisCard');
+  if (card) {
+    card.classList.add('hidden');
+    card.innerHTML = '';
+  }
+  if (focusInput) {
+    const inputEl = document.getElementById('diaryMealTextInput');
+    if (inputEl) inputEl.focus();
+  }
+}
+
+function commitMealToDiary(dateStr, mealItem) {
+  if (!foodDiaryState[dateStr]) {
+    foodDiaryState[dateStr] = [];
+  }
+  foodDiaryState[dateStr].push(mealItem);
+  saveFoodDiary();
+  renderFoodDiaryUI();
+  showDiaryToast(`Added "${mealItem.name}" to food diary ✓`);
+}
+
+function deleteDiaryMeal(mealId) {
+  const targetDate = activeDateStr || getTodayISOString();
+  if (!foodDiaryState[targetDate]) return;
+  foodDiaryState[targetDate] = foodDiaryState[targetDate].filter(m => m.id !== mealId);
+  saveFoodDiary();
+  renderFoodDiaryUI();
+}
+
+function quickLogSafeStaple(type) {
+  const targetDate = activeDateStr || getTodayISOString();
+  const activeCycle = getCycleInfoForDate(targetDate);
+  let staple = null;
+
+  if (type === 'prawn_poke') {
+    staple = {
+      id: "meal-" + Date.now(),
+      slot: "lunch",
+      name: "Prawn Poke Bowl (Cooked basmati rice, steamed courgette, prawns, pickled cucumber, tamari)",
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      theme: "green",
+      title: "Prawn Poke Bowl (Staple)",
+      badge: "Cycle-Safe ✓",
+      summary: "Room-temperature basmati rice and prawns digest rapidly with zero garlic or onion. Low-FODMAP and easy on sluggish luteal transit.",
+      topTip: "Take out of lunchbox 20 mins before eating so it warms to room temperature.",
+      isSafe: true,
+      cycleDay: activeCycle.cycleDay,
+      cyclePhase: activeCycle.phase,
+      source: "gemini-3.8-flash"
+    };
+  } else if (type === 'form_shake') {
+    staple = {
+      id: "meal-" + Date.now(),
+      slot: "breakfast",
+      name: "Emma's Blueberry Form Protein Shake (Almond milk, wild blueberries, soaked chia)",
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      theme: "purple",
+      title: "Blueberry Form Protein Shake",
+      badge: "Cycle-Safe ✓",
+      summary: "100% plant-based with wild blueberries. Empties stomach in under 30 minutes, preventing post-meal APD diaphragm descent.",
+      topTip: "Sip slowly 40–60 mins after waking Linaclotide dose.",
+      isSafe: true,
+      cycleDay: activeCycle.cycleDay,
+      cyclePhase: activeCycle.phase,
+      source: "gemini-3.8-flash"
+    };
+  } else if (type === 'jasmine_cod') {
+    staple = {
+      id: "meal-" + Date.now(),
+      slot: "dinner",
+      name: "Steamed Jasmine Rice & White Cod Fillet with wilted spinach and tamari",
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      theme: "green",
+      title: "Steamed Jasmine Rice & Cod",
+      badge: "Cycle-Safe ✓",
+      summary: "Ultra-lean white fish with gentle jasmine rice. Leaves stomach completely empty before sleep, eliminating overnight fermentation.",
+      topTip: "Eat before 7:30 PM for a flat, comfortable morning stomach.",
+      isSafe: true,
+      cycleDay: activeCycle.cycleDay,
+      cyclePhase: activeCycle.phase,
+      source: "gemini-3.8-flash"
+    };
+  }
+
+  if (staple) {
+    commitMealToDiary(targetDate, staple);
+  }
+}
+
+function logQueriedFoodToDiary(encodedJson) {
+  try {
+    const data = JSON.parse(decodeURIComponent(encodedJson));
+    const targetDate = activeDateStr || getTodayISOString();
+    const activeCycle = getCycleInfoForDate(targetDate);
+    const slotInput = document.getElementById('diaryMealSlotInput')?.value || 'lunch';
+
+    const mealItem = {
+      id: "meal-" + Date.now(),
+      slot: slotInput,
+      name: data.name || data.title,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      theme: data.theme || 'green',
+      title: data.title || 'Logged Meal',
+      badge: data.badge || 'Evaluated',
+      summary: data.summary || '',
+      topTip: data.topTip || '',
+      isSafe: (data.theme === 'green' || data.theme === 'purple'),
+      cycleDay: activeCycle.cycleDay,
+      cyclePhase: activeCycle.phase,
+      source: "gemini-3.8-flash"
+    };
+
+    commitMealToDiary(targetDate, mealItem);
+    const diarySection = document.getElementById('foodDiaryCard');
+    if (diarySection) {
+      diarySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  } catch (err) {
+    console.warn('Error adding queried food to diary:', err);
+  }
+}
+
+function renderFoodDiaryUI() {
+  const container = document.getElementById('diaryItemsList');
+  if (!container) return;
+
+  const targetDate = activeDateStr || getTodayISOString();
+  const activeCycle = getCycleInfoForDate(targetDate);
+  const meals = foodDiaryState[targetDate] || [];
+
+  // Update Header Badges
+  const dayPillText = document.getElementById('foodDiaryDayPillText');
+  if (dayPillText) {
+    dayPillText.textContent = `Cycle Day ${activeCycle.cycleDay} (${activeCycle.phaseLabel})`;
+  }
+
+  const dateSubtitle = document.getElementById('foodDiaryDateSubtitle');
+  if (dateSubtitle) {
+    dateSubtitle.textContent = `Meals logged for ${activeCycle.displayDate} • Gemini cycle feedback active`;
+  }
+
+  const countPill = document.getElementById('diaryCountPill');
+  if (countPill) {
+    countPill.textContent = `${meals.length} meal${meals.length === 1 ? '' : 's'}`;
+  }
+
+  const statsNotice = document.getElementById('diaryStatsNotice');
+  if (statsNotice) {
+    if (meals.length > 0) {
+      const safeCount = meals.filter(m => m.isSafe).length;
+      const cautionCount = meals.length - safeCount;
+      statsNotice.innerHTML = `
+        <span class="text-emerald-700 font-bold">${safeCount} cycle-safe</span>
+        ${cautionCount > 0 ? ` • <span class="text-amber-600 font-bold">${cautionCount} trigger noted</span>` : ''}
+      `;
+    } else {
+      statsNotice.textContent = 'No meals logged yet';
+    }
+  }
+
+  if (meals.length === 0) {
+    container.innerHTML = `
+      <div class="p-6 rounded-2xl bg-brand-cream/40 border border-brand-border/60 text-center space-y-2 select-none">
+        <span class="text-2xl block opacity-60">🥣</span>
+        <div class="text-xs font-bold text-brand-textDark">No meals logged yet for ${activeCycle.displayDate}</div>
+        <p class="text-[11px] text-brand-textMuted max-w-sm mx-auto">
+          Type or speak what you ate above. Gemini 3.8 Flash will check how it fits your Cycle Day ${activeCycle.cycleDay} motility.
+        </p>
+      </div>
+    `;
+    if (window.lucide && typeof lucide.createIcons === 'function') {
+      lucide.createIcons();
+    }
+    return;
+  }
+
+  const slotIcons = {
+    breakfast: '🥣 Breakfast',
+    lunch: '🥗 Lunch',
+    dinner: '🍲 Dinner',
+    snack: '🍎 Snack / Drink'
+  };
+
+  container.innerHTML = meals.map(meal => {
+    let badgeBg = "bg-emerald-100 text-emerald-950 border-emerald-200";
+    let iconSymbol = "✨";
+    let borderClass = "border-emerald-200/90 hover:border-emerald-300";
+    let cardBg = "bg-emerald-50/40";
+
+    if (meal.theme === 'amber') {
+      badgeBg = "bg-amber-100 text-amber-950 border-amber-200";
+      iconSymbol = "⚠️";
+      borderClass = "border-amber-200/90 hover:border-amber-300";
+      cardBg = "bg-amber-50/40";
+    } else if (meal.theme === 'red') {
+      badgeBg = "bg-rose-100 text-rose-950 border-rose-200";
+      iconSymbol = "🚫";
+      borderClass = "border-rose-200/90 hover:border-rose-300";
+      cardBg = "bg-rose-50/40";
+    } else if (meal.theme === 'purple') {
+      badgeBg = "bg-purple-100 text-purple-950 border-purple-200";
+      iconSymbol = "🫐";
+      borderClass = "border-purple-200/90 hover:border-purple-300";
+      cardBg = "bg-purple-50/40";
+    }
+
+    const slotLabel = slotIcons[meal.slot] || '🍽️ Meal';
+
+    return `
+      <div class="p-3 sm:p-3.5 rounded-2xl border ${borderClass} ${cardBg} transition-all space-y-2 shadow-2xs">
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex items-start space-x-2.5">
+            <span class="text-base leading-none mt-0.5">${iconSymbol}</span>
+            <div class="space-y-0.5">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-white border border-brand-border/60 text-brand-textDark shadow-2xs">${slotLabel}</span>
+                <h4 class="text-xs sm:text-sm font-bold text-brand-textDark leading-tight">${meal.name}</h4>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeBg}">${meal.badge || (meal.isSafe ? 'Cycle-Safe' : 'Caution')}</span>
+              </div>
+              ${meal.time ? `<span class="text-[9px] text-brand-textMuted font-medium block">Logged at ${meal.time} • Cycle Day ${meal.cycleDay || activeCycle.cycleDay}</span>` : ''}
+            </div>
+          </div>
+          <button type="button" onclick="deleteDiaryMeal('${meal.id}')" title="Delete meal" class="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all active:scale-95 shrink-0">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        ${meal.summary ? `
+          <div class="p-2 rounded-xl bg-white/80 border border-slate-200/60 text-[11px] text-brand-textDark leading-relaxed">
+            ${meal.summary}
+          </div>
+        ` : ''}
+
+        ${meal.topTip ? `
+          <div class="text-[10px] text-brand-textMuted font-medium flex items-center gap-1">
+            <span>💡</span>
+            <span>${meal.topTip.replace(/^💡\s*/, '')}</span>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
+}
+
+function showDiaryToast(msg) {
+  const existing = document.getElementById('diaryToast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'diaryToast';
+  toast.className = 'fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-2xl bg-emerald-700 text-white font-bold text-xs shadow-xl flex items-center gap-2 animate-bounce';
+  toast.innerHTML = `<span>✓</span><span>${msg}</span>`;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
 }
 
 function handleQuickLogSubmit(e) {

@@ -512,6 +512,38 @@
         "endTime": null
       }
     },
+    "food_diary": {
+      "2026-09-06": [
+        {
+          "id": "meal-1725610000000",
+          "slot": "breakfast",
+          "name": "Emma's Blueberry Form Protein Shake",
+          "time": "08:30",
+          "theme": "purple",
+          "badge": "Cycle-Safe ✓",
+          "title": "Ideal Luteal Morning Fuel",
+          "summary": "100% plant-based (pea, rice, hemp) with wild blueberries. Empties stomach in under 30 minutes, preventing post-meal APD diaphragm descent.",
+          "topTip": "Sip slowly 40–60 mins after waking Linaclotide dose.",
+          "isSafe": true,
+          "cycleDay": 22,
+          "cyclePhase": "luteal"
+        },
+        {
+          "id": "meal-1725625000000",
+          "slot": "lunch",
+          "name": "Prawn Poke Bowl (Basmati rice, courgette, prawns, pickled cucumber, tamari)",
+          "time": "13:15",
+          "theme": "green",
+          "badge": "Cycle-Safe ✓",
+          "title": "Safe Nanny Shift Fuel",
+          "summary": "Clean, room-temperature basmati rice and prawns digest rapidly with zero garlic or onion. Low-FODMAP and easy on sluggish luteal transit.",
+          "topTip": "Take out of lunchbox 20 mins before eating so it warms to room temperature.",
+          "isSafe": true,
+          "cycleDay": 22,
+          "cyclePhase": "luteal"
+        }
+      ]
+    },
     "oura_token": ""
   }
 }

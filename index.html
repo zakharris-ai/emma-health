@@ -472,6 +472,106 @@
       </div>
 
       <!-- ============================================================= -->
+      <!-- EMMA'S DAILY FOOD DIARY & GEMINI CYCLE-AWARE LOGGING          -->
+      <!-- ============================================================= -->
+      <div id="foodDiaryCard" class="bg-white rounded-3xl border border-brand-border p-5 sm:p-6 shadow-xs space-y-4">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-brand-border/60 pb-3">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 border border-emerald-200 text-emerald-800 flex items-center justify-center text-lg shadow-2xs shrink-0">
+              🍽️
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <h3 class="font-bold text-sm sm:text-base text-brand-textDark">Emma's Daily Food Diary</h3>
+                <span id="foodDiaryDayPill" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                  <span id="foodDiaryDayPillText">Cycle Day 22 (Luteal)</span>
+                </span>
+              </div>
+              <p class="text-[11px] text-brand-textMuted" id="foodDiaryDateSubtitle">Log today's meals with Gemini's cycle-aware gut feedback</p>
+            </div>
+          </div>
+
+          <!-- Quick Safe Staple Shortcut Pills -->
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-brand-textMuted">Quick Add:</span>
+            <button type="button" onclick="quickLogSafeStaple('prawn_poke')" class="px-2.5 py-1 rounded-xl bg-brand-cream hover:bg-emerald-50 text-brand-textDark border border-brand-border text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
+              <span>🦐 Poke Bowl</span>
+            </button>
+            <button type="button" onclick="quickLogSafeStaple('form_shake')" class="px-2.5 py-1 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
+              <span>🫐 Form Shake</span>
+            </button>
+            <button type="button" onclick="quickLogSafeStaple('jasmine_cod')" class="px-2.5 py-1 rounded-xl bg-brand-cream hover:bg-emerald-50 text-brand-textDark border border-brand-border text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
+              <span>🍚 Rice & Cod</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Add Meal Interactive Box -->
+        <div class="bg-brand-cream/50 rounded-2xl p-4 border border-brand-border space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-bold text-brand-textDark">Log a Meal:</span>
+              <span class="text-[10px] text-brand-textMuted">(Gemini checks if it's safe for your cycle day)</span>
+            </div>
+
+            <!-- Meal Slot Buttons -->
+            <div class="grid grid-cols-4 gap-1 sm:w-80">
+              <button type="button" onclick="selectDiaryMealSlot('breakfast')" id="slotBtn-breakfast" class="diary-slot-btn px-2 py-1 rounded-xl text-xs font-bold border transition-all text-center selected bg-purple-600 text-white border-purple-600 shadow-2xs">
+                🥣 Breakfast
+              </button>
+              <button type="button" onclick="selectDiaryMealSlot('lunch')" id="slotBtn-lunch" class="diary-slot-btn px-2 py-1 rounded-xl text-xs font-bold border transition-all text-center bg-white text-brand-textMuted border-brand-border hover:border-brand-sage">
+                🥗 Lunch
+              </button>
+              <button type="button" onclick="selectDiaryMealSlot('dinner')" id="slotBtn-dinner" class="diary-slot-btn px-2 py-1 rounded-xl text-xs font-bold border transition-all text-center bg-white text-brand-textMuted border-brand-border hover:border-brand-sage">
+                🍲 Dinner
+              </button>
+              <button type="button" onclick="selectDiaryMealSlot('snack')" id="slotBtn-snack" class="diary-slot-btn px-2 py-1 rounded-xl text-xs font-bold border transition-all text-center bg-white text-brand-textMuted border-brand-border hover:border-brand-sage">
+                🍎 Snack
+              </button>
+            </div>
+            <input type="hidden" id="diaryMealSlotInput" value="breakfast">
+          </div>
+
+          <!-- Input Field with Dictation and Analyze Button -->
+          <div class="relative flex items-center">
+            <input type="text" id="diaryMealTextInput" placeholder="Enter meal (e.g. 'Prawn poke bowl with sushi rice', 'Oddono\'s banana sorbet', 'Spaghetti bolognese')..." class="w-full text-xs pl-3.5 pr-32 py-2.5 bg-white border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium shadow-2xs" onkeydown="if(event.key === 'Enter') analyzeAndAddDiaryMeal()">
+            <div class="absolute right-1.5 flex items-center space-x-1">
+              <button type="button" onclick="startDiaryVoiceInput()" id="diaryVoiceBtn" class="p-1.5 rounded-lg text-slate-400 hover:text-purple-700 hover:bg-purple-50 transition-all" title="Speak Meal">
+                <i data-lucide="mic" class="w-3.5 h-3.5" id="diaryMicIcon"></i>
+              </button>
+              <button type="button" onclick="analyzeAndAddDiaryMeal()" id="diarySubmitBtn" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg text-xs font-bold transition-all shadow-2xs flex items-center gap-1 active:scale-95">
+                <i data-lucide="sparkles" class="w-3 h-3 text-purple-200"></i>
+                <span>Check & Log</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- In-Line Interactive Gemini Analysis Result Card (Shows Safe vs Caution + Confirm/Log Anyway Buttons) -->
+          <div id="diaryAnalysisCard" class="hidden p-3.5 rounded-2xl border transition-all space-y-2.5">
+            <!-- Dynamically populated via app.js -->
+          </div>
+        </div>
+
+        <!-- Meals Logged Today List -->
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between text-xs border-b border-brand-border/40 pb-1.5">
+            <span class="font-bold text-brand-textDark flex items-center gap-1.5">
+              <span>📋 Meals Logged Today</span>
+              <span id="diaryCountPill" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">0 meals</span>
+            </span>
+            <span id="diaryStatsNotice" class="text-[10px] text-brand-textMuted"></span>
+          </div>
+
+          <!-- List Items Container -->
+          <div id="diaryItemsList" class="space-y-2">
+            <!-- Dynamically populated by renderFoodDiaryUI() -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================= -->
       <!-- EMMA'S PERSONAL MEAL & RECIPE GUIDE (BY CYCLE PHASE)         -->
       <!-- ============================================================= -->
       <div id="mealGuideCard" class="bg-white rounded-3xl border border-brand-border p-5 sm:p-6 shadow-xs space-y-4 transition-all">
