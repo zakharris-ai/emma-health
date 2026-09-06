@@ -1419,14 +1419,117 @@ function closeCalendarPickerModal() {
   }
 }
 
-// Specialist Bayesian Cycle Diagnostics Modal Handlers
+// Emma's Calm Cycle & Tummy Guide (ADHD-Friendly) Modal Handlers
 function openBayesianModal() {
   const modal = document.getElementById('specialistBayesianModal');
   if (modal) {
     modal.classList.remove('hidden');
+    renderSimplifiedCycleModal();
     renderSpecialistTrackingUI();
     if (window.lucide && typeof lucide.createIcons === 'function') {
       lucide.createIcons();
+    }
+  }
+}
+
+function renderSimplifiedCycleModal() {
+  const info = getCycleInfoForDate(activeDateStr);
+  const todayStr = getTodayISOString();
+
+  // Date display
+  const dateDisp = document.getElementById('cycleModalDateDisplay');
+  if (dateDisp) {
+    dateDisp.innerText = activeDateStr === todayStr ? "Today" : info.displayDate;
+  }
+
+  // Day pill
+  const dayEl = document.getElementById('cycleModalDay');
+  if (dayEl) {
+    dayEl.innerText = `Cycle Day ${info.cycleDay}`;
+  }
+
+  // Phase pill
+  const phaseEl = document.getElementById('cycleModalPhase');
+  if (phaseEl) {
+    if (info.phase === 'luteal') {
+      phaseEl.innerText = info.cycleDay >= 20 && info.cycleDay <= 23 ? "Mid-Luteal Peak" : (info.cycleDay < 20 ? "Early-Mid Luteal" : "Late Luteal");
+      phaseEl.className = "font-black text-sm text-rose-700";
+    } else if (info.phase === 'follicular') {
+      phaseEl.innerText = "Follicular Phase";
+      phaseEl.className = "font-black text-sm text-emerald-700";
+    } else {
+      phaseEl.innerText = "Ovulation Window";
+      phaseEl.className = "font-black text-sm text-amber-700";
+    }
+  }
+
+  // Hormone pill
+  const hormoneEl = document.getElementById('cycleModalHormone');
+  if (hormoneEl) {
+    if (info.phase === 'luteal') {
+      if (info.cycleDay >= 20 && info.cycleDay <= 23) {
+        hormoneEl.innerText = "Progesterone Peak";
+      } else if (info.cycleDay < 20) {
+        hormoneEl.innerText = "Progesterone Rising";
+      } else {
+        hormoneEl.innerText = "Progesterone Dropping";
+      }
+    } else if (info.phase === 'follicular') {
+      hormoneEl.innerText = "Estrogen Dominant";
+    } else {
+      hormoneEl.innerText = "LH / Estrogen Surge";
+    }
+  }
+
+  // 4-Phase Stepper Highlights
+  const stepFoll = document.getElementById('cycleStepFollicular');
+  const stepOvu = document.getElementById('cycleStepOvulation');
+  const stepLut = document.getElementById('cycleStepLuteal');
+  const stepReset = document.getElementById('cycleStepReset');
+
+  // Reset base styles
+  [stepFoll, stepOvu, stepLut, stepReset].forEach(s => {
+    if (s) {
+      s.className = "p-2 rounded-xl bg-white/70 border border-slate-200/80 transition-all";
+    }
+  });
+
+  if (info.cycleDay >= 27 || info.cycleDay <= 2) {
+    if (stepReset) stepReset.className = "p-2 rounded-xl bg-sky-50 border-2 border-sky-500 shadow-xs transition-all";
+  } else if (info.phase === 'follicular') {
+    if (stepFoll) stepFoll.className = "p-2 rounded-xl bg-emerald-50 border-2 border-emerald-500 shadow-xs transition-all";
+  } else if (info.phase === 'ovulation') {
+    if (stepOvu) stepOvu.className = "p-2 rounded-xl bg-amber-50 border-2 border-amber-500 shadow-xs transition-all";
+  } else {
+    // Luteal
+    if (stepLut) stepLut.className = "p-2 rounded-xl bg-purple-50 border-2 border-purple-500 shadow-xs transition-all";
+  }
+
+  // Reset countdown
+  const resetBadge = document.getElementById('cycleModalResetBadge');
+  const resetExp = document.getElementById('cycleModalResetExplanation');
+  const daysLeft = Math.max(1, 28 - info.cycleDay);
+
+  if (resetBadge) {
+    if (info.phase === 'luteal') {
+      resetBadge.innerText = `~${daysLeft} Day${daysLeft === 1 ? '' : 's'} Left`;
+      resetBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900";
+    } else if (info.phase === 'follicular') {
+      resetBadge.innerText = `In ~${Math.max(1, 14 - info.cycleDay)} Days`;
+      resetBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 text-blue-900";
+    } else {
+      resetBadge.innerText = `In ~1–2 Days`;
+      resetBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900";
+    }
+  }
+
+  if (resetExp) {
+    if (info.phase === 'luteal') {
+      resetExp.innerHTML = `Around <strong>September 13–15</strong>, your corpus luteum naturally winds down, progesterone plunges, and your body flushes out the retained water. Remember August 21st? You woke up and wrote: <em>"Inflammation all gone, 98% back to me!"</em> That same relief will happen again. It always passes.`;
+    } else if (info.phase === 'follicular') {
+      resetExp.innerHTML = `You are currently in your high-energy follicular phase. Estrogen is supporting fast, comfortable digestion and steady dopamine. Enjoy this window!`;
+    } else {
+      resetExp.innerHTML = `You are in your ovulation window. Gentle twinges or lower tummy sensitivity are normal as the follicle ruptures. Keep meals warm and soothing.`;
     }
   }
 }

@@ -227,7 +227,7 @@
                 <span id="heroResetCountdown">Cycle Reset: <strong class="text-brand-textDark">Sep 13–15</strong> (~7–9 days)</span>
               </div>
               <button type="button" onclick="openBayesianModal()" class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 text-[10px] font-bold transition-all shadow-2xs active:scale-95">
-                <span>🧬 Cycle Details ↗</span>
+                <span>🌸 Emma's Cycle Guide ↗</span>
               </button>
             </div>
           </div>
@@ -2164,162 +2164,186 @@
   </div>
 
   <!-- ============================================================= -->
-  <!-- MODAL: SPECIALIST BAYESIAN CYCLE DIAGNOSTIC & CONFIDENCE      -->
+  <!-- MODAL: EMMA'S CALM CYCLE & TUMMY GUIDE (ADHD-FRIENDLY)        -->
   <!-- ============================================================= -->
   <div id="specialistBayesianModal" onclick="if(event.target === this) closeBayesianModal()" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn">
-    <div class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-7 space-y-5 shadow-2xl border border-brand-border max-h-[90vh] flex flex-col justify-between overflow-hidden">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-brand-border max-h-[90vh] flex flex-col justify-between overflow-hidden">
       
-      <!-- Modal Header -->
-      <div class="flex items-start justify-between border-b border-brand-border pb-3.5">
+      <!-- Modal Header: Warm, Calm & Validating -->
+      <div class="flex items-start justify-between border-b border-brand-border/60 pb-3">
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-2xl bg-purple-50 text-purple-700 border border-purple-200 flex items-center justify-center text-xl shadow-2xs">
-            🧬
+          <div class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-800 border border-purple-200 flex items-center justify-center text-xl shadow-2xs shrink-0">
+            🌸
           </div>
           <div>
             <h3 class="font-bold text-base sm:text-lg text-brand-textDark flex items-center gap-2">
-              <span>Specialist Bayesian Cycle Diagnostic</span>
-              <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">Clinical Notes Engine</span>
+              <span>Emma's Cycle & Tummy Guide</span>
+              <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">Calm & Simple</span>
             </h3>
-            <p class="text-xs text-brand-textMuted">Mathematical analysis grounded 100% in Emma's written diary notes, gut motility & Mirena endocrinology (Zero synthetic data)</p>
+            <p class="text-xs text-brand-textMuted">Where your body is today, why it feels this way, and when it resets.</p>
           </div>
         </div>
-        <button type="button" onclick="closeBayesianModal()" class="w-8 h-8 rounded-full bg-brand-cream hover:bg-brand-border text-brand-textMuted flex items-center justify-center transition-all active:scale-95">
+        <button type="button" onclick="closeBayesianModal()" class="w-8 h-8 rounded-full bg-brand-cream hover:bg-brand-border text-brand-textMuted flex items-center justify-center transition-all active:scale-95 shrink-0" aria-label="Close">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
       <!-- Scrollable Modal Body -->
-      <div class="space-y-4 overflow-y-auto pr-1 flex-1 no-scrollbar text-xs leading-relaxed">
+      <div class="space-y-3.5 overflow-y-auto pr-1 flex-1 no-scrollbar text-xs leading-relaxed">
         
-        <!-- 1. Executive Prediction Banner -->
-        <div class="p-4 rounded-2xl bg-gradient-to-r from-purple-50 via-rose-50/50 to-brand-cream border border-purple-200/70 space-y-2.5">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-purple-900">Maximum A Posteriori (MAP) Estimation</span>
-            <span class="px-2.5 py-0.5 rounded-full bg-purple-600 text-white font-black text-xs shadow-2xs">94.8% Days 17–19 Confidence</span>
+        <!-- 1. TODAY AT A GLANCE (Card) -->
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-purple-50 via-rose-50/40 to-amber-50/40 border border-purple-200/80 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-extrabold text-purple-900 flex items-center gap-1.5">
+              <span>📍</span> <span>Today at a Glance</span>
+            </span>
+            <span id="cycleModalDateDisplay" class="text-[10px] font-bold text-brand-textMuted">Today</span>
           </div>
-          
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
-            <div class="bg-white/90 p-2.5 rounded-xl border border-purple-100">
-              <span class="text-[10px] text-brand-textMuted block">Calculated Day:</span>
-              <span class="font-extrabold text-sm text-brand-textDark">Cycle Day 19 (54.2%)</span>
-              <span class="text-[10px] text-purple-600 block font-semibold">Post-Ovulation Day 4</span>
+
+          <!-- 3 Quick Highlight Pills -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div class="bg-white/90 p-2.5 rounded-xl border border-purple-100 shadow-2xs">
+              <span class="text-[10px] text-brand-textMuted block font-medium">Cycle Day:</span>
+              <span id="cycleModalDay" class="font-black text-sm text-brand-textDark">Cycle Day 19</span>
+              <span class="text-[10px] text-purple-700 block font-semibold">Post-Ovulation</span>
             </div>
-            <div class="bg-white/90 p-2.5 rounded-xl border border-purple-100">
-              <span class="text-[10px] text-brand-textMuted block">Verified Phase:</span>
-              <span class="font-extrabold text-sm text-rose-700">Early-Mid Luteal Ramp</span>
-              <span class="text-[10px] text-brand-textMuted block">92.4% Luteal Certainty</span>
+            <div class="bg-white/90 p-2.5 rounded-xl border border-purple-100 shadow-2xs">
+              <span class="text-[10px] text-brand-textMuted block font-medium">Current Phase:</span>
+              <span id="cycleModalPhase" class="font-black text-sm text-rose-700">Luteal Phase</span>
+              <span class="text-[10px] text-brand-textMuted block font-medium">Cozy & Slower Gut</span>
             </div>
-            <div class="bg-white/90 p-2.5 rounded-xl border border-purple-100 col-span-2 sm:col-span-1">
-              <span class="text-[10px] text-brand-textMuted block">Progesterone Wave:</span>
-              <span class="font-extrabold text-sm text-brand-amber">Actively Rising</span>
-              <span class="text-[10px] text-brand-textMuted block">Peak in 2–4 days (D21–23)</span>
+            <div class="bg-white/90 p-2.5 rounded-xl border border-purple-100 shadow-2xs col-span-2 sm:col-span-1">
+              <span class="text-[10px] text-brand-textMuted block font-medium">Hormone State:</span>
+              <span id="cycleModalHormone" class="font-black text-sm text-amber-700">Progesterone High</span>
+              <span class="text-[10px] text-brand-textMuted block font-medium">Fluid retention & relaxation</span>
+            </div>
+          </div>
+
+          <!-- Visual 4-Step Cycle Stepper (ADHD Friendly: Visual, Intuitive, No Numbers Overload) -->
+          <div class="pt-1">
+            <span class="text-[10px] font-bold text-brand-textMuted block mb-1.5">Your 4-Stage Natural Rhythm:</span>
+            <div class="grid grid-cols-4 gap-1.5 text-center">
+              <div id="cycleStepFollicular" class="p-2 rounded-xl bg-white/70 border border-slate-200/80 transition-all">
+                <span class="text-sm block">🌿</span>
+                <span class="text-[10px] font-bold block text-brand-textDark">Follicular</span>
+                <span class="text-[9px] text-brand-textMuted block">Days 1–13</span>
+                <span class="text-[8px] text-emerald-700 font-semibold block mt-0.5">Fast & light</span>
+              </div>
+              <div id="cycleStepOvulation" class="p-2 rounded-xl bg-white/70 border border-slate-200/80 transition-all">
+                <span class="text-sm block">✨</span>
+                <span class="text-[10px] font-bold block text-brand-textDark">Ovulation</span>
+                <span class="text-[9px] text-brand-textMuted block">Days 14–16</span>
+                <span class="text-[8px] text-purple-700 font-semibold block mt-0.5">Peak glow</span>
+              </div>
+              <div id="cycleStepLuteal" class="p-2 rounded-xl bg-purple-50 border-2 border-purple-500 shadow-xs transition-all">
+                <span class="text-sm block">🌸</span>
+                <span class="text-[10px] font-black block text-purple-900">Luteal 📍</span>
+                <span class="text-[9px] text-purple-700 font-bold block">Days 17–28</span>
+                <span class="text-[8px] text-rose-700 font-black block mt-0.5">You are here</span>
+              </div>
+              <div id="cycleStepReset" class="p-2 rounded-xl bg-white/70 border border-slate-200/80 transition-all">
+                <span class="text-sm block">💧</span>
+                <span class="text-[10px] font-bold block text-brand-textDark">Reset</span>
+                <span class="text-[9px] text-brand-textMuted block">Pre-Period</span>
+                <span class="text-[8px] text-sky-700 font-semibold block mt-0.5">Bloat drains</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- 2. Critical Stage Misconception Correction -->
-        <div class="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-amber-900 space-y-1.5">
-          <div class="flex items-center space-x-1.5 font-bold text-xs text-amber-800">
-            <span>⚠️</span>
-            <span>Specialist Clinical Clarification: Emma is NOT in Late Luteal yet</span>
+        <!-- 2. ADHD SENSORY & TUMMY REASSURANCE (The Most Important Card for Emma!) -->
+        <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-2.5">
+          <div class="flex items-center space-x-1.5 font-bold text-xs text-amber-900">
+            <span>🧠</span>
+            <span>Why Your Tummy, Trousers & Head Feel Like This Today</span>
           </div>
-          <p class="text-[11px] text-amber-900/90 leading-normal">
-            Emma noted today that Gemini predicted <em>"Late Luteal (Progesterone Peak)"</em>. <strong>Biologically, Emma is on Day 4 Post-Ovulation.</strong> Following ovulation on Sept 2nd (marked by her 10am and post-dinner cramps), progesterone is still in its active upward ramp. The true corpus luteum peak occurs on <strong>Days 21–23 (Sept 8–10)</strong>, and late luteal (the pre-reset progesterone drop) does not arrive until <strong>Sept 13–15</strong>. Emma's bloating today is the normal deceleration of bowel motility caused by rising progesterone, not a late-phase crash!
+
+          <div class="space-y-2 text-[11px] text-amber-950/90 leading-relaxed">
+            <div class="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-amber-200/60">
+              <span class="text-sm shrink-0">👖</span>
+              <div>
+                <strong class="text-brand-textDark block font-bold">Why your trousers / bottoms feel tight:</strong>
+                <p class="text-brand-textMuted">This is <strong>NOT body fat and you haven't gained weight</strong>. Progesterone naturally relaxes your intestinal smooth muscle (so your bowel moves slower) and signals your kidneys to hold 1–2 kg of harmless fluid. It is 100% temporary biology.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-amber-200/60">
+              <span class="text-sm shrink-0">🧠</span>
+              <div>
+                <strong class="text-brand-textDark block font-bold">Why your ADHD brain won't stop hyper-focusing on it:</strong>
+                <p class="text-brand-textMuted">When progesterone rises and dopamine dips, your sensory filter relaxes. A waistband or tummy pressure feels <strong>10x louder</strong> to your nervous system than usual. You're not being dramatic—your brain is experiencing real sensory magnification. <em>Permission granted to wear your softest, stretchiest bottoms all day today!</em></p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2 bg-white/80 p-2.5 rounded-xl border border-amber-200/60">
+              <span class="text-sm shrink-0">🫁</span>
+              <div>
+                <strong class="text-brand-textDark block font-bold">Why there's trapped air or fullness under your ribs:</strong>
+                <p class="text-brand-textMuted">Because transit is slower, gas moves sluggishly past the left rib bend (splenic flexure). Doing a quick 3-minute diaphragmatic release helps your belly expand outwards naturally without pushing up into your chest.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. WHEN YOUR TUMMY WILL RESET (Reassuring Countdown) -->
+        <div class="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-1.5 font-bold text-xs text-emerald-900">
+              <span>🗓️</span>
+              <span>When Your Tummy Will Reset</span>
+            </div>
+            <span id="cycleModalResetBadge" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900">
+              ~7–8 Days Left
+            </span>
+          </div>
+          <p id="cycleModalResetExplanation" class="text-[11px] text-emerald-950/90 leading-relaxed">
+            Around <strong>September 13–15</strong>, your corpus luteum naturally winds down, progesterone plunges, and your body flushes out the retained water. Remember August 21st? You woke up and wrote: <em>"Inflammation all gone, 98% back to me!"</em> That same relief will happen again. It always passes.
           </p>
         </div>
 
-        <!-- 3. Bayesian Probability Distribution Graph -->
-        <div class="bg-white p-3.5 rounded-2xl border border-brand-border space-y-2.5">
-          <span class="font-bold text-xs text-brand-textDark block">Bayesian Posterior Distribution (Grounded in Diary Milestones)</span>
-          <div class="space-y-2">
-            <div>
-              <div class="flex justify-between text-[11px] mb-1 font-semibold">
-                <span class="text-brand-textDark">Cycle Day 19 (Bloat Anchor: Aug 19)</span>
-                <span class="font-bold text-purple-700">54.2%</span>
-              </div>
-              <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                <div class="bg-purple-600 h-full rounded-full transition-all duration-700" style="width: 54.2%"></div>
-              </div>
-            </div>
-            <div>
-              <div class="flex justify-between text-[11px] mb-1 font-semibold">
-                <span class="text-brand-textDark">Cycle Day 18 (Intermediate Transition: Aug 20)</span>
-                <span class="text-slate-600 font-bold">24.1%</span>
-              </div>
-              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div class="bg-purple-400 h-full rounded-full transition-all duration-700" style="width: 24.1%"></div>
-              </div>
-            </div>
-            <div>
-              <div class="flex justify-between text-[11px] mb-1 font-semibold">
-                <span class="text-brand-textDark">Cycle Day 17 (Relief / 35.86°C Nadir: Aug 21)</span>
-                <span class="text-slate-600 font-bold">16.5%</span>
-              </div>
-              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div class="bg-purple-300 h-full rounded-full transition-all duration-700" style="width: 16.5%"></div>
-              </div>
-            </div>
-            <div>
-              <div class="flex justify-between text-[11px] mb-1 font-semibold">
-                <span class="text-brand-textMuted">Other Days (Delayed Ovulation / Irregularity Margin)</span>
-                <span class="text-slate-400">5.2%</span>
-              </div>
-              <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                <div class="bg-slate-300 h-full rounded-full" style="width: 5.2%"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- 4. THREE CALM ACTIONS FOR TODAY (Zero Friction) -->
+        <div class="p-3.5 rounded-2xl bg-white border border-brand-border space-y-2.5">
+          <span class="font-bold text-xs text-brand-textDark flex items-center gap-1.5">
+            <span>✨</span> <span>Emma's 3 Calm Non-Negotiables for Today</span>
+          </span>
 
-        <!-- 4. Four Authentic Diary Clinical Evidence Signals -->
-        <div class="space-y-2">
-          <span class="font-bold text-xs text-brand-textDark block">Four Real-World Clinical Milestones in Emma's Notes</span>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            
-            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-brand-textDark flex items-center gap-1">
-                  <span>⚡</span>
-                  <span>Mittelschmerz Ovulation (Sept 2)</span>
-                </span>
-                <span class="text-[10px] font-extrabold text-rose-600">P &gt; 95%</span>
+          <div class="space-y-2 text-[11px]">
+            <div class="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100 flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2">
+                <span class="text-sm shrink-0">💊</span>
+                <div>
+                  <span class="font-bold text-purple-950 block">1. Morning Linaclotide Routine</span>
+                  <span class="text-brand-textMuted block">Take on an empty stomach with 400ml water, then wait 30–40 mins before eating so it binds properly.</span>
+                </div>
               </div>
-              <p class="text-[10px] text-brand-textMuted">Emma noted: "Really sore lower tummy & cramps at 10am and after dinner. Flat/edgy/anxious." Classic peritoneal follicular rupture and acute LH/estrogen dopamine drop 4 days ago.</p>
+              <div class="shrink-0 flex flex-col items-end gap-1">
+                <span id="fastingStopwatchDisplay" class="text-xs font-mono font-extrabold text-purple-900 bg-white px-2 py-0.5 rounded-lg border border-purple-200 shadow-2xs">40:00</span>
+                <button id="btnFastingStopwatch" type="button" onclick="toggleFastingStopwatch()" class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white shadow-2xs active:scale-95 transition-all">
+                  Start Timer
+                </button>
+              </div>
             </div>
 
-            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-brand-textDark flex items-center gap-1">
-                  <span>🐢</span>
-                  <span>Colonic Motility Deceleration</span>
-                </span>
-                <span class="text-[10px] font-extrabold text-amber-600">Luteal Marker</span>
+            <div class="p-2.5 rounded-xl bg-rose-50/50 border border-rose-100 flex items-start gap-2">
+              <span class="text-sm shrink-0">🧘‍♀️</span>
+              <div>
+                <span class="font-bold text-rose-950 block">2. Gentle Movement & Sensory-Friendly Bottoms</span>
+                <span class="text-brand-textMuted block">Wear soft, stretchy trousers today. Do 45–60 mins of gentle walking or reformer pilates to stimulate gut peristalsis without cortisol.</span>
               </div>
-              <p class="text-[10px] text-brand-textMuted">Sept 3: Liquid bypass at 8:15am. Sept 4: Bloat from 3pm. Sept 6: Gassy/burpy, tired & flat. Direct physical proof of progesterone relaxing intestinal smooth muscle.</p>
             </div>
 
-            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-brand-textDark flex items-center gap-1">
-                  <span>🌿</span>
-                  <span>Relief Reset & Temp Nadir (Aug 21)</span>
-                </span>
-                <span class="text-[10px] font-extrabold text-brand-sage">35.86°C Oral</span>
+            <div class="p-2.5 rounded-xl bg-teal-50/50 border border-teal-100 flex items-start justify-between gap-2">
+              <div class="flex items-start gap-2">
+                <span class="text-sm shrink-0">🍲</span>
+                <div>
+                  <span class="font-bold text-teal-950 block">3. Warm Cooked Safe Meals & 3-Min Diaphragm Reset</span>
+                  <span class="text-brand-textMuted block">Eat warm, soothing cooked foods (safe chicken, baked sweet potato, warm broth). Take 3 minutes to breathe and let your belly relax.</span>
+                </div>
               </div>
-              <p class="text-[10px] text-brand-textMuted">Emma wrote: "Inflammation all gone! Better, 98% back to me!" Oral temp was 35.86°C. In Mirena amenorrhea, sudden inflammation relief marks the hormonal reset (Day 1 anchor 16–18 days ago).</p>
+              <button type="button" onclick="closeBayesianModal(); openDiaphragmResetModal();" class="shrink-0 text-[10px] font-bold px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white shadow-2xs active:scale-95 transition-all flex items-center gap-1">
+                <span>🫁</span> <span>3-Min Audio</span>
+              </button>
             </div>
-
-            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-brand-textDark flex items-center gap-1">
-                  <span>🏃‍♀️</span>
-                  <span>High-Estrogen Follicular Peak (Aug 30)</span>
-                </span>
-                <span class="text-[10px] font-extrabold text-emerald-600">Follicular</span>
-              </div>
-              <p class="text-[10px] text-brand-textMuted">Emma noted: "High energy, amazing date day with Zak, felt free & relaxed. 5km run, 20,000 steps." Textbook high-estrogen dopamine surge 7 days prior to ovulation.</p>
-            </div>
-
           </div>
         </div>
 
@@ -2327,9 +2351,11 @@
 
       <!-- Modal Footer -->
       <div class="pt-3 border-t border-brand-border/60 flex items-center justify-between text-xs">
-        <span class="text-brand-textMuted text-[10px]">Grounding: 100% Authentic Notes (May–Sept 2026) • Oura Stream Integrates Tomorrow</span>
-        <button type="button" onclick="closeBayesianModal()" class="px-4 py-1.5 rounded-xl bg-brand-textDark text-white font-bold text-xs hover:bg-black transition-all">
-          Close Diagnostics
+        <span class="text-brand-textMuted text-[10px] flex items-center gap-1">
+          <span>💜</span> <span>Personalized for Emma • Zero pressure today</span>
+        </span>
+        <button type="button" onclick="closeBayesianModal()" class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-2xs active:scale-95 transition-all">
+          Got it, thank you 💜
         </button>
       </div>
 
