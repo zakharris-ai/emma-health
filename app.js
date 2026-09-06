@@ -494,6 +494,8 @@ function initApp() {
     renderEmmaMeals();
     renderSpecialistTrackingUI();
     fetchServerDataOnLoad();
+    loadLutealDoubleSetting();
+    renderCycleExercisePrescription();
   }
   triggerLucideIcons();
 }
@@ -1231,6 +1233,11 @@ function applyActiveDate(targetDateStr) {
   // 13. Re-render Emma's Daily Food Diary for active day
   if (typeof renderFoodDiaryUI === 'function') {
     renderFoodDiaryUI();
+  }
+
+  // 14. Re-render Cycle Movement & Class Prescription for active day
+  if (typeof renderCycleExercisePrescription === 'function') {
+    renderCycleExercisePrescription();
   }
 
   triggerLucideIcons();
@@ -3123,6 +3130,11 @@ function openQuickLogModal() {
   selectAlcohol(entry?.alcohol || 'none');
   selectMood(entry?.mood || 'flat');
   selectSexDrive(entry?.sexDrive || 'normal');
+
+  const exerciseInput = document.getElementById('logExercise');
+  if (exerciseInput) {
+    exerciseInput.value = entry?.exercise || '';
+  }
 
   const noteInput = document.getElementById('logNote');
   if (noteInput) {
@@ -5790,6 +5802,369 @@ function showDiaryToast(msg) {
   }, 3000);
 }
 
+// ============================================================================
+// EMMA'S CYCLE MOVEMENT & GEMINI EXERCISE AUDITOR (BITE-SIZED NOTE FORMAT)
+// ============================================================================
+let lutealDoubleDuration = (localStorage.getItem('emma_luteal_double_exercise') !== 'false');
+
+function toggleLutealDoubleDuration() {
+  const toggle = document.getElementById('lutealDoubleToggle');
+  if (toggle) {
+    lutealDoubleDuration = toggle.checked;
+    localStorage.setItem('emma_luteal_double_exercise', lutealDoubleDuration ? 'true' : 'false');
+    renderCycleExercisePrescription();
+    if (lutealDoubleDuration) {
+      showDynamicToast("⏱️ 2x Luteal Duration Active: 60–80m gentle sessions for colonic pumping.");
+    } else {
+      showDynamicToast("Standard Exercise Duration Active (30–45m).");
+    }
+  }
+}
+
+function loadLutealDoubleSetting() {
+  const toggle = document.getElementById('lutealDoubleToggle');
+  if (toggle) {
+    toggle.checked = lutealDoubleDuration;
+  }
+}
+
+function renderCycleExercisePrescription() {
+  const container = document.getElementById('cycleExercisePrescription');
+  const dayPill = document.getElementById('exerciseCycleDayPillText');
+  if (!container) return;
+
+  const cycle = (typeof getCycleInfoForDate === 'function') 
+    ? getCycleInfoForDate(activeDateStr || getTodayISOString()) 
+    : { cycleDay: 19, phase: 'luteal', phaseLabel: 'Late Luteal (Slow Motility)' };
+
+  if (dayPill) {
+    dayPill.innerText = `Cycle Day ${cycle.cycleDay} (${cycle.phase.toUpperCase()})`;
+  }
+
+  const isLuteal = cycle.phase === 'luteal' || cycle.cycleDay >= 17;
+  const isFollicular = cycle.phase === 'follicular' || (cycle.cycleDay >= 6 && cycle.cycleDay <= 13);
+  const isOvulation = cycle.phase === 'ovulation' || (cycle.cycleDay >= 14 && cycle.cycleDay <= 16);
+  const isMenstrual = cycle.phase === 'menstrual' || cycle.cycleDay <= 5;
+
+  let targetDuration = "30–45 mins";
+  let recommendedClasses = "Reformer Pilates, Low-Incline Walking";
+  let gutMechanism = "Gentle rhythmic movement stimulates colonic transit without adrenaline spike.";
+  let avoidNote = "Barry's Bootcamp / vigorous running (shuts off mesenteric bowel perfusion).";
+  let defaultLogPick = "Reformer Pilates & Mobility";
+
+  if (isLuteal) {
+    targetDuration = lutealDoubleDuration 
+      ? "60–80 mins (2x Extended Gentle Mode for Luteal)" 
+      : "30–45 mins";
+    recommendedClasses = "Reformer Stretch & Align, 60m Incline Walk, Low-Impact Barre";
+    gutMechanism = "High progesterone relaxes bowel smooth muscle. Twice-as-long low-intensity steady movement provides continuous lymphatic and colonic pumping with zero cortisol spike.";
+    avoidNote = "Heavy abdominal crunches or HIIT (spikes APD diaphragmatic spasm and splenic flexure gas trapping).";
+    defaultLogPick = lutealDoubleDuration ? "60m Restorative Reformer & Walk" : "30m Gentle Reformer";
+  } else if (isFollicular) {
+    targetDuration = "45–60 mins (Peak Estrogen Power)";
+    recommendedClasses = "Dynamic Reformer, Strength Training (Weights), 5km Tempo Run";
+    gutMechanism = "Rising estrogen accelerates colonic transit and boosts musculoskeletal recovery. You can push higher tempo with confidence!";
+    avoidNote = "Inadequate hydration — remember 400ml water + electrolytes around workouts.";
+    defaultLogPick = "Dynamic Reformer & Strength";
+  } else if (isOvulation) {
+    targetDuration = "45–55 mins (High Energy)";
+    recommendedClasses = "Reformer Strength, Barre, Moderate Running / Outdoor Cardio";
+    gutMechanism = "Peak energy and pain tolerance. Bowel motility is at its monthly baseline peak.";
+    avoidNote = "Over-straining if feeling mild ovulation twinges (Mittelschmerz).";
+    defaultLogPick = "Reformer Strength & Cardio";
+  } else if (isMenstrual) {
+    targetDuration = "25–35 mins (Restorative & Gentle)";
+    recommendedClasses = "Gentle Flat Walk, Yin Yoga, Pelvic Floor Down-Training, Legs-Up-Wall";
+    gutMechanism = "Down-regulates pelvic hypersensitivity and relaxes pelvic floor muscles, supporting morning Linaclotide action.";
+    avoidNote = "High impact jumping, inverted core pikes, heavy barbell lifts.";
+    defaultLogPick = "Restorative Mobility & Walk";
+  }
+
+  container.innerHTML = `
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1 border-b border-brand-border/60">
+      <div class="flex items-center space-x-2">
+        <span class="text-sm">📋</span>
+        <h4 class="text-xs sm:text-sm font-bold text-brand-textDark">
+          Today's Movement Protocol (Note Format)
+        </h4>
+      </div>
+      <button type="button" onclick="logSpecificExerciseDirectly('${defaultLogPick}')" class="px-2.5 py-1 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-[10px] shadow-2xs active:scale-95 transition-all flex items-center gap-1 self-start sm:self-auto">
+        <span>✓ Log "${defaultLogPick}"</span>
+      </button>
+    </div>
+
+    <!-- Bite-Sized Bullet Notes -->
+    <div class="space-y-1.5 text-xs text-brand-textDark pt-1">
+      <div class="flex items-start gap-1.5">
+        <span class="text-purple-600 font-bold leading-tight">•</span>
+        <div><strong class="text-purple-950 font-bold">Target Duration:</strong> <span class="text-purple-900 font-semibold">${targetDuration}</span></div>
+      </div>
+      <div class="flex items-start gap-1.5">
+        <span class="text-purple-600 font-bold leading-tight">•</span>
+        <div><strong class="text-brand-textDark font-bold">Recommended Classes:</strong> <span class="text-slate-800">${recommendedClasses}</span></div>
+      </div>
+      <div class="flex items-start gap-1.5">
+        <span class="text-purple-600 font-bold leading-tight">•</span>
+        <div><strong class="text-emerald-900 font-bold">Gut & APD Physiology:</strong> <span class="text-emerald-950/90">${gutMechanism}</span></div>
+      </div>
+      <div class="flex items-start gap-1.5">
+        <span class="text-rose-500 font-bold leading-tight">•</span>
+        <div><strong class="text-rose-950 font-bold">Avoid / Caution:</strong> <span class="text-rose-900">${avoidNote}</span></div>
+      </div>
+    </div>
+  `;
+
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
+}
+
+function quickSelectClass(className) {
+  const input = document.getElementById('exerciseQueryInput');
+  if (input) {
+    input.value = className;
+    auditExerciseWithGemini(className);
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+async function auditExerciseWithGemini(overrideQuery) {
+  const input = document.getElementById('exerciseQueryInput');
+  const query = (overrideQuery || input?.value || '').trim();
+  if (!query) {
+    showDynamicToast("Please enter or tap a class to analyze!");
+    if (input) input.focus();
+    return;
+  }
+
+  const container = document.getElementById('exerciseAuditResultContainer');
+  if (!container) return;
+
+  const cycle = (typeof getCycleInfoForDate === 'function') 
+    ? getCycleInfoForDate(activeDateStr || getTodayISOString()) 
+    : { cycleDay: 19, phase: 'luteal', phaseLabel: 'Late Luteal (Slow Motility)' };
+
+  // Show thinking state
+  container.classList.remove('hidden');
+  container.innerHTML = `
+    <div class="p-4 rounded-2xl bg-gradient-to-r from-purple-50 via-indigo-50 to-purple-50 border border-purple-200/90 flex items-center space-x-3 shadow-2xs animate-pulse">
+      <div class="w-7 h-7 rounded-xl bg-purple-600 text-white flex items-center justify-center text-xs shrink-0 shadow-2xs animate-spin">
+        ✨
+      </div>
+      <div class="space-y-0.5">
+        <div class="text-xs font-bold text-purple-950">Gemini 3.8 Flash is analyzing '${query}'...</div>
+        <div class="text-[10px] text-purple-800/80">Checking splanchnic blood flow, APD diaphragm descent & Cycle Day ${cycle.cycleDay} motility</div>
+      </div>
+    </div>
+  `;
+
+  try {
+    const payload = {
+      query: query,
+      cycleDay: cycle.cycleDay,
+      phase: cycle.phase,
+      phaseLabel: cycle.phaseLabel,
+      lutealDoubleDuration: lutealDoubleDuration,
+      apiKey: (typeof getGeminiApiKey === 'function') ? getGeminiApiKey() : ''
+    };
+
+    const res = await fetch('/api/gemini-exercise-audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    const result = data.data || data;
+
+    renderExerciseAuditCard(result, query, cycle);
+  } catch (err) {
+    console.error("Exercise audit error:", err);
+    container.innerHTML = `
+      <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-2">
+        <div class="font-bold flex items-center gap-1.5">
+          <span>⚠️</span>
+          <span>Offline Motility Rule Applied:</span>
+        </div>
+        <p>In Cycle Day ${cycle.cycleDay} (${cycle.phase}), prioritize low-intensity rhythmic movement (Reformer / 60m incline walk) and avoid high-intensity cardio that diverts mesenteric blood from your colon.</p>
+        <button type="button" onclick="logSpecificExerciseDirectly('${query.replace(/'/g, "\\'")}')" class="px-3 py-1.5 rounded-xl bg-purple-600 text-white font-bold text-xs">
+          ✓ Log "${query}" Anyway
+        </button>
+      </div>
+    `;
+  }
+}
+
+function renderExerciseAuditCard(result, query, cycle) {
+  const container = document.getElementById('exerciseAuditResultContainer');
+  if (!container) return;
+
+  const theme = result.theme || 'green';
+  let borderClass = 'border-emerald-200 bg-emerald-50/40';
+  let badgeClass = 'bg-emerald-100 text-emerald-950 border-emerald-200';
+  let symbol = '✨';
+
+  if (theme === 'amber') {
+    borderClass = 'border-amber-200 bg-amber-50/40';
+    badgeClass = 'bg-amber-100 text-amber-950 border-amber-200';
+    symbol = '⚠️';
+  } else if (theme === 'red') {
+    borderClass = 'border-rose-200 bg-rose-50/40';
+    badgeClass = 'bg-rose-100 text-rose-950 border-rose-200';
+    symbol = '🚫';
+  }
+
+  const notesList = Array.isArray(result.notes) ? result.notes : [result.summary || 'Cycle-adapted movement.'];
+
+  container.classList.remove('hidden');
+  container.innerHTML = `
+    <div class="p-4 rounded-2xl border ${borderClass} shadow-2xs space-y-3">
+      <!-- Title & Badge -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-brand-border/60 pb-2.5">
+        <div class="flex items-start space-x-2.5">
+          <span class="text-base mt-0.5">${symbol}</span>
+          <div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <h4 class="text-xs sm:text-sm font-bold text-brand-textDark">${result.className || query}</h4>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeClass}">
+                ${result.badge || 'Cycle Motility Evaluation'}
+              </span>
+            </div>
+            ${result.durationNote ? `
+              <span class="text-[10px] text-purple-900 font-extrabold block mt-0.5">
+                ⏱️ Target Duration: ${result.durationNote}
+              </span>
+            ` : ''}
+          </div>
+        </div>
+
+        <button type="button" onclick="logSpecificExerciseDirectly('${(result.className || query).replace(/'/g, "\\'")}')" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-2xs active:scale-95 transition-all flex items-center gap-1 self-start sm:self-auto">
+          <span>✓ Log Class to Today</span>
+        </button>
+      </div>
+
+      <!-- Notes in Note Format -->
+      <div class="space-y-1.5 p-3 rounded-xl bg-white/80 border border-brand-border/60 text-xs">
+        <span class="text-[9px] font-extrabold uppercase tracking-wider text-brand-textMuted block mb-1">Clinical Notes (Cycle Day ${cycle.cycleDay}):</span>
+        ${notesList.map(n => `
+          <div class="flex items-start gap-1.5">
+            <span class="text-purple-600 font-bold leading-tight">•</span>
+            <span class="text-brand-textDark">${n.replace(/^[•\s]+/, '')}</span>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- Tags -->
+      ${result.tags && result.tags.length > 0 ? `
+        <div class="flex items-center gap-1 flex-wrap pt-0.5">
+          ${result.tags.map(t => `<span class="px-2 py-0.5 rounded-md bg-purple-50 text-purple-800 border border-purple-200 text-[10px] font-semibold">${t}</span>`).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
+}
+
+function logSpecificExerciseDirectly(exerciseText) {
+  const dStr = activeDateStr || getTodayISOString();
+  let entry = logs.find(l => l.date === dStr);
+
+  if (entry) {
+    entry.exercise = exerciseText;
+  } else {
+    const cycleInfo = (typeof getCycleInfoForDate === 'function') ? getCycleInfoForDate(dStr) : { cycleDay: 19, phase: 'luteal', phaseLabel: 'Luteal' };
+    const dateObj = new Date(dStr);
+    const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+    entry = {
+      id: dStr,
+      date: dStr,
+      displayDate: `${dateObj.getDate()}th ${monthNames[dateObj.getMonth()]} ${dateObj.getFullYear()}`,
+      month: monthNames[dateObj.getMonth()],
+      cycleDay: cycleInfo.cycleDay,
+      phase: cycleInfo.phase,
+      phaseLabel: cycleInfo.phaseLabel,
+      exercise: exerciseText,
+      symptoms: `Movement logged: ${exerciseText}`,
+      notes: `Logged via Cycle Movement Planner.`
+    };
+    logs.unshift(entry);
+  }
+
+  saveLogs();
+  renderHistoryLogs();
+  updateDashboardCheckInBadge(entry);
+
+  if (typeof confetti === 'function') {
+    confetti({ particleCount: 30, spread: 60, origin: { y: 0.7 } });
+  }
+  showDynamicToast(`🏃‍♀️ "${exerciseText}" logged to today's check-in!`);
+}
+
+function setQuickLogExercise(val) {
+  const input = document.getElementById('logExercise');
+  if (input) {
+    input.value = val;
+    input.focus();
+  }
+}
+
+function useSuggestedCycleExercise() {
+  const cycle = (typeof getCycleInfoForDate === 'function') 
+    ? getCycleInfoForDate(activeDateStr || getTodayISOString()) 
+    : { cycleDay: 19, phase: 'luteal' };
+
+  let pick = "Reformer Pilates";
+  if (cycle.phase === 'luteal' || cycle.cycleDay >= 17) {
+    pick = lutealDoubleDuration ? "60m Restorative Reformer & Walk" : "30m Gentle Reformer";
+  } else if (cycle.phase === 'follicular') {
+    pick = "Dynamic Reformer & Strength";
+  } else if (cycle.phase === 'ovulation') {
+    pick = "Reformer Strength & Cardio";
+  } else {
+    pick = "Restorative Mobility & Walk";
+  }
+
+  setQuickLogExercise(pick);
+}
+
+function startExerciseVoiceInput() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    showDynamicToast("Speech recognition not supported in this browser.");
+    return;
+  }
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.lang = 'en-GB';
+
+  const micIcon = document.getElementById('exerciseMicIcon');
+  if (micIcon) micIcon.classList.add('text-purple-600', 'animate-pulse');
+
+  recognition.onresult = (event) => {
+    const text = event.results[0][0].transcript;
+    const input = document.getElementById('exerciseQueryInput');
+    if (input) {
+      input.value = text;
+      auditExerciseWithGemini(text);
+    }
+    if (micIcon) micIcon.classList.remove('text-purple-600', 'animate-pulse');
+  };
+
+  recognition.onerror = () => {
+    if (micIcon) micIcon.classList.remove('text-purple-600', 'animate-pulse');
+  };
+
+  recognition.onend = () => {
+    if (micIcon) micIcon.classList.remove('text-purple-600', 'animate-pulse');
+  };
+
+  recognition.start();
+}
+
 function handleQuickLogSubmit(e) {
   e.preventDefault();
   
@@ -5809,6 +6184,7 @@ function handleQuickLogSubmit(e) {
   const alcoholVal = document.getElementById('logAlcohol')?.value || selectedAlcoholVal || 'none';
   const moodVal = document.getElementById('logMood')?.value || selectedMoodVal || 'flat';
   const sexDriveVal = document.getElementById('logSexDrive')?.value || selectedSexDriveVal || 'normal';
+  const exerciseVal = document.getElementById('logExercise')?.value?.trim() || 'Gentle';
   const noteVal = document.getElementById('logNote')?.value?.trim() || '';
 
   let puffinessArr = Array.from(selectedTags);
@@ -5873,7 +6249,7 @@ function handleQuickLogSubmit(e) {
     alcohol: alcoholVal,
     symptoms: noteVal || (movementText !== 'None' ? movementText : "Daily check-in logged"),
     medNotes: fastingVal === 'kept_40' ? "Morning Linaclotide taken with 40-min fast" : (fastingVal === 'broke_early' ? "Linaclotide taken (fast broken early)" : "Linaclotide skipped"),
-    exercise: "Gentle",
+    exercise: exerciseVal,
     notes: noteVal || "Saved via Emma's Unified Daily Check-In."
   };
 

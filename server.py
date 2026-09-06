@@ -185,6 +185,152 @@ def call_gemini_api(api_key, payload, model=PRIMARY_MODEL, timeout=25):
         raise last_err
     raise RuntimeError("No Gemini model succeeded")
 
+def generate_autonomous_exercise_audit(query, cycle_day, phase, luteal_double=True):
+    q = (query or "").lower().strip()
+    try:
+        c_day = int(cycle_day)
+    except Exception:
+        c_day = 19
+    p = (phase or "luteal").lower()
+
+    is_luteal = "luteal" in p or c_day >= 17
+    is_follicular = "follicular" in p or (6 <= c_day <= 13)
+    is_ovulation = "ovulation" in p or (14 <= c_day <= 16)
+    is_menstrual = "menstrual" in p or (1 <= c_day <= 5)
+
+    is_hiit = any(k in q for k in ["barry", "hiit", "sprint", "bootcamp", "crossfit", "spin", "interval", "intense run", "speed"])
+    is_reformer = any(k in q for k in ["reformer", "pilates", "barre", "mat"])
+    is_walk = any(k in q for k in ["walk", "incline", "steps", "stroll", "treadmill"])
+    is_strength = any(k in q for k in ["strength", "weight", "lift", "gym", "squat", "deadlift"])
+    is_yoga = any(k in q for k in ["yoga", "stretch", "mobility", "yin", "breathe", "recovery"])
+
+    clean_name = query.title() if query else "Cycle Movement Session"
+
+    if is_hiit:
+        if is_luteal or is_menstrual:
+            return {
+                "theme": "red",
+                "className": clean_name,
+                "badge": "Caution: High APD & Sympathetic Risk",
+                "durationNote": "Not recommended today — Swap to gentle movement",
+                "notes": [
+                    f"• Intense cardio triggers splanchnic vasoconstriction, diverting blood away from your colon when progesterone already slows transit (Day {c_day}).",
+                    "• Cortisol surge spikes Abdomino-Phrenic Dyssynergia (APD), pushing your diaphragm down and causing severe splenic flexure gas trapping.",
+                    "• Recommended Swap: 60 min low-incline restorative walk or gentle reformer flow."
+                ],
+                "summary": f"Intense cardio diverts mesenteric blood from bowel in Day {c_day} luteal. Swap to extended gentle walking.",
+                "tags": ["High Autonomic Load", "APD Trigger", "Swap Recommended"]
+            }
+        else:
+            return {
+                "theme": "amber",
+                "className": clean_name,
+                "badge": "Permitted in Peak Estrogen — Zone Hydration",
+                "durationNote": "35–45 mins maximum",
+                "notes": [
+                    f"• Peak estrogen on Day {c_day} supports muscle power and faster baseline transit.",
+                    "• Keep hydration high: drink 400ml water + electrolytes before and immediately after.",
+                    "• Stop if you feel diaphragm or left rib tightness."
+                ],
+                "summary": f"Permitted during high-estrogen Day {c_day}. Hydrate with electrolytes and avoid core strain.",
+                "tags": ["Estrogen Boost", "Cardio Tolerated", "Hydration Key"]
+            }
+
+    elif is_reformer:
+        dur = "60–75 mins (2x Extended Gentle Mode for Luteal)" if (is_luteal and luteal_double) else "45–50 mins"
+        return {
+            "theme": "green",
+            "className": clean_name,
+            "badge": "Cycle-Safe & Motility-Boosting ✨",
+            "durationNote": dur,
+            "notes": [
+                f"• Low heart rate (<120 bpm) preserves vital mesenteric blood flow to the colonic mucosa on Day {c_day}.",
+                "• Rhythmic carriage glide and pelvic floor alignment ease splenic flexure gas and prevent APD descent.",
+                "• Modification: Skip heavy sustained isometric crunches or pikes; focus on spinal articulation and deep diaphragmatic breathing."
+            ],
+            "summary": f"Reformer aligns pelvic floor and stimulates peristalsis without cortisol spikes. Ideal for Day {c_day}.",
+            "tags": ["Pelvic Floor Safe", "APD Friendly", "Transit Supportive"]
+        }
+
+    elif is_walk:
+        dur = "60–80 mins (2x Extended Colonic Pumping)" if (is_luteal and luteal_double) else "35–45 mins"
+        return {
+            "theme": "green",
+            "className": clean_name,
+            "badge": "Prime Motility Trigger ✨",
+            "durationNote": dur,
+            "notes": [
+                f"• Upright gentle ambulation provides continuous mechanical gravity assist to the transverse and descending colon on Day {c_day}.",
+                ("• 2x Extended Duration Hack: Longer gentle pacing stimulates lymphatic return without elevating cortisol or triggering sensory magnifications." if (is_luteal and luteal_double) else "• Steady pace keeps vagal parasympathetic tone high."),
+                "• Keep incline gentle (1–3%) to avoid lower back or diaphragm tension."
+            ],
+            "summary": f"Low-intensity walking acts as a natural colonic pump on Day {c_day} with zero gut shock.",
+            "tags": ["LISS", "Lymphatic Flow", "Natural Peristalsis"]
+        }
+
+    elif is_strength:
+        if is_luteal:
+            dur = "45–60 mins (Lighter weights, extended rest)" if luteal_double else "30–40 mins"
+            return {
+                "theme": "amber",
+                "className": clean_name,
+                "badge": "Safe with Luteal Adjustments",
+                "durationNote": dur,
+                "notes": [
+                    f"• Progesterone relaxes ligaments on Day {c_day}; prioritize controlled 60–70% loads over maximal strain.",
+                    "• Strictly avoid the Valsalva maneuver (holding breath while straining) to protect diaphragm from paradoxical descent.",
+                    "• Rest 90–120s between sets to prevent sympathetic adrenaline accumulation."
+                ],
+                "summary": f"Lift with moderate weights and steady nasal breathing. Avoid heavy intra-abdominal pressure on Day {c_day}.",
+                "tags": ["Moderate Load", "Breath Control", "Luteal Adjusted"]
+            }
+        else:
+            return {
+                "theme": "green",
+                "className": clean_name,
+                "badge": "Peak Strength Window ✨",
+                "durationNote": "45–55 mins",
+                "notes": [
+                    f"• Day {c_day} estrogen levels maximize neuromuscular recruitment and recovery.",
+                    "• Full-body compound movements support metabolic rate and gut transit.",
+                    "• Take EAAs post-workout to support muscle recovery without digestive burden."
+                ],
+                "summary": f"Excellent follicular strength window. Hydrate and support with EAAs.",
+                "tags": ["High Capacity", "Neuromuscular Prime", "EAAs Fuel"]
+            }
+
+    elif is_yoga:
+        dur = "60 mins (2x Restorative Deep Session)" if (is_luteal and luteal_double) else "30 mins"
+        return {
+            "theme": "green",
+            "className": clean_name,
+            "badge": "Vagal Reset & Diaphragm Release ✨",
+            "durationNote": dur,
+            "notes": [
+                f"• Restorative poses directly downregulate the phrenic nerve, counteracting APD on Day {c_day}.",
+                "• Gentle supine twists and supported bridges release splenic flexure gas bubbles.",
+                "• Perfect parasympathetic environment for Linaclotide and Mestinon absorption."
+            ],
+            "summary": f"Vagal parasympathetic reset that soothes rib pressure and APD on Day {c_day}.",
+            "tags": ["Vagal Reset", "APD Relief", "Restorative"]
+        }
+
+    else:
+        dur = "50–60 mins (2x Gentle Pacing)" if (is_luteal and luteal_double) else "30–40 mins"
+        return {
+            "theme": "green",
+            "className": clean_name,
+            "badge": "Cycle-Adapted Movement",
+            "durationNote": dur,
+            "notes": [
+                f"• Tailored for Cycle Day {c_day} ({p.capitalize()} phase).",
+                ("• 2x Extended Gentle Protocol applied: Keep intensity conversational to preserve mesenteric blood supply to your bowel." if (is_luteal and luteal_double) else "• Keep movements smooth and listen to abdominal sensation."),
+                "• Avoid high-impact jarring motions that trigger diaphragmatic bracing."
+            ],
+            "summary": f"Gentle movement adapted for Cycle Day {c_day}. Maintain steady hydration and relaxed breathing.",
+            "tags": ["Cycle Adapted", "Gut Conscious"]
+        }
+
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
@@ -232,6 +378,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.handle_get_status()
         elif self.path == '/api/polish-note':
             self.handle_polish_note()
+        elif self.path == '/api/gemini-exercise-audit':
+            self.handle_gemini_exercise_audit()
         else:
             self.send_error(404, "Endpoint not found")
 
@@ -712,6 +860,120 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self._send_json(200, {"success": True, "text": polished, "model": used_model})
         except Exception as e:
             self._send_json(200, {"success": False, "fallback": True, "error": str(e)})
+
+    def handle_gemini_exercise_audit(self):
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            raw_body = self.rfile.read(content_length).decode('utf-8')
+            payload = json.loads(raw_body) if raw_body else {}
+
+            query = payload.get('query', '').strip()
+            cycle_day = payload.get('cycleDay', 19)
+            phase = payload.get('phase', 'luteal')
+            phase_label = payload.get('phaseLabel', 'Late Luteal (Slow Motility)')
+            luteal_double = payload.get('lutealDoubleDuration', True)
+            api_key = sanitize_api_key(payload.get('apiKey')) or get_stored_gemini_key()
+
+            if not api_key:
+                fallback_data = generate_autonomous_exercise_audit(query, cycle_day, phase, luteal_double)
+                self._send_json(200, {
+                    "success": True,
+                    "fallback": True,
+                    "source": "autonomous-clinical-engine",
+                    "data": fallback_data
+                })
+                return
+
+            double_note_instruction = (
+                f"- LUTEAL DURATION HACK ACTIVE: In luteal (progesterone high), Emma performs gentle, low-intensity steady-state (LISS) movement for TWICE AS LONG (e.g. 60–80 mins of gentle incline walking, restorative reformer, or low-cadence mobility) instead of short vigorous bursts. Doubling gentle duration stimulates colonic lymphatic flow and rhythmic peristalsis without triggering sympathetic adrenal gut-shutdown.\n"
+                if luteal_double else
+                "- Standard duration (30–45 mins).\n"
+            )
+
+            system_instruction = (
+                "You are the world's foremost neuro-gastroenterologist and specialist sports endocrinologist for Emma Butler.\n"
+                "EMMA'S CLINICAL & EXERCISE PHYSIOLOGY PROFILE:\n"
+                "- Neurogenic slow colonic transit / colonic inertia + Abdomino-Phrenic Dyssynergia (APD).\n"
+                "- SPLANCHNIC BLOOD FLOW PHYSIOLOGY: Vigorous cardio (e.g. Barry's Bootcamp, sprints, HIIT, fast tempo running) triggers sympathetic vasoconstriction, diverting arterial blood away from the mesenteric gut vessels to working skeletal muscles. This temporarily paralyzes colonic motility, worsening colonic delay and triggering acute splenic flexure gas and APD diaphragmatic spasm.\n"
+                f"- CURRENT HORMONAL CONTEXT: Cycle Day {cycle_day} ({phase_label}). Remember each cycle day is physiologically distinct: follicular (Days 6–13) has peak estrogen with high exercise tolerance and faster baseline transit; ovulation (Days 14–16) has peak energy; luteal (Days 17–28) has high progesterone which acts as a systemic smooth muscle relaxant in the bowel, slowing transit and making the diaphragm hyper-reactive.\n"
+                f"{double_note_instruction}"
+                "- FORMAT MANDATE: Provide all recommendations strictly in NOTE FORMAT (bite-sized bullet notes). Emma has adult ADHD; avoid long paragraphs or overwhelming information about classes.\n\n"
+                "You must return ONLY a JSON object matching this schema:\n"
+                "{\n"
+                '  "theme": "green" | "amber" | "red",\n'
+                '  "className": "Standardized class or workout title",\n'
+                '  "badge": "Cycle-Safe & Motility-Boosting" | "Safe with Cycle Modifications" | "Caution: High APD / Sympathetic Risk",\n'
+                '  "durationNote": "e.g. 60–75 mins (2x Extended Gentle Mode for Cycle Day ' + str(cycle_day) + ')" or "30–45 mins",\n'
+                '  "notes": [\n'
+                '    "• Short bullet note 1: specific physiological reason for Cycle Day ' + str(cycle_day) + '",\n'
+                '    "• Short bullet note 2: gut blood flow, vagal tone, or APD impact",\n'
+                '    "• Short bullet note 3: actionable modification or safe swap for this class"\n'
+                '  ],\n'
+                '  "summary": "1 short crisp sentence in note format",\n'
+                '  "tags": ["Tag 1", "Tag 2", "Tag 3"]\n'
+                "}"
+            )
+
+            prompt = f"Analyze suitability of this exercise/class for Emma on Cycle Day {cycle_day} ({phase_label}): '{query}'"
+            gemini_payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": f"{system_instruction}\n\nExercise Query: {prompt}\nReturn JSON only."}
+                        ]
+                    }
+                ],
+                "generationConfig": {
+                    "temperature": 0.2,
+                    "thinkingConfig": {
+                        "thinkingBudget": 2048
+                    },
+                    "responseMimeType": "application/json"
+                }
+            }
+
+            used_model, data = call_gemini_api(api_key, gemini_payload, PRIMARY_MODEL, timeout=25)
+            parts = data['candidates'][0]['content']['parts']
+            text_parts = [p.get('text', '') for p in parts if not p.get('thought')]
+            if not text_parts:
+                text_parts = [p.get('text', '') for p in parts]
+            raw_text = text_parts[-1].strip()
+            if raw_text.startswith("```"):
+                lines = raw_text.splitlines()
+                if lines[0].startswith("```"):
+                    lines = lines[1:]
+                if lines and lines[-1].startswith("```"):
+                    lines = lines[:-1]
+                raw_text = "\n".join(lines).strip()
+            parsed_json = json.loads(raw_text)
+            self._send_json(200, {
+                "success": True,
+                "source": "gemini-3.8-flash",
+                "modelUsed": used_model,
+                "data": parsed_json
+            })
+        except urllib.error.HTTPError as e:
+            try:
+                err_body = e.read().decode('utf-8')
+            except Exception:
+                err_body = str(e)
+            fallback_data = generate_autonomous_exercise_audit(query, cycle_day, phase, luteal_double)
+            self._send_json(200, {
+                "success": True,
+                "fallback": True,
+                "source": "autonomous-clinical-engine",
+                "data": fallback_data,
+                "error": f"Gemini API error ({e.code}): {err_body}"
+            })
+        except Exception as e:
+            fallback_data = generate_autonomous_exercise_audit(query, cycle_day, phase, luteal_double)
+            self._send_json(200, {
+                "success": True,
+                "fallback": True,
+                "source": "autonomous-clinical-engine",
+                "data": fallback_data,
+                "error": str(e)
+            })
 
     def _send_json(self, status, payload):
         self.send_response(status)

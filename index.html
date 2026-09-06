@@ -579,6 +579,103 @@
       </div>
 
       <!-- ============================================================= -->
+      <!-- EMMA'S CYCLE MOVEMENT & WORKOUT PLANNER (GEMINI POWERED)      -->
+      <!-- ============================================================= -->
+      <div id="exercisePlannerCard" class="bg-white rounded-3xl border border-brand-border p-5 sm:p-6 shadow-xs space-y-4">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-brand-border/60 pb-3">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 border border-purple-200 text-purple-800 flex items-center justify-center text-lg shadow-2xs shrink-0">
+              🏃‍♀️
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <h3 class="font-bold text-sm sm:text-base text-brand-textDark">Emma's Cycle Movement & Classes</h3>
+                <span id="exerciseCycleDayPill" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-800 border border-purple-200 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse"></span>
+                  <span id="exerciseCycleDayPillText">Cycle Day 19 (Luteal)</span>
+                </span>
+              </div>
+              <p class="text-[11px] text-brand-textMuted">Cycle-synced class auditor & recommendations in concise note format</p>
+            </div>
+          </div>
+
+          <!-- Luteal 2x Duration Toggle -->
+          <div class="flex items-center space-x-2.5 bg-purple-50/80 p-2 rounded-2xl border border-purple-200 self-start sm:self-auto">
+            <div class="flex flex-col text-left">
+              <span class="text-[10px] font-bold text-purple-950 flex items-center gap-1">
+                <span>⏱️ 2x Luteal Duration</span>
+                <span class="text-[8px] bg-purple-200 text-purple-900 px-1 py-0.2 rounded font-extrabold uppercase">LISS</span>
+              </span>
+              <span class="text-[9px] text-purple-800/80">Twice as long gentle movement (60–80m)</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer shrink-0">
+              <input type="checkbox" id="lutealDoubleToggle" checked onchange="toggleLutealDoubleDuration()" class="sr-only peer">
+              <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Today's Cycle Movement Prescription (In Note Format) -->
+        <div id="cycleExercisePrescription" class="p-4 rounded-2xl bg-brand-cream/50 border border-brand-border space-y-2.5">
+          <!-- Dynamically populated by renderCycleExercisePrescription() -->
+        </div>
+
+        <!-- Class Auditor Query Box with Gemini 3.8 Flash -->
+        <div class="space-y-2.5 pt-1">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-brand-textDark flex items-center gap-1.5">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-600"></i>
+              <span>Audit a Class or Workout for Today</span>
+            </span>
+            <span class="text-[10px] text-brand-textMuted font-medium">Bite-sized notes • Zero fluff</span>
+          </div>
+
+          <!-- Input Field with Dictation and Analyze Button -->
+          <div class="relative flex items-center">
+            <input type="text" id="exerciseQueryInput" placeholder="Ask Gemini: 'Dynamic Reformer Pilates', 'Barry\'s Bootcamp', 'Barre', '45m incline walk'..." class="w-full text-xs pl-3.5 pr-32 py-2.5 bg-brand-cream border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium shadow-2xs" onkeydown="if(event.key === 'Enter') auditExerciseWithGemini()">
+            <div class="absolute right-1.5 flex items-center space-x-1">
+              <button type="button" onclick="startExerciseVoiceInput()" id="exerciseVoiceBtn" class="p-1.5 rounded-lg text-slate-400 hover:text-purple-700 hover:bg-purple-50 transition-all" title="Speak Class">
+                <i data-lucide="mic" class="w-3.5 h-3.5" id="exerciseMicIcon"></i>
+              </button>
+              <button type="button" onclick="auditExerciseWithGemini()" id="exerciseAuditBtn" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-all flex items-center space-x-1 shadow-2xs active:scale-95">
+                <i data-lucide="sparkles" class="w-3 h-3"></i>
+                <span>Audit</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Class Chips -->
+          <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-brand-textMuted">Quick Classes:</span>
+            <button type="button" onclick="quickSelectClass('Reformer Pilates')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-50 text-brand-textDark border border-brand-border text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
+              <span>🧘‍♀️ Reformer</span>
+            </button>
+            <button type="button" onclick="quickSelectClass('Low-Incline Gentle Walk')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-50 text-brand-textDark border border-brand-border text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
+              <span>🚶‍♀️ Incline Walk</span>
+            </button>
+            <button type="button" onclick="quickSelectClass('Barre Class')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-50 text-brand-textDark border border-brand-border text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
+              <span>🩰 Barre</span>
+            </button>
+            <button type="button" onclick="quickSelectClass('Strength & Weights')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-50 text-brand-textDark border border-brand-border text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
+              <span>🏋️‍♀️ Strength</span>
+            </button>
+            <button type="button" onclick="quickSelectClass('Barry\'s Bootcamp (HIIT)')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-rose-50 text-brand-textDark border border-brand-border text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
+              <span>⚡ Barry's HIIT</span>
+            </button>
+            <button type="button" onclick="quickSelectClass('Restorative Yin Yoga')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-50 text-brand-textDark border border-brand-border text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
+              <span>🧘 Restorative Yin</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Exercise Audit Result Drawer (In Note Format) -->
+        <div id="exerciseAuditResultContainer" class="hidden">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- ============================================================= -->
       <!-- EMMA'S PERSONAL MEAL & RECIPE GUIDE (BY CYCLE PHASE)         -->
       <!-- ============================================================= -->
       <div id="mealGuideCard" class="bg-white rounded-3xl border border-brand-border p-5 sm:p-6 shadow-xs space-y-4 transition-all">
@@ -1790,6 +1887,27 @@
               </button>
             </div>
             <input type="hidden" id="logSexDrive" value="normal">
+          </div>
+
+          <!-- Exercise & Classes Log (In Note Format) -->
+          <div class="space-y-1.5 pt-1">
+            <div class="flex items-center justify-between">
+              <label class="block text-[10px] font-bold text-brand-textDark flex items-center gap-1.5">
+                <span>🏃‍♀️ Exercise & Classes Today</span>
+                <span class="text-[9px] font-normal text-brand-textMuted">(Note format)</span>
+              </label>
+              <button type="button" onclick="useSuggestedCycleExercise()" class="text-[9px] text-purple-700 hover:text-purple-900 font-bold flex items-center gap-0.5">
+                <span>✨ Use Cycle Pick</span>
+              </button>
+            </div>
+            <div class="flex flex-wrap gap-1 mb-1">
+              <button type="button" onclick="setQuickLogExercise('Reformer Pilates')" class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-purple-100 hover:text-purple-800 text-[10px] font-semibold text-slate-700 transition-all">🧘‍♀️ Reformer</button>
+              <button type="button" onclick="setQuickLogExercise('Gentle Incline Walk')" class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-purple-100 hover:text-purple-800 text-[10px] font-semibold text-slate-700 transition-all">🚶‍♀️ Incline Walk</button>
+              <button type="button" onclick="setQuickLogExercise('Gentle Strength')" class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-purple-100 hover:text-purple-800 text-[10px] font-semibold text-slate-700 transition-all">🏋️‍♀️ Strength</button>
+              <button type="button" onclick="setQuickLogExercise('Rest & Mobility')" class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-purple-100 hover:text-purple-800 text-[10px] font-semibold text-slate-700 transition-all">🛋️ Rest / Mobility</button>
+              <button type="button" onclick="setQuickLogExercise('Swimming')" class="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-purple-100 hover:text-purple-800 text-[10px] font-semibold text-slate-700 transition-all">🏊‍♀️ Swim</button>
+            </div>
+            <input type="text" id="logExercise" placeholder="e.g. 60m Reformer stretch, 14,000 steps, or rest day..." class="w-full text-xs p-2.5 bg-slate-50 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium">
           </div>
 
           <!-- Quick Note with Speech-to-Text & Auto-Correct -->
