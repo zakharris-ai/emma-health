@@ -6028,16 +6028,16 @@ function renderCycleExercisePrescription() {
   let targetDuration = "30–45 mins";
   let recommendedClasses = "Reformer Pilates, Low-Incline Walking";
   let gutMechanism = "Gentle rhythmic movement stimulates colonic transit without adrenaline spike.";
-  let avoidNote = "Barry's Bootcamp / vigorous running (shuts off mesenteric bowel perfusion).";
+  let avoidNote = "Max-effort sprint intervals / exhaustion running (shuts off mesenteric bowel perfusion).";
   let defaultLogPick = "Reformer Pilates & Mobility";
 
   if (isLuteal) {
     targetDuration = lutealDoubleDuration 
       ? "60–80 mins (2x Extended Gentle Mode for Luteal)" 
       : "30–45 mins";
-    recommendedClasses = "Reformer Stretch & Align, 60m Incline Walk, Low-Impact Barre";
+    recommendedClasses = "Reformer Stretch & Align, 60m Incline Walk, Gentle Mobility Flow";
     gutMechanism = "High progesterone relaxes bowel smooth muscle. Twice-as-long low-intensity steady movement provides continuous lymphatic and colonic pumping with zero cortisol spike.";
-    avoidNote = "Heavy abdominal crunches or HIIT (spikes APD diaphragmatic spasm and splenic flexure gas trapping).";
+    avoidNote = "Heavy abdominal crunches or anaerobic sprint intervals (spikes APD diaphragmatic spasm and splenic flexure gas trapping).";
     defaultLogPick = lutealDoubleDuration ? "60m Restorative Reformer & Walk" : "30m Gentle Reformer";
   } else if (isFollicular) {
     targetDuration = "45–60 mins (Peak Estrogen Power)";
@@ -6047,13 +6047,13 @@ function renderCycleExercisePrescription() {
     defaultLogPick = "Dynamic Reformer & Strength";
   } else if (isOvulation) {
     targetDuration = "45–55 mins (High Energy)";
-    recommendedClasses = "Reformer Strength, Barre, Moderate Running / Outdoor Cardio";
+    recommendedClasses = "Reformer Strength, Outdoor Incline Walk, Functional Resistance Training";
     gutMechanism = "Peak energy and pain tolerance. Bowel motility is at its monthly baseline peak.";
     avoidNote = "Over-straining if feeling mild ovulation twinges (Mittelschmerz).";
     defaultLogPick = "Reformer Strength & Cardio";
   } else if (isMenstrual) {
     targetDuration = "25–35 mins (Restorative & Gentle)";
-    recommendedClasses = "Gentle Flat Walk, Yin Yoga, Pelvic Floor Down-Training, Legs-Up-Wall";
+    recommendedClasses = "Gentle Flat Walk, Pelvic Floor Down-Training, Legs-Up-Wall, Gentle Mobility";
     gutMechanism = "Down-regulates pelvic hypersensitivity and relaxes pelvic floor muscles, supporting morning Linaclotide action.";
     avoidNote = "High impact jumping, inverted core pikes, heavy barbell lifts.";
     defaultLogPick = "Restorative Mobility & Walk";

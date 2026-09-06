@@ -633,7 +633,7 @@
 
           <!-- Input Field with Dictation and Analyze Button -->
           <div class="relative flex items-center">
-            <input type="text" id="exerciseQueryInput" placeholder="Ask Gemini: 'Dynamic Reformer Pilates', 'Barry\'s Bootcamp', 'Barre', '45m incline walk'..." class="w-full text-xs pl-3.5 pr-32 py-2.5 bg-brand-cream border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium shadow-2xs" onkeydown="if(event.key === 'Enter') auditExerciseWithGemini()">
+            <input type="text" id="exerciseQueryInput" placeholder="Ask Gemini: 'Dynamic Reformer Pilates', 'Low-incline walk', 'Strength training'..." class="w-full text-xs pl-3.5 pr-32 py-2.5 bg-brand-cream border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium shadow-2xs" onkeydown="if(event.key === 'Enter') auditExerciseWithGemini()">
             <div class="absolute right-1.5 flex items-center space-x-1">
               <button type="button" onclick="startExerciseVoiceInput()" id="exerciseVoiceBtn" class="p-1.5 rounded-lg text-slate-400 hover:text-purple-700 hover:bg-purple-50 transition-all" title="Speak Class">
                 <i data-lucide="mic" class="w-3.5 h-3.5" id="exerciseMicIcon"></i>
@@ -654,17 +654,14 @@
             <button type="button" onclick="quickSelectClass('Low-Incline Gentle Walk')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-50 text-brand-textDark border border-brand-border text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
               <span>🚶‍♀️ Incline Walk</span>
             </button>
-            <button type="button" onclick="quickSelectClass('Barre Class')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-50 text-brand-textDark border border-brand-border text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
-              <span>🩰 Barre</span>
-            </button>
             <button type="button" onclick="quickSelectClass('Strength & Weights')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-50 text-brand-textDark border border-brand-border text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
               <span>🏋️‍♀️ Strength</span>
             </button>
-            <button type="button" onclick="quickSelectClass('Barry\'s Bootcamp (HIIT)')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-rose-50 text-brand-textDark border border-brand-border text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
-              <span>⚡ Barry's HIIT</span>
+            <button type="button" onclick="quickSelectClass('Stretch & Mobility Flow')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-50 text-brand-textDark border border-brand-border text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
+              <span>🌿 Stretch & Mobility</span>
             </button>
-            <button type="button" onclick="quickSelectClass('Restorative Yin Yoga')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-50 text-brand-textDark border border-brand-border text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
-              <span>🧘 Restorative Yin</span>
+            <button type="button" onclick="quickSelectClass('Gentle Swim / Recovery')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-50 text-brand-textDark border border-brand-border text-[11px] font-semibold flex items-center gap-1 transition-all active:scale-95 shadow-2xs">
+              <span>🏊‍♀️ Gentle Swim</span>
             </button>
           </div>
         </div>
