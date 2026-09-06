@@ -15,7 +15,7 @@ import tempfile
 import urllib.request
 import urllib.error
 
-PORT = 8000
+PORT = int(os.environ.get('PORT', 8000))
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 KEY_FILE = os.path.join(DIRECTORY, ".gemini_key")
 DB_FILE = os.path.join(DIRECTORY, "emma_health.db")
