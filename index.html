@@ -263,8 +263,8 @@
           </button>
         </div>
 
-        <!-- Quick 4-Pillar Daily Verification Bar -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-purple-100/70 text-[11px]">
+        <!-- Quick 5-Pillar Daily Verification Bar -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1 border-t border-purple-100/70 text-[11px]">
           <div class="p-2 rounded-xl bg-white border border-purple-100 flex items-center space-x-2">
             <span class="text-sm">⏱️</span>
             <div>
@@ -275,8 +275,15 @@
           <div class="p-2 rounded-xl bg-white border border-purple-100 flex items-center space-x-2">
             <span class="text-sm">⚡</span>
             <div>
-              <span class="text-[9px] text-brand-textMuted block font-bold">Electrolyte & EAAs</span>
+              <span class="text-[9px] text-brand-textMuted block font-bold">Electrolytes</span>
               <span id="dashStatusSalt" class="font-extrabold text-brand-textDark">Pending</span>
+            </div>
+          </div>
+          <div class="p-2 rounded-xl bg-white border border-purple-100 flex items-center space-x-2">
+            <span class="text-sm">🧬</span>
+            <div>
+              <span class="text-[9px] text-brand-textMuted block font-bold">EAAs</span>
+              <span id="dashStatusEaas" class="font-extrabold text-brand-textDark">Pending</span>
             </div>
           </div>
           <div class="p-2 rounded-xl bg-white border border-purple-100 flex items-center space-x-2">
@@ -341,7 +348,7 @@
             </div>
             <div>
               <div class="text-xs font-bold text-brand-textDark">Morning Linaclotide</div>
-              <div class="text-[11px] text-brand-textMuted mt-0.5">On waking, empty stomach with 400ml water + electrolyte.</div>
+              <div class="text-[11px] text-brand-textMuted mt-0.5">On waking, empty stomach with 400ml water + electrolytes & EAAs.</div>
             </div>
           </div>
 
@@ -1596,7 +1603,7 @@
           </div>
           <input type="hidden" id="logFastingAdherence" value="kept_40">
 
-          <!-- Warm Trigger & Electrolytes Checklist -->
+          <!-- Warm Trigger, Electrolytes & EAAs Checklist -->
           <div class="space-y-2 p-3 rounded-2xl bg-slate-50 border border-brand-border">
             <label class="flex items-center space-x-2.5 cursor-pointer">
               <input type="checkbox" id="logWarmTrigger" class="rounded accent-purple-600 w-4 h-4">
@@ -1609,8 +1616,16 @@
             <label class="flex items-center space-x-2.5 cursor-pointer">
               <input type="checkbox" id="logElectrolytesTaken" class="rounded accent-purple-600 w-4 h-4">
               <div>
-                <span class="text-[11px] font-bold text-brand-textDark block">⚡ Electrolyte & EAAs Taken?</span>
-                <span class="text-[9px] text-brand-textMuted block">Electrolytes + Essential Amino Acids in water (hydrates colon & supports muscular energy)</span>
+                <span class="text-[11px] font-bold text-brand-textDark block">⚡ Electrolytes Taken?</span>
+                <span class="text-[9px] text-brand-textMuted block">Hydrates colon mucosal lining & activates fluid secretion without gastric burden</span>
+              </div>
+            </label>
+            <div class="border-t border-slate-200/60 my-1"></div>
+            <label class="flex items-center space-x-2.5 cursor-pointer">
+              <input type="checkbox" id="logEaasTaken" class="rounded accent-purple-600 w-4 h-4">
+              <div>
+                <span class="text-[11px] font-bold text-brand-textDark block">🧬 EAAs (Essential Amino Acids) Taken?</span>
+                <span class="text-[9px] text-brand-textMuted block">Pure amino acids for muscle repair & cellular energy without GI digestive load</span>
               </div>
             </label>
           </div>

@@ -1480,6 +1480,7 @@ function getOrCreateDateSpecialistState(dateStr) {
   if (!specialistTrackingState.byDate[d]) {
     specialistTrackingState.byDate[d] = {
       electrolyteBuffered: false,
+      eaasTaken: false,
       waterMl: 0,
       stoolType: null, // 'bypass' | 'formed' | 'hard'
       diaphragmDone: false
@@ -1499,9 +1500,25 @@ function toggleElectrolyteBuffer() {
     if (typeof confetti === 'function') {
       confetti({ particleCount: 35, spread: 60, origin: { y: 0.7 } });
     }
-    showDynamicToast("⚡ Electrolyte & EAAs Logged! Supports colonic hydration and muscle recovery.");
+    showDynamicToast("⚡ Electrolytes Logged! Supports colonic mucosal hydration.");
   } else {
-    showDynamicToast("Electrolyte & EAAs status set to Pending.");
+    showDynamicToast("Electrolytes status set to Pending.");
+  }
+}
+
+function toggleEaasBuffer() {
+  const dState = getOrCreateDateSpecialistState(activeDateStr);
+  dState.eaasTaken = !dState.eaasTaken;
+  saveSpecialistTracking();
+  renderSpecialistTrackingUI();
+
+  if (dState.eaasTaken) {
+    if (typeof confetti === 'function') {
+      confetti({ particleCount: 35, spread: 60, origin: { y: 0.7 } });
+    }
+    showDynamicToast("🧬 EAAs Logged! Supports muscle energy without GI digestive burden.");
+  } else {
+    showDynamicToast("EAAs status set to Pending.");
   }
 }
 
@@ -1744,7 +1761,35 @@ function renderSpecialistTrackingUI() {
       btn.className = "shrink-0 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-[11px] shadow-2xs active:scale-95 transition-all flex items-center gap-1";
     }
     if (icon) icon.innerText = "⚡";
-    if (text) text.innerText = "Log Electrolyte & EAAs";
+    if (text) text.innerText = "Log Electrolytes";
+  }
+
+  // 1b. EAAs Buffer
+  const eaaBadge = document.getElementById('eaaStatusBadge');
+  const eaaBtn = document.getElementById('btnToggleEaas');
+  const eaaIcon = document.getElementById('eaaBtnIcon');
+  const eaaText = document.getElementById('eaaBtnText');
+
+  if (dState.eaasTaken) {
+    if (eaaBadge) {
+      eaaBadge.innerText = "Taken ✨";
+      eaaBadge.className = "text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200";
+    }
+    if (eaaBtn) {
+      eaaBtn.className = "shrink-0 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-2xs active:scale-95 transition-all flex items-center gap-1";
+    }
+    if (eaaIcon) eaaIcon.innerText = "✓";
+    if (eaaText) eaaText.innerText = "Taken";
+  } else {
+    if (eaaBadge) {
+      eaaBadge.innerText = "Pending";
+      eaaBadge.className = "text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600";
+    }
+    if (eaaBtn) {
+      eaaBtn.className = "shrink-0 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-[11px] shadow-2xs active:scale-95 transition-all flex items-center gap-1";
+    }
+    if (eaaIcon) eaaIcon.innerText = "🧬";
+    if (eaaText) eaaText.innerText = "Log EAAs";
   }
 
   // 2. Stool Discriminator Buttons
@@ -2889,6 +2934,16 @@ function renderHistoryLogs() {
               ❤️ Libido: ${item.sexDrive === 'high' ? 'High' : (item.sexDrive === 'mild' ? 'Mild' : (item.sexDrive === 'low' ? 'Low' : 'Normal'))}
             </span>
           ` : ''}
+          ${(item.electrolytesTaken || item.electrolyteBuffered || (item.puffiness && (item.puffiness.includes('⚡ Electrolytes Taken') || item.puffiness.includes('⚡ Electrolyte & EAAs Taken')))) ? `
+            <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-semibold text-[10px]">
+              ⚡ Electrolytes
+            </span>
+          ` : ''}
+          ${(item.eaasTaken || (item.puffiness && (item.puffiness.includes('🧬 EAAs Taken') || item.puffiness.includes('⚡ Electrolyte & EAAs Taken')))) ? `
+            <span class="px-2 py-0.5 rounded-md bg-purple-50 text-purple-800 border border-purple-200 font-semibold text-[10px]">
+              🧬 EAAs
+            </span>
+          ` : ''}
         </div>
 
         <!-- Expandable Detail Section -->
@@ -3014,7 +3069,21 @@ function openQuickLogModal() {
   if (warmTrigger) warmTrigger.checked = !!entry?.warmTrigger;
 
   const electrolytes = document.getElementById('logElectrolytesTaken');
-  if (electrolytes) electrolytes.checked = !!(entry?.electrolyteBuffered || entry?.electrolytesTaken);
+  if (electrolytes) {
+    electrolytes.checked = !!(
+      entry?.electrolytesTaken ?? 
+      entry?.electrolyteBuffered ?? 
+      (entry?.puffiness && (entry.puffiness.includes('⚡ Electrolytes Taken') || entry.puffiness.includes('⚡ Electrolyte & EAAs Taken')))
+    );
+  }
+
+  const eaas = document.getElementById('logEaasTaken');
+  if (eaas) {
+    eaas.checked = !!(
+      entry?.eaasTaken ?? 
+      (entry?.puffiness && (entry.puffiness.includes('🧬 EAAs Taken') || entry.puffiness.includes('⚡ Electrolyte & EAAs Taken')))
+    );
+  }
 
   // 3. Bowel Evacuation & Nuance
   const bristolVal = entry?.bristol || 'none';
@@ -3477,6 +3546,7 @@ function updateDashboardCheckInBadge(entry) {
   const btnText = document.getElementById('dashboardCheckInBtnText');
   const fStatus = document.getElementById('dashStatusFasting');
   const sStatus = document.getElementById('dashStatusSalt');
+  const eaasStatus = document.getElementById('dashStatusEaas');
   const stStatus = document.getElementById('dashStatusStool');
   const dStatus = document.getElementById('dashStatusDiaphragm');
 
@@ -3504,12 +3574,24 @@ function updateDashboardCheckInBadge(entry) {
     }
 
     if (sStatus) {
-      if (entry.electrolyteBuffered || entry.electrolytesTaken) {
+      const hasElectrolytes = entry.electrolytesTaken ?? entry.electrolyteBuffered ?? (entry.puffiness && (entry.puffiness.includes('⚡ Electrolytes Taken') || entry.puffiness.includes('⚡ Electrolyte & EAAs Taken')));
+      if (hasElectrolytes) {
         sStatus.innerText = "Taken ✨";
         sStatus.className = "font-extrabold text-emerald-700";
       } else {
         sStatus.innerText = "Pending";
         sStatus.className = "font-extrabold text-slate-400";
+      }
+    }
+
+    if (eaasStatus) {
+      const hasEaas = entry.eaasTaken ?? (entry.puffiness && (entry.puffiness.includes('🧬 EAAs Taken') || entry.puffiness.includes('⚡ Electrolyte & EAAs Taken')));
+      if (hasEaas) {
+        eaasStatus.innerText = "Taken ✨";
+        eaasStatus.className = "font-extrabold text-emerald-700";
+      } else {
+        eaasStatus.innerText = "Pending";
+        eaasStatus.className = "font-extrabold text-slate-400";
       }
     }
 
@@ -3552,6 +3634,7 @@ function updateDashboardCheckInBadge(entry) {
     }
     if (fStatus) { fStatus.innerText = "Pending"; fStatus.className = "font-extrabold text-brand-textDark"; }
     if (sStatus) { sStatus.innerText = "Pending"; sStatus.className = "font-extrabold text-brand-textDark"; }
+    if (eaasStatus) { eaasStatus.innerText = "Pending"; eaasStatus.className = "font-extrabold text-brand-textDark"; }
     if (stStatus) { stStatus.innerText = "Pending"; stStatus.className = "font-extrabold text-brand-textDark"; }
     if (dStatus) { dStatus.innerText = "Pending"; dStatus.className = "font-extrabold text-brand-textDark"; }
   }
@@ -5719,6 +5802,7 @@ function handleQuickLogSubmit(e) {
   const fastingVal = document.getElementById('logFastingAdherence')?.value || selectedFastingVal || 'kept_40';
   const warmTriggerVal = document.getElementById('logWarmTrigger')?.checked || false;
   const electrolytesTaken = document.getElementById('logElectrolytesTaken')?.checked || false;
+  const eaasTaken = document.getElementById('logEaasTaken')?.checked || false;
   const diaphragmResetDone = document.getElementById('logDiaphragmResetDone')?.checked || false;
   const diaphragmVal = parseInt(document.getElementById('logDiaphragm')?.value || '4', 10);
   const stoolNuance = document.getElementById('logStoolNuance')?.value || '';
@@ -5734,7 +5818,8 @@ function handleQuickLogSubmit(e) {
   if (sexDriveVal === 'high') puffinessArr.push('🔥 High Libido');
   else if (sexDriveVal === 'mild') puffinessArr.push('❤️ Mild Libido');
   else if (sexDriveVal === 'low') puffinessArr.push('🤍 Low/No Libido');
-  if (electrolytesTaken) puffinessArr.push('⚡ Electrolyte & EAAs Taken');
+  if (electrolytesTaken) puffinessArr.push('⚡ Electrolytes Taken');
+  if (eaasTaken) puffinessArr.push('🧬 EAAs Taken');
   if (fastingVal === 'kept_40') puffinessArr.push('⏱️ 40m Fast Kept');
   if (warmTriggerVal) puffinessArr.push('☕ Warm Gastrocolic Trigger');
   if (diaphragmResetDone) puffinessArr.push('🫁 Diaphragm Reset Done');
@@ -5775,6 +5860,7 @@ function handleQuickLogSubmit(e) {
     warmTrigger: warmTriggerVal,
     electrolyteBuffered: electrolytesTaken,
     electrolytesTaken: electrolytesTaken,
+    eaasTaken: eaasTaken,
     diaphragmResetDone: diaphragmResetDone,
     movement: movementText,
     bristol: selectedBristolVal,
@@ -5803,6 +5889,7 @@ function handleQuickLogSubmit(e) {
   // Sync to specialist tracking state
   const dState = getOrCreateDateSpecialistState(dateVal);
   dState.electrolyteBuffered = electrolytesTaken;
+  dState.eaasTaken = eaasTaken;
   dState.diaphragmDone = diaphragmResetDone;
   if (stoolNuance === 'bypass') dState.stoolType = 'bypass';
   else if (stoolNuance === 'formed') dState.stoolType = 'formed';
