@@ -1606,6 +1606,50 @@ function toggleElectrolyteBuffer() {
   saveSpecialistTracking();
   renderSpecialistTrackingUI();
 
+  // Sync with active date log entry
+  let logEntry = logs.find(l => l.date === activeDateStr);
+  if (!logEntry) {
+    const cycleInfo = getCycleInfoForDate(activeDateStr);
+    logEntry = {
+      date: activeDateStr,
+      displayDate: cycleInfo.displayDate,
+      cycleDay: cycleInfo.cycleDay,
+      phase: cycleInfo.phase,
+      phaseLabel: cycleInfo.phaseLabel,
+      temp: cycleInfo.temp,
+      fastingAdherence: 'kept_40',
+      warmTrigger: false,
+      electrolytesTaken: false,
+      eaasTaken: false,
+      bristol: 'none',
+      diaphragm: 4,
+      alcohol: 'none',
+      mood: 'flat',
+      sexDrive: 'normal',
+      movement: 'Pending morning movement',
+      puffiness: [],
+      notes: ''
+    };
+    logs.push(logEntry);
+  }
+
+  logEntry.electrolytesTaken = dState.electrolyteBuffered;
+  logEntry.electrolyteBuffered = dState.electrolyteBuffered;
+  if (!logEntry.puffiness) logEntry.puffiness = [];
+  if (dState.electrolyteBuffered) {
+    if (!logEntry.puffiness.includes('⚡ Electrolytes Taken')) logEntry.puffiness.push('⚡ Electrolytes Taken');
+  } else {
+    logEntry.puffiness = logEntry.puffiness.filter(t => t !== '⚡ Electrolytes Taken' && t !== '⚡ Electrolyte & EAAs Taken');
+  }
+  saveLogs();
+  renderHistoryLogs();
+  renderDashboardTrends();
+  render5PillarDashboard();
+
+  // Sync Check-In modal checkbox if open
+  const chk = document.getElementById('logElectrolytesTaken');
+  if (chk) chk.checked = dState.electrolyteBuffered;
+
   if (dState.electrolyteBuffered) {
     if (typeof confetti === 'function') {
       confetti({ particleCount: 35, spread: 60, origin: { y: 0.7 } });
@@ -1621,6 +1665,49 @@ function toggleEaasBuffer() {
   dState.eaasTaken = !dState.eaasTaken;
   saveSpecialistTracking();
   renderSpecialistTrackingUI();
+
+  // Sync with active date log entry
+  let logEntry = logs.find(l => l.date === activeDateStr);
+  if (!logEntry) {
+    const cycleInfo = getCycleInfoForDate(activeDateStr);
+    logEntry = {
+      date: activeDateStr,
+      displayDate: cycleInfo.displayDate,
+      cycleDay: cycleInfo.cycleDay,
+      phase: cycleInfo.phase,
+      phaseLabel: cycleInfo.phaseLabel,
+      temp: cycleInfo.temp,
+      fastingAdherence: 'kept_40',
+      warmTrigger: false,
+      electrolytesTaken: false,
+      eaasTaken: false,
+      bristol: 'none',
+      diaphragm: 4,
+      alcohol: 'none',
+      mood: 'flat',
+      sexDrive: 'normal',
+      movement: 'Pending morning movement',
+      puffiness: [],
+      notes: ''
+    };
+    logs.push(logEntry);
+  }
+
+  logEntry.eaasTaken = dState.eaasTaken;
+  if (!logEntry.puffiness) logEntry.puffiness = [];
+  if (dState.eaasTaken) {
+    if (!logEntry.puffiness.includes('🧬 EAAs Taken')) logEntry.puffiness.push('🧬 EAAs Taken');
+  } else {
+    logEntry.puffiness = logEntry.puffiness.filter(t => t !== '🧬 EAAs Taken' && t !== '⚡ Electrolyte & EAAs Taken');
+  }
+  saveLogs();
+  renderHistoryLogs();
+  renderDashboardTrends();
+  render5PillarDashboard();
+
+  // Sync Check-In modal checkbox if open
+  const chk = document.getElementById('logEaasTaken');
+  if (chk) chk.checked = dState.eaasTaken;
 
   if (dState.eaasTaken) {
     if (typeof confetti === 'function') {
