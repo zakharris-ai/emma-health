@@ -494,6 +494,7 @@ function initApp() {
     renderEmmaMeals();
     renderSpecialistTrackingUI();
     fetchServerDataOnLoad();
+    renderMovementAndSpa();
     loadLutealDoubleSetting();
     renderCycleExercisePrescription();
   }
@@ -1194,15 +1195,15 @@ function applyActiveDate(targetDateStr) {
   // 7. Update Mon-Thu Trial Today Highlights
   updateChronoTrialDayHighlight(info.dayOfWeek);
 
-  // 8. Update Recipe Guide Phase Pill, Auditor Subtitle & Movement Subtitle
+  // 8. Update Recipe Guide Phase Pill, Auditor Subtitle & Movement & Spa Protocol
   const lutealPill = document.getElementById('phaseFilter-luteal');
   if (lutealPill) {
     lutealPill.innerHTML = `<span>${activePhaseLogo}</span><span>${info.phaseLabel.split(' ')[0]} (Day ${info.cycleDay})</span>`;
   }
-  const movementSubtitle = document.getElementById('movementCycleSubtitle');
-  if (movementSubtitle) {
-    movementSubtitle.innerText = `${activePhaseLogo} Cycle-synced for Day ${info.cycleDay} (${info.phaseLabel}) • Protects gut motility & avoids adrenaline spikes`;
-  }
+  
+  // Dynamically update Today's Movement & Spa protocol for this cycle day/phase
+  renderMovementAndSpa(info);
+
   const auditorSubtitle = document.getElementById('auditorPhaseSubtitle');
   if (auditorSubtitle) {
     auditorSubtitle.innerHTML = `Tap the mic or type any meal. Calibrated for <strong>${activePhaseLogo} Cycle Day ${info.cycleDay} (${info.phaseLabel})</strong>.`;
@@ -1241,6 +1242,259 @@ function applyActiveDate(targetDateStr) {
   }
 
   triggerLucideIcons();
+}
+
+// ============================================================================
+// TODAY'S MOVEMENT & SPA: CYCLE-SYNCED ADAPTIVE PROTOCOL
+// ============================================================================
+function getMovementAndSpaData(dayNum, phase) {
+  // 1. Menstrual Phase (Days 1 - 4)
+  if (dayNum >= 1 && dayNum <= 4) {
+    return {
+      badgeText: "Restorative • Low Pelvic Load",
+      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1",
+      badgeDot: "bg-rose-500",
+      subtitle: `🌸 Gentle restorative pace for Day ${dayNum} • Soothes uterine cramps & releases pelvic floor tension`,
+      cards: [
+        {
+          theme: "emerald",
+          icon: "🌿",
+          title: "Gentle Walk & Pelvic Mobility",
+          tag: "20–35 min • Low pelvic load",
+          desc: "Gentle flat walking or restorative mat mobility. Avoid heavy squats or breath-holding that strains the pelvic floor."
+        },
+        {
+          theme: "teal",
+          icon: "🧖‍♀️",
+          title: "Warm Eucalyptus Steam & Soak",
+          tag: "Gentle heat • Relaxes smooth muscle",
+          desc: "Warm steam room and hydro pool relax pelvic floor hypertonicity and low-back ache. Skip freezing plunge if cramping."
+        },
+        {
+          theme: "rose",
+          icon: "🚫",
+          title: "Skip Heavy Straining & Core Pikes",
+          tag: "Protect pelvic floor",
+          desc: "No heavy leg press, barbell deadlifts, or intense core crunches while the uterine lining is actively shedding."
+        }
+      ]
+    };
+  }
+
+  // 2. Follicular Phase (Days 5 - 13)
+  if (dayNum >= 5 && dayNum <= 13) {
+    return {
+      badgeText: "High Energy • Strength Peak",
+      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1",
+      badgeDot: "bg-emerald-500",
+      subtitle: `🌿 High energy window for Day ${dayNum} • Estrogen accelerates gut transit; prime for Third Space weights`,
+      cards: [
+        {
+          theme: "emerald",
+          icon: "🏋️‍♀️",
+          title: "Strength Training & Dynamic Reformer",
+          tag: "45–60 min • Progressive loading",
+          desc: "Prime window for progressive weights (squats, hip thrusts, upper body) and athletic Reformer Pilates. High joint resilience."
+        },
+        {
+          theme: "teal",
+          icon: "🧖‍♀️",
+          title: "Contrast Therapy Power Rounds",
+          tag: "15m Sauna ➔ 2–3m Cold Plunge (x2)",
+          desc: "Finnish sauna followed by cold plunge. Drives massive dopamine release, accelerates muscle repair, and clears inflammation."
+        },
+        {
+          theme: "amber",
+          icon: "⚠️",
+          title: "Don't Under-Fuel Post-Lift",
+          tag: "Carb replenishment",
+          desc: "Avoid fasted heavy lifting. Refuel with easy carbs (rice cakes / Special Flakes) to prevent cortisol spikes from underfueling."
+        }
+      ]
+    };
+  }
+
+  // 3. Ovulation Window (Days 14 - 16)
+  if (dayNum >= 14 && dayNum <= 16) {
+    return {
+      badgeText: "Peak Stamina • Pelvic Awareness",
+      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200 flex items-center gap-1",
+      badgeDot: "bg-amber-500",
+      subtitle: `✨ Peak stamina for Day ${dayNum} • High power output; stay mindful of ovulatory ovary twinges`,
+      cards: [
+        {
+          theme: "emerald",
+          icon: "🤸‍♀️",
+          title: "Athletic Reformer or Incline Walk",
+          tag: "45–50 min • Controlled form",
+          desc: "High physical stamina for challenging Reformer carriage work or brisk incline treadmill. Keep core bracing controlled."
+        },
+        {
+          theme: "teal",
+          icon: "🧖‍♀️",
+          title: "Cold Plunge & Mineral Pool",
+          tag: "2–3m plunge • Vagal activation",
+          desc: "Crisp cold plunge immediately reduces exercise inflammation, followed by relaxing in the mineral hydro pool."
+        },
+        {
+          theme: "amber",
+          icon: "⚠️",
+          title: "Modify Ballistic Twists",
+          tag: "Protect tender follicle",
+          desc: "If feeling ovulatory ovary tenderness (mittelschmerz), modify explosive rotational plyometrics or deep ballistic twists."
+        }
+      ]
+    };
+  }
+
+  // 4. Early-to-Mid Luteal Phase (Days 17 - 22, including Day 19)
+  if (dayNum >= 17 && dayNum <= 22) {
+    return {
+      badgeText: "Low Stress • Colonic Motility",
+      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200 flex items-center gap-1",
+      badgeDot: "bg-purple-500",
+      subtitle: `🌸 Gentle extended pace for Day ${dayNum} • Progesterone slows transit; protects mesenteric blood flow`,
+      cards: [
+        {
+          theme: "emerald",
+          icon: "🧘‍♀️",
+          title: "Reformer Align or 60–80m Gentle Walk",
+          tag: "60–80 min LISS • HR <120 bpm",
+          desc: "Low-incline gentle walk or Reformer Align & Stretch. Rhythmic mechanical colonic stimulation without adrenaline spikes."
+        },
+        {
+          theme: "teal",
+          icon: "🧖‍♀️",
+          title: "Moderate Sauna & Quick Cold Plunge",
+          tag: "10–12m sauna • 1–2m cold dip",
+          desc: "Moderate sauna stimulates vagal gut motility; quick 1m cold plunge helps drain luteal fluid retention. Sip electrolytes!"
+        },
+        {
+          theme: "rose",
+          icon: "🚫",
+          title: "Skip HIIT, Sprints & Intense Spin",
+          tag: "Prevents splanchnic steal",
+          desc: "Adrenaline surges steal 80% of blood flow from bowel to muscles, freezing transit and locking the diaphragm into APD spasm."
+        }
+      ]
+    };
+  }
+
+  // 5. Late Luteal / Pre-Reset Phase (Days 23 - 28)
+  return {
+    badgeText: "Vagal Reset • De-Bloat Focus",
+    badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-200 flex items-center gap-1",
+    badgeDot: "bg-indigo-500",
+    subtitle: `🌸 Restorative pace for Day ${dayNum} • Relieves rib pressure, reduces fluid retention & sensory overwhelm`,
+    cards: [
+      {
+        theme: "emerald",
+        icon: "🚶‍♀️",
+        title: "Low-Incline Treadmill or Gentle Swim",
+        tag: "40–50 min • Hydrostatic drainage",
+        desc: "Relaxed low-incline stroll or easy pool swimming. Water hydrostatic pressure naturally massages abdomen and drains fluid."
+      },
+      {
+        theme: "teal",
+        icon: "🧖‍♀️",
+        title: "Eucalyptus Steam & Quiet Lounger",
+        tag: "Diaphragmatic release",
+        desc: "Warm eucalyptus steam softens tight diaphragm and pelvic tissues. Finish with 10 mins diaphragmatic breathing on the lounger."
+      },
+      {
+        theme: "rose",
+        icon: "🚫",
+        title: "Skip Tight Waistbands & Heavy Pikes",
+        tag: "No abdominal compression",
+        desc: "Avoid restrictive gym waistbands, hanging leg raises, or heavy crunches that compress trapped splenic flexure gas."
+      }
+    ]
+  };
+}
+
+function renderMovementAndSpa(info) {
+  if (!info) {
+    info = (typeof getCurrentCycleInfo === 'function') 
+      ? getCurrentCycleInfo() 
+      : { cycleDay: 19, phase: 'luteal' };
+  }
+  const dayNum = info.cycleDay || 19;
+  const phase = info.phase || 'luteal';
+
+  const subtitleEl = document.getElementById('movementCycleSubtitle');
+  const badgeEl = document.getElementById('movementStressBadge');
+  const containerEl = document.getElementById('movementSpaCardsContainer');
+
+  if (!containerEl) return;
+
+  const data = getMovementAndSpaData(dayNum, phase);
+
+  if (subtitleEl) {
+    subtitleEl.innerText = data.subtitle;
+  }
+  if (badgeEl) {
+    badgeEl.className = data.badgeClass;
+    badgeEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${data.badgeDot} animate-pulse"></span><span>${data.badgeText}</span>`;
+  }
+
+  const themeStyles = {
+    emerald: {
+      box: 'bg-emerald-50/70 border border-emerald-200/80',
+      title: 'text-emerald-900',
+      tag: 'text-emerald-700 bg-emerald-100/70',
+      desc: 'text-emerald-800/90'
+    },
+    teal: {
+      box: 'bg-teal-50/70 border border-teal-200/80',
+      title: 'text-teal-900',
+      tag: 'text-teal-700 bg-teal-100/70',
+      desc: 'text-teal-800/90'
+    },
+    rose: {
+      box: 'bg-rose-50/70 border border-rose-200/80',
+      title: 'text-rose-900',
+      tag: 'text-rose-700 bg-rose-100/70',
+      desc: 'text-rose-800/90'
+    },
+    amber: {
+      box: 'bg-amber-50/70 border border-amber-200/80',
+      title: 'text-amber-950',
+      tag: 'text-amber-800 bg-amber-100/70',
+      desc: 'text-amber-900/90'
+    },
+    indigo: {
+      box: 'bg-indigo-50/70 border border-indigo-200/80',
+      title: 'text-indigo-950',
+      tag: 'text-indigo-800 bg-indigo-100/70',
+      desc: 'text-indigo-900/90'
+    },
+    purple: {
+      box: 'bg-purple-50/70 border border-purple-200/80',
+      title: 'text-purple-950',
+      tag: 'text-purple-800 bg-purple-100/70',
+      desc: 'text-purple-900/90'
+    }
+  };
+
+  containerEl.innerHTML = data.cards.map(card => {
+    const st = themeStyles[card.theme] || themeStyles.emerald;
+    return `
+      <div class="p-3 rounded-2xl ${st.box} space-y-1.5 transition-all hover:shadow-2xs">
+        <div class="flex items-center justify-between gap-1">
+          <div class="font-bold ${st.title} flex items-center gap-1.5 text-xs">
+            <span class="text-sm shrink-0">${card.icon}</span>
+            <span class="truncate">${card.title}</span>
+          </div>
+        </div>
+        <div class="inline-block px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wide ${st.tag}">
+          ${card.tag}
+        </div>
+        <p class="text-[11px] ${st.desc} leading-tight">
+          ${card.desc}
+        </p>
+      </div>
+    `;
+  }).join('');
 }
 
 function updateFoodPresetsForPhase(info) {
