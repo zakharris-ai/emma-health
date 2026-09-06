@@ -3694,7 +3694,7 @@ function sanitizeNegations(text) {
 // ============================================================================
 
 let foodAuditTimer = null;
-let activeAiEngineMode = localStorage.getItem('emma_ai_engine_preference') || 'autonomous';
+let activeAiEngineMode = localStorage.getItem('emma_ai_engine_preference') || 'gemini';
 
 function initAiEngineUI() {
   const storedKey = localStorage.getItem('emma_gemini_api_key');
@@ -3710,13 +3710,13 @@ function initAiEngineUI() {
     .then(data => {
       if (data.hasKey || storedKey) {
         if (statusBadge) {
-          statusBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200";
-          statusBadge.innerText = "Gemini 3.8 Flash (High) Configured";
+          statusBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200";
+          statusBadge.innerText = "Gemini 3.8 Flash Connected";
         }
       } else {
         if (statusBadge) {
           statusBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700";
-          statusBadge.innerText = "Not Configured";
+          statusBadge.innerText = "Not Configured (Using Backup Rules)";
         }
       }
     })
@@ -3735,10 +3735,10 @@ function updateAiEngineDisplay() {
 
   if (activeAiEngineMode === 'gemini') {
     if (geminiRadio) geminiRadio.checked = true;
-    if (engineText) engineText.innerText = "Gemini 3.8 Flash (High) Connected";
+    if (engineText) engineText.innerText = "Gemini 3.8 Flash Agent";
     if (enginePill) {
       enginePill.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-purple-800 flex items-center gap-1 shadow-2xs";
-      enginePill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse"></span><span>Gemini 3.8 Flash (High)</span>';
+      enginePill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse"></span><span>Gemini 3.8 Flash</span>';
     }
     if (geminiCard) {
       geminiCard.className = "block p-3.5 rounded-2xl border-2 cursor-pointer transition-all border-purple-500 bg-purple-50/50 shadow-2xs";
@@ -3748,10 +3748,10 @@ function updateAiEngineDisplay() {
     }
   } else {
     if (autonomousRadio) autonomousRadio.checked = true;
-    if (engineText) engineText.innerText = "Clinical AI Reasoner";
+    if (engineText) engineText.innerText = "Clinical Backup Model";
     if (enginePill) {
       enginePill.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-1 shadow-2xs";
-      enginePill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span><span>Clinical AI Reasoner</span>';
+      enginePill.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span><span>Clinical Backup</span>';
     }
     if (autoCard) {
       autoCard.className = "block p-3.5 rounded-2xl border-2 cursor-pointer transition-all border-emerald-500 bg-emerald-50/50 shadow-2xs";
@@ -3942,60 +3942,57 @@ function checkFoodSafety() {
   if (foodAuditTimer) clearTimeout(foodAuditTimer);
 
   resultContainer.classList.remove('hidden');
-  resultContainer.className = "p-4 sm:p-5 rounded-2xl border transition-all bg-purple-50/80 border-purple-200 text-purple-950 shadow-xs animate-pulse";
+  resultContainer.className = "p-4 sm:p-5 rounded-2xl border transition-all bg-gradient-to-r from-purple-50/90 via-indigo-50/80 to-purple-50/90 border-purple-300 text-purple-950 shadow-xs";
   resultContainer.innerHTML = `
     <div class="flex items-center space-x-3">
-      <div class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
-        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
+      <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-sm animate-pulse">
+        <i data-lucide="sparkles" class="w-5 h-5 text-white animate-spin"></i>
       </div>
       <div>
-        <h4 class="text-xs font-bold text-purple-950">Checking "${rawQuery}"...</h4>
-        <p class="text-[11px] text-purple-800/80 mt-0.5">Looking at tummy comfort & Cycle Day ${activeCycle.cycleDay}</p>
+        <div class="flex items-center gap-1.5">
+          <h4 class="text-xs font-extrabold text-purple-950">Gemini 3.8 Flash is analyzing "${rawQuery}"...</h4>
+          <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-200 text-purple-900 uppercase tracking-wider">AI Thinking</span>
+        </div>
+        <p class="text-[11px] text-purple-800/80 mt-0.5">Checking stomach transit, APD reflex & Cycle Day ${activeCycle.cycleDay} comfort</p>
       </div>
     </div>
   `;
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
 
   const storedKey = localStorage.getItem('emma_gemini_api_key');
-  const shouldTryGemini = activeAiEngineMode === 'gemini' || !!storedKey;
 
-  if (shouldTryGemini) {
-    fetch('/api/gemini-audit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: rawQuery,
-        cycleDay: activeCycle.cycleDay,
-        phase: activeCycle.phase,
-        phaseLabel: activeCycle.phaseLabel,
-        apiKey: storedKey || ''
-      })
+  // Always query Gemini proxy endpoint
+  fetch('/api/gemini-audit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: rawQuery,
+      cycleDay: activeCycle.cycleDay,
+      phase: activeCycle.phase,
+      phaseLabel: activeCycle.phaseLabel,
+      apiKey: storedKey || ''
     })
-    .then(res => res.json())
-    .then(resData => {
-      if (resData.success && resData.data) {
-        renderClinicalAiAuditResult(resultContainer, resData.data, resData.source || 'gemini-3.8-flash');
-      } else {
-        foodAuditTimer = setTimeout(() => {
-          const autoData = evaluateAutonomousClinicalReasoning(rawQuery, activeCycle);
-          renderClinicalAiAuditResult(resultContainer, autoData, 'autonomous');
-        }, 400);
-      }
-    })
-    .catch(() => {
+  })
+  .then(res => res.json())
+  .then(resData => {
+    if (resData.success && resData.data) {
+      renderClinicalAiAuditResult(resultContainer, resData.data, resData.source || 'gemini-3.8-flash', resData.modelUsed);
+    } else {
+      // Fallback to built-in clinical rule engine
       foodAuditTimer = setTimeout(() => {
         const autoData = evaluateAutonomousClinicalReasoning(rawQuery, activeCycle);
         renderClinicalAiAuditResult(resultContainer, autoData, 'autonomous');
-      }, 400);
-    });
-  } else {
+      }, 300);
+    }
+  })
+  .catch(() => {
     foodAuditTimer = setTimeout(() => {
       const autoData = evaluateAutonomousClinicalReasoning(rawQuery, activeCycle);
       renderClinicalAiAuditResult(resultContainer, autoData, 'autonomous');
-    }, 600);
-  }
+    }, 300);
+  });
 }
 
 function evaluateAutonomousClinicalReasoning(rawQuery, activeCycle) {
@@ -4926,7 +4923,7 @@ function evaluateAutonomousClinicalReasoning(rawQuery, activeCycle) {
 // ----------------------------------------------------------------------------
 // STRUCTURED CLINICAL AI AUDIT RENDERER (5-STAGE DOSSIER)
 // ----------------------------------------------------------------------------
-function renderClinicalAiAuditResult(container, data, source) {
+function renderClinicalAiAuditResult(container, data, source, modelUsed) {
   const theme = data.theme || 'green';
   const title = data.title || 'Food Check';
   const badge = data.badge || 'Evaluated';
@@ -4965,29 +4962,39 @@ function renderClinicalAiAuditResult(container, data, source) {
   }
 
   // Determine clear, simple top tip / swap
-  let topTip = "";
-  if (freedomHacks && freedomHacks.length > 0) {
-    topTip = freedomHacks[0];
-  } else if (theme === "red") {
-    topTip = "💡 Swap to 100% blue agave tequila with lime & soda, or a crisp dry white wine!";
-  } else if (theme === "amber") {
-    topTip = "💡 Have a smaller portion or peel the skin to keep digestion easy.";
-  } else {
-    topTip = "💡 Safe to enjoy! Best eaten warm or at room temperature.";
+  let topTip = data.topTip || "";
+  if (!topTip) {
+    if (freedomHacks && freedomHacks.length > 0) {
+      topTip = freedomHacks[0];
+    } else if (theme === "red") {
+      topTip = "💡 Swap to 100% blue agave tequila with lime & soda, or a crisp dry white wine!";
+    } else if (theme === "amber") {
+      topTip = "💡 Have a smaller portion or peel the skin to keep digestion easy.";
+    } else {
+      topTip = "💡 Safe to enjoy! Best eaten warm or at room temperature.";
+    }
   }
+
+  const isGemini = source === 'gemini-3.8-flash' || (source && source.includes('gemini'));
+  const attributionPill = isGemini 
+    ? `<span class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-700 bg-purple-100/90 px-2 py-0.5 rounded-full"><i data-lucide="sparkles" class="w-3 h-3 text-purple-600"></i> ${modelUsed || 'Gemini 3.8 Flash'}</span>`
+    : `<span class="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">Clinical Backup</span>`;
 
   // Reveal container cleanly
   container.classList.remove('hidden');
   container.className = `p-4 sm:p-5 rounded-2xl border transition-all space-y-3 ${bgClass} shadow-xs animate-fadeIn`;
 
   container.innerHTML = `
-    <!-- Top Row: Verdict -->
+    <!-- Top Row: Verdict & Gemini Badge -->
     <div class="flex items-center justify-between gap-2 border-b ${borderSep} pb-2.5">
       <div class="flex items-center space-x-2.5">
         <span class="w-7 h-7 rounded-xl ${iconBg} text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">${iconSymbol}</span>
         <div>
-          <h4 class="font-extrabold text-sm sm:text-base">${title}</h4>
-          <span class="text-[10px] opacity-75 font-semibold">Evaluated for Emma's tummy</span>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <h4 class="font-extrabold text-sm sm:text-base">${title}</h4>
+            ${attributionPill}
+          </div>
+          <span class="text-[10px] opacity-75 font-semibold">Tuned for Emma's tummy & transit</span>
         </div>
       </div>
       <span class="px-2.5 py-1 rounded-lg ${badgeClass} text-[10px] font-black uppercase tracking-wide shrink-0 shadow-2xs">${badge}</span>
@@ -5000,8 +5007,38 @@ function renderClinicalAiAuditResult(container, data, source) {
 
     <!-- 1 Simple Tip / Swap -->
     <div class="p-2.5 rounded-xl ${cardBg} border text-xs font-semibold flex items-center gap-2">
-      <span>${topTip}</span>
+      <span>${topTip.startsWith('💡') ? topTip : '💡 ' + topTip}</span>
     </div>
+
+    <!-- Collapsible Motility Diagnostics (Clean & Unobtrusive) -->
+    ${data.metrics ? `
+    <details class="pt-0.5 select-none">
+      <summary class="text-[10px] font-bold text-brand-textMuted cursor-pointer hover:text-brand-textDark flex items-center gap-1 py-0.5">
+        <span>Why? (Motility & APD Diagnostics) ▾</span>
+      </summary>
+      <div class="mt-2 p-2.5 rounded-xl ${cardBg} border text-[11px] grid grid-cols-3 gap-2 text-center">
+        <div>
+          <span class="block text-[9px] text-brand-textMuted font-bold uppercase">Stomach Transit</span>
+          <span class="font-extrabold">${data.metrics.gastricTransitLabel || (data.metrics.gastricTransitMinutes ? data.metrics.gastricTransitMinutes + ' mins' : 'Normal')}</span>
+        </div>
+        <div>
+          <span class="block text-[9px] text-brand-textMuted font-bold uppercase">APD Reflex</span>
+          <span class="font-extrabold">${data.metrics.apdRiskLabel || 'Low'}</span>
+        </div>
+        <div>
+          <span class="block text-[9px] text-brand-textMuted font-bold uppercase">Splenic Gas</span>
+          <span class="font-extrabold">${data.metrics.splenicGasLabel || 'Minimal'}</span>
+        </div>
+      </div>
+    </details>
+    ` : ''}
+
+    ${!isGemini ? `
+    <div class="text-[10px] text-brand-textMuted flex items-center justify-between pt-0.5">
+      <span>Using built-in clinical rule base.</span>
+      <button type="button" onclick="openAiSettingsModal()" class="text-purple-700 font-bold hover:underline">Connect Live Gemini 3.8 Flash →</button>
+    </div>
+    ` : ''}
   `;
 
   if (window.lucide && typeof lucide.createIcons === 'function') {

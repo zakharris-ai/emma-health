@@ -108,40 +108,73 @@ def init_db():
 init_db()
 
 
+PRIMARY_MODEL = "gemini-3.8-flash"
+FALLBACK_MODEL = "gemini-3.7-flash"
+SECONDARY_FALLBACK_MODEL = "gemini-2.5-flash"
+
 def get_stored_gemini_key():
-    # Priority: 1. Environment variable, 2. .gemini_key file
+    # 1. Environment variable
     if os.environ.get('GEMINI_API_KEY'):
         return os.environ.get('GEMINI_API_KEY').strip()
+
+    # 2. Check local and user .env files
+    env_paths = [
+        os.path.join(DATA_DIR, ".env"),
+        os.path.join(DIRECTORY, ".env"),
+        os.path.expanduser("~/.env")
+    ]
+    for env_path in env_paths:
+        if os.path.isfile(env_path):
+            try:
+                with open(env_path, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith("GEMINI_API_KEY="):
+                            val = line.split("=", 1)[1].strip().strip('"').strip("'")
+                            if val:
+                                return val
+            except Exception:
+                pass
+
+    # 3. .gemini_key file
     if os.path.isfile(KEY_FILE):
         try:
-            with open(KEY_FILE, 'r') as f:
+            with open(KEY_FILE, 'r', encoding='utf-8') as f:
                 return f.read().strip()
         except Exception:
             return ""
     return ""
 
 def call_gemini_api(api_key, payload, model=PRIMARY_MODEL, timeout=25):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode('utf-8'),
-        headers={"Content-Type": "application/json"}
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return model, json.loads(resp.read().decode('utf-8'))
-    except urllib.error.HTTPError as e:
-        if e.code == 404 and model != FALLBACK_MODEL:
-            # Fall back to 3.7-flash with high thinking if 3.8-flash is not yet provisioned on this regional endpoint
-            url_fb = f"https://generativelanguage.googleapis.com/v1beta/models/{FALLBACK_MODEL}:generateContent?key={api_key}"
-            req_fb = urllib.request.Request(
-                url_fb,
-                data=json.dumps(payload).encode('utf-8'),
-                headers={"Content-Type": "application/json"}
-            )
-            with urllib.request.urlopen(req_fb, timeout=timeout) as resp_fb:
-                return FALLBACK_MODEL, json.loads(resp_fb.read().decode('utf-8'))
-        raise
+    models = [model, FALLBACK_MODEL, SECONDARY_FALLBACK_MODEL]
+    # Deduplicate while preserving order
+    seen = set()
+    unique_models = [m for m in models if not (m in seen or seen.add(m))]
+
+    last_err = None
+    for m in unique_models:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent?key={api_key}"
+        p = json.loads(json.dumps(payload))
+        if m == SECONDARY_FALLBACK_MODEL and "generationConfig" in p and "thinkingConfig" in p["generationConfig"]:
+            p["generationConfig"].pop("thinkingConfig", None)
+
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(p).encode('utf-8'),
+            headers={"Content-Type": "application/json"}
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return m, json.loads(resp.read().decode('utf-8'))
+        except urllib.error.HTTPError as e:
+            last_err = e
+            if e.code in (400, 404):
+                print(f"ℹ️ Model {m} returned {e.code}, attempting fallback...")
+                continue
+            raise
+    if last_err:
+        raise last_err
+    raise RuntimeError("No Gemini model succeeded")
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
