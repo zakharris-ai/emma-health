@@ -6862,10 +6862,10 @@ const EMMA_MEALS = [
     status: "recommended",
     statusLabel: "Clean Ancient Grain",
     statusColor: "emerald",
-    bestPhase: "any",
-    phaseBadge: "Light & Digestible",
-    clinicalVerdict: "Cooked quinoa is naturally gluten-free and gentle on the bowel lining, providing a complete amino acid profile and steady energy without sluggishness or gas.",
-    actionAdvice: "Rinse quinoa well before cooking to remove natural saponins, ensuring maximum digestive smoothness.",
+    bestPhase: "follicular",
+    phaseBadge: "Best in Follicular",
+    clinicalVerdict: "Cooked quinoa is naturally gluten-free and gentle on the bowel lining in follicular phase when digestion is brisk. During luteal slow transit, white rice or butternut squash digests with less abdominal fullness.",
+    actionAdvice: "Enjoy during high-motility follicular days. In luteal phase, swap quinoa for white rice or tender butternut squash mash.",
     whyAvoidOrModify: ""
   },
   {
@@ -6877,10 +6877,10 @@ const EMMA_MEALS = [
     status: "recommended",
     statusLabel: "Comfort Food Hero",
     statusColor: "emerald",
-    bestPhase: "any",
-    phaseBadge: "Easy Nanny Dinner",
-    clinicalVerdict: "Fluffy baked potato starch provides pure, easily absorbed complex carbohydrates that restore glycogen after long days. Lean tuna, cooked egg whites, and Greek yogurt provide gentle protein without heavy butter.",
-    actionAdvice: "Scoop the fluffy potato flesh and mix with tuna, egg whites, and yogurt. The tender potato skin can be enjoyed or left aside if your tummy is feeling extra sensitive.",
+    bestPhase: "follicular",
+    phaseBadge: "Best in Follicular",
+    clinicalVerdict: "Fluffy baked potato starch provides pure, easily absorbed complex carbohydrates that restore glycogen after active days. In luteal phase, large starch density and potato skins digest slower than white rice bowls.",
+    actionAdvice: "Great for follicular and high-movement days! If having in luteal, scoop the fluffy potato flesh and leave the tougher outer skin aside.",
     whyAvoidOrModify: ""
   },
 
@@ -6894,7 +6894,7 @@ const EMMA_MEALS = [
     status: "recommended",
     statusLabel: "Motility Approved • Clean High Carb",
     statusColor: "emerald",
-    bestPhase: "any",
+    bestPhase: "luteal",
     phaseBadge: "ADHD Fuel Anchor",
     clinicalVerdict: "Using firm, greenish-tipped bananas gives you clean, energizing carbohydrates packed with prebiotic resistant starch rather than fast-fermenting sugars. Resistant starch feeds soothing butyrate-producing gut flora and bypasses small-bowel gas formation. Kallo puffed white rice cakes provide pure, bloat-free starch, while sunflower and almond butters supply healthy fats that buffer absorption and keep your brain sharp and calm without diaphragm tension (APD).",
     actionAdvice: "Choose firm bananas with green tips (Cavendish) for the highest resistant starch and lowest fermentation! The combination with 3 Kallo puffed rice cakes gives you sustained, bloat-free energy for long nanny shifts and workouts.",
@@ -6909,7 +6909,7 @@ const EMMA_MEALS = [
     status: "recommended",
     statusLabel: "Motility Approved • High Crunch",
     statusColor: "emerald",
-    bestPhase: "any",
+    bestPhase: "luteal",
     phaseBadge: "Fast ADHD Fuel",
     clinicalVerdict: "115g firm banana is well within safe thresholds and delivers rich potassium and gentle prebiotic starch. Paired with M&S gluten-free flakes (crisp puffed rice & corn that dissolve without roughage), antioxidant-rich raspberries, and Fage lactose-free yogurt, this gives Emma wonderful bloat-free energy and lasting satiety.",
     actionAdvice: "Use firm, yellow-green bananas and enjoy the satisfying sensory crunch of M&S Made Without Wheat flakes! Easy to throw together in 60 seconds.",
@@ -6954,7 +6954,7 @@ const EMMA_MEALS = [
     status: "recommended",
     statusLabel: "Gold Standard • Motility Approved",
     statusColor: "purple",
-    bestPhase: "any",
+    bestPhase: "luteal",
     phaseBadge: "Emma's Ultimate Shake",
     clinicalVerdict: "Form Nutrition Performance plant protein is formulated with digestive enzymes and zero allergens. 115g frozen banana and blueberries give optimal clean carbs that power Emma through high-energy nanny days.",
     actionAdvice: "Emma's premier go-to shake! Keeps your stomach light and happy while providing lasting, non-jittery energy.",
@@ -6986,7 +6986,7 @@ const EMMA_MEALS = [
     status: "recommended",
     statusLabel: "Motility Approved",
     statusColor: "emerald",
-    bestPhase: "any",
+    bestPhase: "luteal",
     phaseBadge: "Gentle Fats & Greens",
     clinicalVerdict: "65g avocado is the certified Monash sweet spot for gentle monounsaturated fats that nourish bowel lining without delaying gastric emptying. 6 egg whites provide ultra-clean protein, and tender baby spinach adds micronutrients without tough stalky fiber.",
     actionAdvice: "Lightly scramble egg whites and fold in fresh baby spinach until wilted. Top rice cakes with sliced avocado and cottage cheese.",
@@ -7016,10 +7016,10 @@ const EMMA_MEALS = [
     status: "recommended",
     statusLabel: "Digestive Rest Crunch",
     statusColor: "emerald",
-    bestPhase: "any",
-    phaseBadge: "Quick Pantry Staple",
-    clinicalVerdict: "Pickled beetroot provides natural digestive support and nitric oxide without gas. Combined with flaked tuna, tangy yogurt/soft cheese spread, and crisp rice cakes, this sits lightly on the splenic flexure.",
-    actionAdvice: "Mix tuna with soft cheese and yogurt for a gentle, mayo-free tuna salad. Top each rice cake with tuna and a slice of beetroot.",
+    bestPhase: "follicular",
+    phaseBadge: "Best in Follicular",
+    clinicalVerdict: "Pickled beetroot provides natural digestive support and nitric oxide without gas in follicular phase. In luteal slow transit, concentrated beetroot sugars can ferment in sluggish colonic haustra.",
+    actionAdvice: "Best in follicular phase. In luteal, swap beetroot for crisp peeled cucumber coins or sliced tomatoes with Marmite.",
     whyAvoidOrModify: ""
   },
 
@@ -7097,7 +7097,7 @@ const EMMA_MEALS = [
     status: "recommended",
     statusLabel: "Natural Motility Helper",
     statusColor: "emerald",
-    bestPhase: "any",
+    bestPhase: "luteal",
     phaseBadge: "Daily Motility Must",
     clinicalVerdict: "Eating 2 green kiwis daily has been shown to naturally soften digestion and get things moving gently, without creating any trapped gas or bloating.",
     actionAdvice: "Eat 1 with breakfast and 1 in the afternoon with your water.",
@@ -7142,7 +7142,7 @@ const EMMA_MEALS = [
     status: "recommended",
     statusLabel: "Comforting Sweet Treat",
     statusColor: "emerald",
-    bestPhase: "any",
+    bestPhase: "luteal",
     phaseBadge: "Sweet Tooth Fix",
     clinicalVerdict: "Warming the berries releases natural sweet juices. The warm temperature is soothing on your tummy, satisfying your sweet tooth without needing refined sugar.",
     actionAdvice: "A perfect 3 PM afternoon snack during your nanny shift or after work.",
@@ -7247,7 +7247,7 @@ const EMMA_MEALS = [
     status: "recommended",
     statusLabel: "Clean Sweet Treat",
     statusColor: "emerald",
-    bestPhase: "any",
+    bestPhase: "luteal",
     phaseBadge: "Resistant Starch Fuel",
     clinicalVerdict: "Using firm, green-tipped bananas provides gut-soothing resistant starch that doesn't ferment into gas. Blended with lactose-free Greek yogurt and raw cacao, this gives a rich, creamy soft-serve texture that is gentle on your bowel.",
     actionAdvice: "Slice bananas when yellow with green tips and keep in freezer bags. Blend with yogurt for a quick 2-minute dessert!",
@@ -7380,11 +7380,92 @@ const EMMA_MEALS = [
 let currentMealCategoryFilter = 'all';
 let currentMealPhaseFilter = 'luteal';
 
+function updateMealCategoryTabs(isLutealFiltered) {
+  const pool = EMMA_MEALS.filter(meal => {
+    if (isLutealFiltered) {
+      if (meal.status === 'avoid_luteal') return false;
+      if (meal.bestPhase === 'follicular') return false;
+      return true;
+    }
+    return true;
+  });
+
+  const counts = {
+    all: pool.length,
+    dinner: pool.filter(m => m.category === 'dinner').length,
+    breakfast: pool.filter(m => m.category === 'breakfast').length,
+    lunch: pool.filter(m => m.category === 'lunch').length,
+    bulk: pool.filter(m => m.category === 'bulk').length,
+    dessert: pool.filter(m => m.category === 'dessert').length,
+    snack: pool.filter(m => m.category === 'snack').length,
+    new: pool.filter(m => m.isNew).length,
+  };
+
+  const catMap = {
+    all: `All (${counts.all})`,
+    dinner: `🍲 Dinners (${counts.dinner})`,
+    breakfast: `☀️ Breakfasts (${counts.breakfast})`,
+    lunch: `🥪 Lunches (${counts.lunch})`,
+    bulk: `🥘 Bulk Prep (${counts.bulk})`,
+    dessert: `🍨 Desserts (${counts.dessert})`,
+    snack: `🫐 Snacks & Sweet (${counts.snack})`,
+    new: `✨ 7 New Recipes (${counts.new})`
+  };
+
+  Object.keys(catMap).forEach(cat => {
+    const el = document.getElementById(`mealCat-${cat}`);
+    if (el) el.textContent = catMap[cat];
+  });
+}
+
 function renderEmmaMeals() {
   const container = document.getElementById('mealsContainer');
   if (!container) return;
 
-  const filtered = EMMA_MEALS.filter(meal => {
+  const activeCycle = (typeof getCurrentCycleInfo === 'function') ? getCurrentCycleInfo() : { cycleDay: 19, phase: 'luteal', phaseLabel: 'Luteal Phase' };
+  const isLutealFiltered = (currentMealPhaseFilter === 'luteal');
+
+  // 1. Update tab counts dynamically
+  updateMealCategoryTabs(isLutealFiltered);
+
+  // 2. Update Active Phase Filter Banner
+  const bannerEl = document.getElementById('mealPhaseBanner');
+  if (bannerEl) {
+    if (isLutealFiltered) {
+      bannerEl.innerHTML = `
+        <div class="p-3 rounded-2xl bg-amber-50/90 border border-amber-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-2xs mb-1">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-7 h-7 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-sm shrink-0">
+              🌸
+            </div>
+            <div class="text-xs text-amber-950 leading-tight">
+              <span class="font-bold">Filtered for Cycle Day ${activeCycle.cycleDay} (${activeCycle.phaseLabel}):</span>
+              <span class="text-amber-800 ml-1">Showing 34 motility-approved meals. High-roughage hulls, seeds, and slow-fermenting snacks are hidden to prevent APD cramps and slow transit.</span>
+            </div>
+          </div>
+          <button type="button" onclick="setMealPhaseFilter('all')" class="text-[11px] font-bold text-amber-900 bg-white hover:bg-amber-100 px-3 py-1 rounded-xl border border-amber-300 shadow-2xs shrink-0 active:scale-95 transition-all">
+            Show All 40
+          </button>
+        </div>
+      `;
+    } else {
+      bannerEl.innerHTML = `
+        <div class="p-2.5 px-3 rounded-2xl bg-brand-cream/90 border border-brand-border flex items-center justify-between gap-2 shadow-2xs text-xs text-brand-textDark mb-1">
+          <div class="flex items-center space-x-2">
+            <span class="text-sm">📋</span>
+            <span class="text-[11px] font-medium text-brand-textMuted">Showing all <strong class="text-brand-textDark font-bold">40 meals & recipes</strong> across all cycle phases.</span>
+          </div>
+          <button type="button" onclick="setMealPhaseFilter('luteal')" class="text-[11px] font-bold text-brand-coral bg-white hover:bg-rose-50 px-2.5 py-1 rounded-xl border border-brand-border shadow-2xs shrink-0 active:scale-95 transition-all flex items-center gap-1">
+            <span>🌸</span>
+            <span>Filter for Day ${activeCycle.cycleDay}</span>
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  // 3. Filter meals by category and phase
+  let pool = EMMA_MEALS.filter(meal => {
     // Category match
     if (currentMealCategoryFilter === 'new') {
       if (!meal.isNew) return false;
@@ -7392,24 +7473,38 @@ function renderEmmaMeals() {
       if (meal.category !== currentMealCategoryFilter) return false;
     }
 
-    // Phase match: if luteal filter is on, show all but style/highlight luteal relevance
+    // Phase match: if luteal filter is on, exclude avoid_luteal and follicular-only items
+    if (isLutealFiltered) {
+      if (meal.status === 'avoid_luteal') return false;
+      if (meal.bestPhase === 'follicular') return false;
+    }
+
     return true;
   });
 
-  if (filtered.length === 0) {
+  // 4. Sort: In Luteal mode, sort bestPhase === 'luteal' to top
+  if (isLutealFiltered) {
+    pool.sort((a, b) => {
+      const aLuteal = a.bestPhase === 'luteal' ? 1 : 0;
+      const bLuteal = b.bestPhase === 'luteal' ? 1 : 0;
+      return bLuteal - aLuteal;
+    });
+  }
+
+  if (pool.length === 0) {
     container.innerHTML = `
       <div class="col-span-full text-center py-10 bg-brand-cream/50 rounded-2xl border border-brand-border">
         <p class="text-xs font-semibold text-brand-textMuted">No meals match this category filter.</p>
+        <button type="button" onclick="setMealPhaseFilter('all')" class="mt-2 text-xs text-brand-coral font-bold underline">Show all meals</button>
       </div>
     `;
     return;
   }
 
-  const activeCycle = getCurrentCycleInfo();
   const isFollicular = activeCycle.phase === 'follicular';
   const isLuteal = activeCycle.phase === 'luteal';
 
-  container.innerHTML = filtered.map(meal => {
+  container.innerHTML = pool.map(meal => {
     let status = meal.status;
     let statusLabel = meal.statusLabel;
     let phaseBadge = meal.phaseBadge;
@@ -7453,6 +7548,11 @@ function renderEmmaMeals() {
       actionAdvice = 'Slice 115g firm banana directly over your Fage lactose-free Greek yogurt and M&S gluten-free flakes. Delicious, fast, and 100% bloat-free!';
     }
 
+    const isLutealStar = isLutealFiltered && (meal.bestPhase === 'luteal');
+    if (isLutealStar && !phaseBadge.includes('Day ' + activeCycle.cycleDay)) {
+      phaseBadge = `⭐ Top Luteal Pick (Day ${activeCycle.cycleDay})`;
+    }
+
     const isAvoid = status === 'avoid_luteal';
     const isModify = status === 'modify';
     const isRecommended = status === 'recommended';
@@ -7478,6 +7578,10 @@ function renderEmmaMeals() {
       borderClass = "border-indigo-200 bg-indigo-50/20";
       badgeBg = "bg-indigo-100 text-indigo-800 border-indigo-200";
       icon = "✨";
+    } else if (isLutealStar) {
+      borderClass = "border-amber-300 bg-amber-50/25 ring-1 ring-amber-200/70";
+      badgeBg = "bg-amber-100 text-amber-900 border-amber-300 font-bold";
+      icon = "🌸";
     }
 
     return `
@@ -7619,6 +7723,12 @@ function setMealPhaseFilter(phase) {
   }
 
   renderEmmaMeals();
+
+  // Smooth scroll to meal phase banner
+  const banner = document.getElementById('mealPhaseBanner');
+  if (banner) {
+    banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 }
 
 function auditSpecificMeal(title, ingredients) {
