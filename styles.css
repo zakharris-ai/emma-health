@@ -1,0 +1,189 @@
+/* Emma Butler's Health & Gut Rhythm - Mobile & ADHD Optimized Styles */
+
+/* Safe Area for modern iPhones */
+.pb-safe {
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 16px));
+}
+
+/* Base Body Styles */
+body {
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Scrollbar Minimalist */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #EFECE6;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D5D1C8;
+}
+
+/* Desktop Tab Active States */
+.tab-btn.active-tab {
+  background-color: #FFFFFF !important;
+  color: #1A211E !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Mobile Bottom Nav Active States */
+.mobile-nav-btn.active {
+  color: #52796F !important;
+}
+.mobile-nav-btn.active span {
+  font-weight: 800;
+  transform: scale(1.05);
+}
+
+/* Trial Card Animations */
+.trial-day-card {
+  transition: all 0.2s ease-in-out;
+}
+.trial-day-card:hover {
+  transform: translateY(-1px);
+}
+
+/* ADHD Interactive Check-Card Checked State */
+.check-card.checked {
+  background-color: #E8EFEA !important;
+  border-color: #52796F !important;
+}
+.check-card.checked .check-box {
+  background-color: #52796F !important;
+  border-color: #52796F !important;
+}
+.check-card.checked .check-icon {
+  display: block !important;
+}
+.check-card.checked .text-brand-textDark {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+/* Quick Log Bristol Button Selected */
+.bristol-btn.selected {
+  border-color: #52796F !important;
+  background-color: #E8EFEA !important;
+  color: #1A211E !important;
+  box-shadow: 0 0 0 2px #52796F;
+}
+
+/* Quick Log Mood Button Selected */
+.mood-btn.selected {
+  border-color: #D97768 !important;
+  background-color: #FBEEEC !important;
+  color: #D97768 !important;
+  box-shadow: 0 0 0 2px #D97768;
+}
+
+/* Quick Log Alcohol Button Selected */
+.alc-btn.selected {
+  border-color: #D97768 !important;
+  background-color: #FBEEEC !important;
+  color: #D97768 !important;
+  box-shadow: 0 0 0 2px #D97768;
+}
+
+/* Voice Recognition Pulse Animation */
+.mic-active {
+  background-color: #D97768 !important;
+  color: #FFFFFF !important;
+  animation: pulseMic 1.2s infinite;
+}
+
+@keyframes pulseMic {
+  0% {
+    box-shadow: 0 0 0 0 rgba(217, 119, 104, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(217, 119, 104, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(217, 119, 104, 0);
+  }
+}
+
+/* Tag Buttons Selected */
+.tag-btn.selected {
+  background-color: #1A211E !important;
+  color: #FFFFFF !important;
+  border-color: #1A211E !important;
+}
+
+/* Filter Buttons */
+.cycle-filter-btn.active-filter {
+  background-color: #1A211E !important;
+  color: #FFFFFF !important;
+  border-color: #1A211E !important;
+}
+
+/* Range Slider Custom Styling */
+input[type="range"] {
+  height: 6px;
+  border-radius: 9999px;
+}
+
+/* Print Optimization for Medical Summaries */
+@media print {
+  header, nav, footer, button, #quickLogModal, #ouraConfigModal {
+    display: none !important;
+  }
+  #doctorExportModal {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+  #doctorExportModal > div {
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+  #doctorReportContent {
+    max-height: none !important;
+    overflow: visible !important;
+    font-size: 11pt !important;
+    border: none !important;
+    background: transparent !important;
+  }
+}

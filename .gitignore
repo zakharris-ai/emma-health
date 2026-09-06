@@ -1,0 +1,13 @@
+# Secrets & Environment Keys
+.gemini_key
+.env
+*.env
+
+# Local OS & Editors
+.DS_Store
+*.swp
+*.swo
+__pycache__/
+
+# Database binary lock files (keep backup json)
+*.db-journal
