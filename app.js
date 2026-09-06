@@ -1259,13 +1259,8 @@ function updateFoodPresetsForPhase(info) {
 
   const bananaBtn = document.getElementById('presetBtn-banana');
   if (bananaBtn) {
-    if (isFollicular) {
-      bananaBtn.innerHTML = '🍌 Banana Rice Cakes (Follicular Adjusted)';
-      bananaBtn.className = 'px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold shadow-2xs transition-all active:scale-95';
-    } else {
-      bananaBtn.innerHTML = '🍌 235g Banana Rice Cakes (Trigger Test)';
-      bananaBtn.className = 'px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-200 font-bold shadow-2xs transition-all active:scale-95';
-    }
+    bananaBtn.innerHTML = '🍌 Banana Almond Rice Cakes';
+    bananaBtn.className = 'px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-bold shadow-2xs transition-all active:scale-95';
   }
 
   const celeryBtn = document.getElementById('presetBtn-celery');
@@ -4848,66 +4843,60 @@ function evaluateAutonomousClinicalReasoning(rawQuery, activeCycle) {
   }
 
   // --------------------------------------------------------------------------
-  // CASE 8: BANANA RICE CAKES (PORTION THRESHOLD TEST)
+  // CASE 8: BANANA RICE CAKES & CLEAN CARB COMBINATIONS
   // --------------------------------------------------------------------------
-  if (isBananaHigh || (/banana/i.test(query) && /rice\s*cake/i.test(query))) {
-    const isLarge = isBananaHigh || /235/i.test(query);
-    theme = isLarge ? "amber" : "green";
-    title = isLarge ? `🍌 235g Banana Rice Cakes: Portion Calibration (Cycle Day ${day})` : `🍌 Banana Rice Cakes: Approved Breakfast (Cycle Day ${day})`;
-    badge = isLarge ? "Portion Adjustment Needed" : "Safe to Enjoy";
-    summary = isLarge
-      ? "235g of ripe banana (over 2 large bananas) exceeds the low-FODMAP fructan and excess fructose threshold, leading to fermentation in slow luteal transit. Simply cap at 80–90g (half a banana)!"
-      : "Plain white rice cakes with sliced firm banana (under 90g) and sunflower seed butter is a gentle, safe breakfast.";
+  if (isBananaHigh || (/banana/i.test(query) && /rice\s*cake/i.test(query)) || (/banana/i.test(query) && !isBananaSorbet)) {
+    theme = "green";
+    title = `🍌 Banana & Clean Carb Combos: Gut-Safe Energy (Cycle Day ${day})`;
+    badge = "Motility Approved • Clean High Carb";
+    summary = "Firm Cavendish bananas (yellow with green tips) are rich in gut-soothing resistant starch (RS2) that feeds beneficial colonic flora rather than fermenting into gas. Paired with Kallo puffed white rice cakes and sunflower or almond butter, this provides steady, bloat-free carbohydrate fuel for adult ADHD focus!";
 
-    gastricTransitMinutes = isLarge ? 85 : 60;
-    gastricTransitLabel = isLarge ? "85 mins (Elevated Fructose)" : "60 mins (Smooth)";
-    bristolForecast = isLarge ? "Type 5-6 (Watery Bypass Risk)" : "Type 4 (Smooth)";
-    apdRiskPercent = isLarge ? 44 : 12;
-    apdRiskLabel = isLarge ? "Moderate (44%)" : "Low (12%)";
-    splenicGasPressure = isLarge ? 48 : 14;
-    splenicGasLabel = isLarge ? "Moderate (48%)" : "Minimal (14%)";
+    gastricTransitMinutes = 60;
+    gastricTransitLabel = "60 mins (Optimal & Smooth)";
+    bristolForecast = "Type 4 (Smooth & Formed)";
+    apdRiskPercent = 12;
+    apdRiskLabel = "Low (12%)";
+    splenicGasPressure = 12;
+    splenicGasLabel = "Minimal (12%)";
 
     reasoningChain = [
       {
         step: 1,
         title: "Component & Ingredient Forensics",
         icon: "🔬",
-        content: isLarge
-          ? "235g banana delivers over 30g total sugars with elevated fructan polymers and free fructose. While white rice cakes are zero-FODMAP, high banana portions overload GLUT5 fructose transporters in the jejunum."
-          : "White rice cakes provide puffed, easily digestible amylose. 80g of banana remains safely below the Monash low-FODMAP cutoff, providing gentle potassium and resistant starch."
+        content: "Firm (yellow with green tips) bananas are Monash-certified low-FODMAP. Their carbohydrate content is predominantly resistant starch type 2 (RS2), which does not break down in the upper GI tract into rapid-fermenting fructose. Kallo puffed white rice cakes and M&S gluten-free flakes provide pure, bloat-free complex starch. Sunfly sunflower butter and Pip & Nut almond butter deliver gentle lipids that buffer glucose absorption."
       },
       {
         step: 2,
         title: "Active Cycle Phase & Transit Kinetics",
         icon: "🌸",
-        content: `On Cycle Day ${day} (${phaseLbl}), high progesterone transit delay allows unabsorbed fructose from large banana portions to ferment rapidly, creating osmotic gas pressure.`
+        content: `On Cycle Day ${day} (${phaseLbl}), Emma's body and active lifestyle need adequate clean carbohydrates for sustained dopamine synthesis and ADHD focus. Resistant starch bypasses small intestinal fermentation and reaches the colon where it selectively feeds butyrate-producing bacteria, strengthening mucosal integrity and promoting smooth motility.`
       },
       {
         step: 3,
         title: "Biomechanical APD & Splenic Gas Impact",
         icon: "🫁",
-        content: isLarge
-          ? "Excess gas from 235g banana pools directly at the splenic flexure, triggering left-rib tightness and APD abdominal bloating within 45 minutes."
-          : "At 80g, minimal gas is generated. The diaphragm remains undisturbed."
+        content: "Because firm bananas do not generate high rapid fructose fermentation, gas accumulation at the splenic flexure is negligible. Intra-abdominal pressure remains completely calm, and the diaphragm stays relaxed without APD distension."
       },
       {
         step: 4,
         title: "Pharmacological Synergy Cross-Check",
         icon: "💊",
-        content: "Mestinon 180mg works smoothly with balanced starch portions. Keeping banana under 90g ensures Linaclotide produces smooth Bristol Type 4 rather than osmotic liquid bypass."
+        content: "Pairs harmoniously with morning Linaclotide 290mcg and Mestinon 180mg, facilitating natural, soft Bristol Type 4 evacuation without liquid bypass."
       }
     ];
 
-    orderingScript = `Hi! Could I please have 2 plain rice cakes with 1 sliced small firm banana and sunflower seed butter? Thank you!`;
+    orderingScript = `Hi! Could I please have 3 plain white rice cakes topped with sliced firm (slightly green-tipped) banana and sunflower seed or almond butter? Thank you!`;
     freedomHacks = [
-      "The Golden Banana Rule: Enjoy 1/2 banana (80g–90g) sliced across 2–3 rice cakes.",
-      "Pair with 1 tbsp sunflower seed butter or almond butter for stabilizing healthy fats.",
-      "Choose medium/firm yellow bananas with green tips (lowest in fermentable free fructose)."
+      "The Firm Banana Advantage: Choose bananas with yellow skins and slight green tips for the highest resistant starch and lowest fermentation.",
+      "Safe High-Carb Fuel: Kallo puffed white rice cakes and M&S Made Without Wheat gluten-free flakes provide pure, bloat-free complex carbs.",
+      "Buffer with Seed/Nut Butter: Sunfly sunflower seed butter and Pip & Nut almond butter provide healthy fats that sustain energy and ADHD focus without digestive lag."
     ];
     tags = [
-      isLarge ? "⚠️ 235g Exceeds Fructan Cutoff" : "✓ Within Monash FODMAP Cutoff",
-      "💡 Cap Banana at 80g–90g",
-      "✓ Naturally Gluten-Free & Allium-Free"
+      "✓ Monash Low-FODMAP Certified",
+      "✓ Gut-Soothing Resistant Starch",
+      "✓ 100% Bloat-Free Complex Carbs",
+      "✓ Empowers Adult ADHD Energy"
     ];
     return { theme, title, badge, summary, metrics: { gastricTransitMinutes, gastricTransitLabel, bristolForecast, apdRiskPercent, apdRiskLabel, splenicGasPressure, splenicGasLabel }, reasoningChain, orderingScript, freedomHacks, tags };
   }
@@ -6785,8 +6774,8 @@ const EMMA_MEALS = [
     statusColor: "emerald",
     bestPhase: "any",
     phaseBadge: "Great in Luteal & Follicular",
-    clinicalVerdict: "Gold standard lean protein combination. White fish and coldwater prawns are gentle and light, digesting in under 90 minutes. Cooked courgette and carrot provide soft fiber that won't turn into trapped gas under your ribs.",
-    actionAdvice: "For your weekly routine: 200g rice is perfect if eaten as your 1 PM lunch. If having this for dinner, reduce rice to 120–130g so your stomach is light before bed.",
+    clinicalVerdict: "Gold standard lean protein combination. White fish and coldwater prawns are gentle and light, digesting in under 90 minutes. Cooked courgette and carrot provide soft soluble fiber that won't turn into trapped gas under your ribs.",
+    actionAdvice: "For your weekly routine: 200g rice is perfect if eaten as your 1 PM lunch. If having this for dinner, 130–150g rice keeps your stomach light before bed.",
     whyAvoidOrModify: ""
   },
   {
@@ -6794,181 +6783,181 @@ const EMMA_MEALS = [
     category: "dinner",
     isNew: false,
     title: "Tuna & Prawn Stirfried Rice Bowl (130g Rice)",
-    ingredients: "130g Cooked Morrisons White Rice, 1 tin Tuna (Drained), 85g Aldi Coldwater Prawns, 1 Whole Courgette, 1 Small Carrot, 1/3 Red Pepper, 1 Medium Stalk Celery, 2tsp Noya Sauce, 1tsp Sushi Vinegar",
-    status: "modify",
-    statusLabel: "Modify Celery in Luteal",
-    statusColor: "amber",
-    bestPhase: "follicular",
-    phaseBadge: "Caution on Day 19",
-    clinicalVerdict: "Tuna, prawns, and rice are very gentle. However, celery contains tough stringy fibers and plant sugars that pull extra water and turn into gas under your ribs during your slower luteal phase.",
-    actionAdvice: "Swap the celery stalk for 50g peeled cucumber ribbons or finely diced fennel bulb (fennel has soothing natural oils that help tummy muscles relax!).",
-    whyAvoidOrModify: "Celery contains tough plant sugars that trigger gas when digestion moves slowly."
+    ingredients: "130g Cooked Morrisons White Rice, 1 tin Tuna (Drained), 85g Aldi Coldwater Prawns, 1 Whole Courgette, 1 Small Carrot, 1/3 Red Pepper, 1 Medium Stalk of Celery, 2tsp Noya Sauce, 1tsp Sushi Vinegar",
+    status: "recommended",
+    statusLabel: "Motility Approved",
+    statusColor: "emerald",
+    bestPhase: "any",
+    phaseBadge: "Safe for Luteal & Follicular",
+    clinicalVerdict: "Tuna, coldwater prawns, and white rice digest cleanly and smoothly. Slicing the celery stalk thinly and stir-frying it until tender softens its natural plant fibers completely, preventing trapped gas pockets.",
+    actionAdvice: "Stir-fry until vegetables are tender, or swap celery for 50g peeled cucumber ribbons. Noya sauce and sushi vinegar provide savory umami with zero garlic or onion!",
+    whyAvoidOrModify: ""
   },
   {
     id: "din-3",
     category: "dinner",
     isNew: false,
     title: "Prawn Rice Poke Bowl (200g Rice)",
-    ingredients: "150g Sainsbury's King Prawns, 200g Cooked White Rice, 1 Small Raw Carrot, 1tbsp Fat-Free Greek Yogurt, 1 Large Spoon Cucumber, 1tbsp Rubies in the Rubble Sriracha Mayo, 2tsp Sushi Vinegar",
+    ingredients: "1 Full Pack (150g) Sainsbury's Large King Prawns, 200g Cooked Morrisons White Rice, 1 Small Raw Carrot, 1tbsp Aldi Fat-Free Greek Yogurt, 1 Large Spoon of Cucumber, 2tsp Sushi Vinegar",
     status: "recommended",
     statusLabel: "Safe & Motility-Friendly",
     statusColor: "emerald",
     bestPhase: "any",
     phaseBadge: "Safe for Luteal",
-    clinicalVerdict: "A fantastic, easy meal for a busy nanny. Rubies in the Rubble mayo is certified garlic- and onion-free. Prawns and rice are non-reactive and easy on your tummy.",
-    actionAdvice: "Grate or peel the raw carrot finely so it doesn't form hard chunks in a slow-moving bowel. If ribcage pressure is elevated, serve at room temperature rather than straight from the fridge.",
+    clinicalVerdict: "A fantastic, easy meal for a busy nanny. Prawns and white rice are non-reactive and gentle on your tummy, passing smoothly through your digestive tract with zero bloat.",
+    actionAdvice: "Grate or peel the raw carrot finely so it softens easily in a slower luteal bowel. Sliced cucumber provides hydrating, refreshing crunch.",
     whyAvoidOrModify: ""
   },
   {
     id: "din-4",
     category: "dinner",
     isNew: false,
-    title: "Pan-Fried Cod & Courgette Mash",
-    ingredients: "140g Cod Fillet, 1 Large Courgette (Steamed & Lightly Mashed), 1tsp Olive Oil, Squeeze of Fresh Lemon, Sea Salt",
+    title: "MORE Prawn Rice Poke Bowl (170g Rice)",
+    ingredients: "1 Pack (225g) Sainsbury's Taste the Difference Frozen Cooked Jumbo King Prawns, 170g Cooked Morrisons White Rice, 1 Small Raw Carrot, 1tbsp Aldi Fat-Free Greek Yogurt, 1 Large Spoon of Cucumber, 1tsp Sushi Vinegar",
     status: "recommended",
-    statusLabel: "Ultra-Light Evening Rest",
+    statusLabel: "High Protein & Light",
     statusColor: "emerald",
-    bestPhase: "luteal",
-    phaseBadge: "Great for High Bloat Days",
-    clinicalVerdict: "Cod is exceptionally digestible, breaking down into bioavailable amino acids in under an hour. Steamed, mashed courgette provides gentle soluble hydration without any tough insoluble skins that ferment.",
-    actionAdvice: "Have this on evenings when your 3:00 PM check-in shows diaphragm tightness above 6/10.",
+    bestPhase: "any",
+    phaseBadge: "Jumbo Prawn Favourite",
+    clinicalVerdict: "High lean protein from tender jumbo king prawns without heavy fats. Paired with 170g white rice, Greek yogurt, and cucumber, this meal provides pure nourishment that empties rapidly from the stomach.",
+    actionAdvice: "Defrost jumbo prawns in cold water for 10 minutes. Toss with sushi vinegar and yogurt for a restaurant-style poke bowl in under 5 minutes!",
     whyAvoidOrModify: ""
   },
   {
     id: "din-5",
     category: "dinner",
     isNew: false,
-    title: "Baked Salmon & Sweet Potato Mash",
-    ingredients: "110g Wild Salmon Fillet, 100g Baked Peeled Sweet Potato (Mashed), Steamed Carrot Coins, 1tsp Cold-Pressed Olive Oil",
+    title: "Turkey Bolognese & Rice Bowl (120g Rice)",
+    ingredients: "1 portion Turkey & Veggie Bolognese (from 3 batch), 120g Cooked Morrisons White Rice, 1 Whole Courgette (~100g), 1tbsp (15g) Aldi Fat-Free Cottage Cheese",
     status: "recommended",
-    statusLabel: "Rich in Omega-3 Anti-Inflammatory",
+    statusLabel: "100% Garlic & Onion Free",
     statusColor: "emerald",
-    bestPhase: "luteal",
-    phaseBadge: "Luteal Hormone Nourishment",
-    clinicalVerdict: "Salmon supplies healthy omega-3 fatty acids that calm inflammatory prostaglandins during your late luteal phase. Peeled sweet potato offers gentle, easily absorbed carbohydrate fuel.",
-    actionAdvice: "Keep sweet potato portion at 100g to avoid excess osmotic load in your slower luteal bowel.",
+    bestPhase: "any",
+    phaseBadge: "Motility Approved",
+    clinicalVerdict: "Emma's Turkey Bolognese base is 100% garlic-free and onion-free, seasoned with rich umami Marmite and tomato purée. Lean turkey breast paired with white rice and tender courgette digests cleanly without gas or fullness under the ribs.",
+    actionAdvice: "Keep portions of this garlic-free base frozen for effortless weeknight dinners during your nanny routine.",
     whyAvoidOrModify: ""
   },
   {
     id: "din-6",
     category: "dinner",
     isNew: false,
-    title: "Emma's Turkey Bolognese & White Rice",
-    ingredients: "130g Lean Turkey Breast Mince (5%), 120g Cooked White Rice, 1 Courgette (Diced), 1tbsp Tomato Purée, 1/2 tsp Marmite, Fresh Basil, Black Pepper",
+    title: "Turkey Bolognese & Butternut Squash Bowl",
+    ingredients: "1 portion Turkey & Veggie Bolognese (from 3 batch), 280g Cooked Butternut Squash, 1 Whole Courgette (~100g), 1tbsp (15g) Aldi Fat-Free Cottage Cheese",
     status: "recommended",
-    statusLabel: "100% Garlic & Onion Free",
+    statusLabel: "Soothing Gut Rest",
     statusColor: "emerald",
-    bestPhase: "any",
-    phaseBadge: "Motility Approved",
-    clinicalVerdict: "Emma's Turkey Bolognese base is 100% garlic-free and onion-free, seasoned with rich umami Marmite and tomato purée. Turkey breast mince is ultra-lean, and paired with white rice and cooked courgette, it digests cleanly without gas or fullness under the ribs.",
-    actionAdvice: "Keep portions of this garlic-free base frozen for effortless weeknight dinners during your weekly routine.",
+    bestPhase: "luteal",
+    phaseBadge: "Ideal Luteal Dinner",
+    clinicalVerdict: "Butternut squash is one of the most soothing, easily digested carbohydrates for a sensitive tummy. It breaks down into a soft, velvety mash that doesn't leave unfermented residue for bacteria to turn into gas.",
+    actionAdvice: "Steam or roast butternut squash cubes until fork-tender. Mash lightly and spoon the warm bolognese over the top for cozy comfort.",
     whyAvoidOrModify: ""
   },
   {
     id: "din-7",
     category: "dinner",
     isNew: false,
-    title: "King Prawn & Courgette Tamari Rice Bowl (130g Rice)",
-    ingredients: "140g King Prawns, 130g Cooked White Rice, 1 Courgette, 1/2 Red Bell Pepper, 2tsp Noya or Tamari Sauce",
+    title: "Turkey Bolognese & Quinoa Bowl",
+    ingredients: "1 portion Turkey & Veggie Bolognese (from 3 batch), 120g Cooked Quinoa, 1 Whole Courgette (~100g), 1tbsp (15g) Aldi Fat-Free Cottage Cheese",
     status: "recommended",
-    statusLabel: "Digestive Rest Bowl",
+    statusLabel: "Clean Ancient Grain",
     statusColor: "emerald",
     bestPhase: "any",
-    phaseBadge: "Great Evening Bowl",
-    clinicalVerdict: "Red bell pepper is completely safe in modest portions (under 43g) and provides gentle vitamin C. Paired with sweet prawns and tender courgette, this bowl creates virtually zero gas.",
-    actionAdvice: "Peel the outer skin of the red pepper with a vegetable peeler if you experience evening acid reflux.",
+    phaseBadge: "Light & Digestible",
+    clinicalVerdict: "Cooked quinoa is naturally gluten-free and gentle on the bowel lining, providing a complete amino acid profile and steady energy without sluggishness or gas.",
+    actionAdvice: "Rinse quinoa well before cooking to remove natural saponins, ensuring maximum digestive smoothness.",
     whyAvoidOrModify: ""
   },
   {
     id: "din-8",
     category: "dinner",
     isNew: false,
-    title: "Prawn Rice Poke Bowl (Light Evening 100g Rice)",
-    ingredients: "120g King Prawns, 100g Cooked White Rice, Grated Cucumber, Cooked Zucchini ribbons, 1tsp Tamari, 1/2 tsp Sesame Oil",
+    title: "Tuna & Egg White Jacket Potato",
+    ingredients: "1 Bannisters Farm Jacket Potato, 1 tin Tuna (Drained), 2 Medium Egg Whites, 1tbsp Tesco 0% Fat Greek Yogurt, 100g Raw Spinach, 1tbsp Reduced Sugar Ketchup",
     status: "recommended",
-    statusLabel: "Light Dinner Anchor",
+    statusLabel: "Comfort Food Hero",
     statusColor: "emerald",
-    bestPhase: "luteal",
-    phaseBadge: "Ideal Weeknight Dinner",
-    clinicalVerdict: "A lighter rice portion in the evening prevents heavy food sitting in your stomach overnight, so you wake up with a flatter, pain-free tummy.",
-    actionAdvice: "Eat before 7:30 PM to ensure your stomach is 100% empty before you sleep.",
+    bestPhase: "any",
+    phaseBadge: "Easy Nanny Dinner",
+    clinicalVerdict: "Fluffy baked potato starch provides pure, easily absorbed complex carbohydrates that restore glycogen after long days. Lean tuna, cooked egg whites, and Greek yogurt provide gentle protein without heavy butter.",
+    actionAdvice: "Scoop the fluffy potato flesh and mix with tuna, egg whites, and yogurt. The tender potato skin can be enjoyed or left aside if your tummy is feeling extra sensitive.",
     whyAvoidOrModify: ""
   },
 
-  // --- BREAKFASTS ---
-  {
-    id: "brk-shake",
-    category: "breakfast",
-    isNew: false,
-    title: "Emma's Blueberry Form Protein Shake (Flexible Fuel)",
-    ingredients: "1 scoop (30g) Form Nutrition Plant Protein (Performance Vanilla or Pureblend), 100g Wild Blueberries (fresh or frozen), 250ml Unsweetened Almond Milk (or chilled coconut water), 1tsp Pre-soaked Chia Seeds, pinch Ceylon Cinnamon",
-    status: "recommended",
-    statusLabel: "Gold Standard • Motility Approved",
-    statusColor: "purple",
-    bestPhase: "any",
-    phaseBadge: "Light Morning Fuel",
-    clinicalVerdict: "Emma's premier morning shake! Form Nutrition is 100% plant-based (organic pea, sprouted brown rice, and hemp) with digestive enzymes—completely free of whey/dairy, gluten, soy, and gut-irritating gums. Wild blueberries are Low-FODMAP and soothe the gut lining. Empties from the stomach in under 25–30 minutes, preventing post-meal fullness from pushing down the diaphragm (APD).",
-    actionAdvice: "Great for mornings when you want a fast, ultra-light breakfast before an active nanny shift! Sip slowly 40–60 mins after taking your morning Linaclotide.",
-    whyAvoidOrModify: ""
-  },
+  // --- BREAKFASTS (5) ---
   {
     id: "brk-1",
     category: "breakfast",
     isNew: false,
-    title: "Banana Almond Rice Cakes (235g Banana Alert)",
-    ingredients: "235g Banana (~2.5 ripe bananas), 2tsp Sunfly Sunflower Seed Butter, 1tsp Pip & Nut Almond Butter, 3 Kallo Rice Cakes",
-    status: "avoid_luteal",
-    statusLabel: "⚠️ High Trigger: 235g Banana Overload",
-    statusColor: "rose",
-    bestPhase: "follicular",
-    phaseBadge: "Avoid on Day 19",
-    clinicalVerdict: "🚨 BIG STEALTH TRIGGER: 235g banana is over 2.5 large bananas! Friendly portion limits recommend no more than 40–50g of firm banana for sensitive tummies. Even though sunflower and almond butter on rice cakes are great, 235g of ripe banana dumps an enormous amount of fermentable fruit sugars (fructans) into a slow-moving bowel, creating intense trapped gas right under your left ribs.",
-    actionAdvice: "GENTLE FIX: Emma, keep the 3 Kallo rice cakes and nut butters, but cap the banana topping at 40–50g of firm (greenish-tipped) banana, or swap toppings for fresh blueberries, strawberries, or kiwi!",
-    whyAvoidOrModify: "235g banana contains over 5x the gentle portion for sensitive tummies, flooding slow transit with gas-producing fruit sugars."
+    title: "Banana Almond Rice Cakes (x3)",
+    ingredients: "235g Banana (Firm / Green-Tipped), 2tsp Sunfly Sunflower Seed Butter, 1tsp Pip & Nut Almond Butter, 3 Kallo Rice Cakes",
+    status: "recommended",
+    statusLabel: "Motility Approved • Clean High Carb",
+    statusColor: "emerald",
+    bestPhase: "any",
+    phaseBadge: "ADHD Fuel Anchor",
+    clinicalVerdict: "Using firm, greenish-tipped bananas gives you clean, energizing carbohydrates packed with prebiotic resistant starch rather than fast-fermenting sugars. Resistant starch feeds soothing butyrate-producing gut flora and bypasses small-bowel gas formation. Kallo puffed white rice cakes provide pure, bloat-free starch, while sunflower and almond butters supply healthy fats that buffer absorption and keep your brain sharp and calm without diaphragm tension (APD).",
+    actionAdvice: "Choose firm bananas with green tips (Cavendish) for the highest resistant starch and lowest fermentation! The combination with 3 Kallo puffed rice cakes gives you sustained, bloat-free energy for long nanny shifts and workouts.",
+    whyAvoidOrModify: ""
   },
   {
     id: "brk-2",
     category: "breakfast",
     isNew: false,
-    title: "Crispy Berry & Banana Greek Yogurt Breakfast Bowl",
-    ingredients: "190g Fage 0% Lactose-Free Greek Yogurt, 115g Raw Banana, 100g Frozen Raspberries, 30g M&S Made Without Wheat Gluten Free Special Flakes",
-    status: "modify",
-    statusLabel: "Cap Banana at 45g in Luteal",
-    statusColor: "amber",
+    title: "Crispy Berry & Banana Yogurt Breakfast Bowl (115g Banana)",
+    ingredients: "190g Fage 0% Lactose-Free Greek Yogurt, 115g Raw Banana (Firm), 100g Frozen Raspberries, 30g M&S Made Without Wheat Gluten Free Special Flakes",
+    status: "recommended",
+    statusLabel: "Motility Approved • High Crunch",
+    statusColor: "emerald",
     bestPhase: "any",
-    phaseBadge: "Moderate Banana Load",
-    clinicalVerdict: "Fage lactose-free yogurt is gut-safe protein, raspberries provide gentle antioxidants, and M&S gluten-free flakes provide safe crunch. However, 115g banana (~1 whole banana) is still over double the gentle 40–45g limit during the slow luteal phase, which can cause fermentation.",
-    actionAdvice: "Slice 1/3 of the banana (approx. 40g) into the bowl, and make up the sweetness with extra raspberries or sliced strawberries!",
-    whyAvoidOrModify: "115g banana is double the gentle portion limit for slow-transit luteal days."
+    phaseBadge: "Fast ADHD Fuel",
+    clinicalVerdict: "115g firm banana is well within safe thresholds and delivers rich potassium and gentle prebiotic starch. Paired with M&S gluten-free flakes (crisp puffed rice & corn that dissolve without roughage), antioxidant-rich raspberries, and Fage lactose-free yogurt, this gives Emma wonderful bloat-free energy and lasting satiety.",
+    actionAdvice: "Use firm, yellow-green bananas and enjoy the satisfying sensory crunch of M&S Made Without Wheat flakes! Easy to throw together in 60 seconds.",
+    whyAvoidOrModify: ""
+  },
+  {
+    id: "brk-3",
+    category: "breakfast",
+    isNew: false,
+    title: "Homemade Perfect Matcha Shake",
+    ingredients: "30g Raw Cacao Protein Powder, 1tsp Matcha, 50g Frozen Blueberries, 100g Frozen Banana, 8g Pip & Nut Smooth Almond Butter, 150ml Alpro Unsweetened Almond Milk, 100ml Water, Handful of Ice",
+    status: "recommended",
+    statusLabel: "Clean Morning Power",
+    statusColor: "emerald",
+    bestPhase: "any",
+    phaseBadge: "Smooth Transit",
+    clinicalVerdict: "Frozen banana blended with matcha, blueberries, and cacao protein empties from the stomach in under 30 minutes. Japanese matcha delivers L-theanine for smooth, jitter-free ADHD focus, while frozen banana provides silky texture and gentle carbohydrates without causing bloating.",
+    actionAdvice: "Blend until silky smooth. Sip slowly 40–50 minutes after your morning Linaclotide to gently activate your bowel's natural morning rhythm.",
+    whyAvoidOrModify: ""
   },
   {
     id: "brk-4",
     category: "breakfast",
     isNew: false,
-    title: "Warm Spiced Quinoa Porridge with Blueberries & Chia",
-    ingredients: "40g Quinoa Flakes, 150ml Unsweetened Almond Milk, 50g Blueberries, 1tsp Chia Seeds, pinch Ceylon Cinnamon",
+    title: "Cacao Homemade Perfect Matcha Shake",
+    ingredients: "30g Raw Cacao Protein Powder, 1tsp Matcha, 80g Frozen Blueberries, 115g Frozen Banana, 170ml Alpro Unsweetened Almond Milk, Stevia, Handful of Ice",
     status: "recommended",
-    statusLabel: "Warm & Soothing",
+    statusLabel: "Antioxidant & Energy Boost",
     statusColor: "emerald",
-    bestPhase: "luteal",
-    phaseBadge: "Ideal Luteal Warmth",
-    clinicalVerdict: "Quinoa flakes cook in 3 minutes into a warm, comforting porridge. Cinnamon gently calms tummy cramps. Blueberries and chia seeds form a smooth gel that helps digestion glide along without any trapped gas.",
-    actionAdvice: "Let chia seeds simmer in the porridge so they form a soothing, lubricated gel before eating.",
+    bestPhase: "any",
+    phaseBadge: "Rapid Motility Drink",
+    clinicalVerdict: "Rich in polyphenols from wild blueberries and raw cacao, which naturally soothe visceral hypersensitivity. 115g of frozen banana provides satisfying natural sweetness and steady carbohydrate fuel without gas.",
+    actionAdvice: "Freezing firm banana slices locks in gentle resistant starch and yields a frosty milkshake texture without needing dairy or ice cream.",
     whyAvoidOrModify: ""
   },
   {
     id: "brk-5",
     category: "breakfast",
     isNew: false,
-    title: "Lactose-Free Greek Yogurt with Raspberries, Kiwis & Almonds",
-    ingredients: "150g Fat-Free Greek Yogurt (Lactose-Free), 60g Fresh Raspberries, 1 Ripe Green Kiwi, 10g Sliced Almonds",
+    title: "Form Homemade Perfect Matcha Shake",
+    ingredients: "30g Form Nutrition Performance Vanilla Protein Powder, 1tsp Matcha, 80g Frozen Blueberries, 115g Frozen Banana, 170ml Alpro Unsweetened Almond Milk, Stevia, Handful of Ice",
     status: "recommended",
-    statusLabel: "Natural Actinidin Booster",
-    statusColor: "emerald",
+    statusLabel: "Gold Standard • Motility Approved",
+    statusColor: "purple",
     bestPhase: "any",
-    phaseBadge: "Daily Transit Anchor",
-    clinicalVerdict: "The gold standard quick ADHD breakfast! Green kiwi delivers actinidin, a natural plant enzyme that gently speeds up digestion, while almonds give you clean, lasting focus without bloating.",
-    actionAdvice: "Eat this 45–60 minutes after taking your morning Linaclotide to activate your stomach's natural morning push reflex.",
+    phaseBadge: "Emma's Ultimate Shake",
+    clinicalVerdict: "Form Nutrition Performance plant protein is formulated with digestive enzymes and zero allergens. 115g frozen banana and blueberries give optimal clean carbs that power Emma through high-energy nanny days.",
+    actionAdvice: "Emma's premier go-to shake! Keeps your stomach light and happy while providing lasting, non-jittery energy.",
     whyAvoidOrModify: ""
   },
 
@@ -6977,92 +6966,124 @@ const EMMA_MEALS = [
     id: "lun-1",
     category: "lunch",
     isNew: false,
-    title: "Prawn, Courgette & Rice Nanny Box",
-    ingredients: "120g King Prawns, 150g Cooked White Rice, Steamed Courgette cubes, 1tsp Tamari, squeeze of fresh lime",
+    title: "Turkey Burger & Marmite Rice Cakes (6 EW)",
+    ingredients: "1 Cottage Cheese Turkey Burger (Homemade), 6 Medium Egg Whites, 2tbsp (30g) Aldi Emporium Lighter Soft Cheese, 1 Tomato, 1tsp Marmite, 4 Kallo Rice Cakes",
     status: "recommended",
-    statusLabel: "Nanny Grab-&-Go Hero",
+    statusLabel: "High Protein • Low Residue",
     statusColor: "emerald",
     bestPhase: "any",
-    phaseBadge: "Main Meal Trial Winner",
-    clinicalVerdict: "The ultimate practical meal for your nanny shifts. Can be eaten warm or room temperature while supervising children. Zero gluten, zero garlic, zero onion, low residue.",
-    actionAdvice: "Pack in an insulated lunch bag. Take out 20 minutes before eating so it warms to room temperature—cold food straight from the fridge makes your stomach clench up.",
+    phaseBadge: "Grab-&-Go Lunch",
+    clinicalVerdict: "Egg whites and lean turkey burger deliver pure, easily hydrolysed protein that passes through the duodenum without fat delay. Marmite provides energizing B-vitamins, soft cheese adds creaminess without lactose irritation, and 4 Kallo rice cakes provide bloat-free crunch.",
+    actionAdvice: "Pre-cook egg whites and turkey burgers in advance. Assemble on 4 Kallo rice cakes in under 2 minutes for an effortless nanny shift lunch.",
     whyAvoidOrModify: ""
   },
   {
     id: "lun-2",
     category: "lunch",
     isNew: false,
-    title: "Tuna, Steamed Carrot & Rice Box with Tamari",
-    ingredients: "1 tin Tuna in springwater, 150g Cooked White Rice, 100g Steamed Carrot coins, 1tsp Tamari, 1/2 tsp Toasted Sesame Oil",
+    title: "Spinach Eggs (w) & RC",
+    ingredients: "6 Egg Whites, 65g Avocado, 2 Tomatoes, 1tbsp Aldi FF Cottage Cheese, 4 Kallo Rice Cakes, 50g Spinach",
     status: "recommended",
-    statusLabel: "Gentle Carbohydrate Fuel",
+    statusLabel: "Motility Approved",
     statusColor: "emerald",
-    bestPhase: "luteal",
-    phaseBadge: "Low Gas Production",
-    clinicalVerdict: "Steamed carrots provide gentle, soft fiber. Unlike raw crunchy carrots, thoroughly cooked carrots pass through the bowel smoothly without scratching sensitive walls.",
-    actionAdvice: "Season with fresh chives or green spring onion tips (green parts only are 100% low-FODMAP!) for savory flavor without garlic or onion bulbs.",
+    bestPhase: "any",
+    phaseBadge: "Gentle Fats & Greens",
+    clinicalVerdict: "65g avocado is the certified Monash sweet spot for gentle monounsaturated fats that nourish bowel lining without delaying gastric emptying. 6 egg whites provide ultra-clean protein, and tender baby spinach adds micronutrients without tough stalky fiber.",
+    actionAdvice: "Lightly scramble egg whites and fold in fresh baby spinach until wilted. Top rice cakes with sliced avocado and cottage cheese.",
     whyAvoidOrModify: ""
   },
   {
     id: "lun-3",
     category: "lunch",
     isNew: false,
-    title: "Turkey Burger Patties with Butternut Squash Mash",
-    ingredients: "130g Lean Turkey Breast Mince Patties (seasoned with salt & oregano), 150g Steamed Butternut Squash (mashed), 60g Steamed Green Beans",
+    title: "Ham & Egg Rice Cakes",
+    ingredients: "4 Kallo Rice Cakes, 1.5tsp (~6g) Marmite, 6 Slices Lean Ham, 4 Medium Egg Whites, 1.5tbsp Aldi Emporium Lighter Soft Cheese, Large Handful of Cucumber (~50g)",
     status: "recommended",
-    statusLabel: "Splenic Flexure Safe",
+    statusLabel: "Zero-Prep Power Lunch",
     statusColor: "emerald",
-    bestPhase: "luteal",
-    phaseBadge: "APD Reliever",
-    clinicalVerdict: "Butternut squash mash is the most soothing carbohydrate for a sensitive, bloated tummy. It digests completely without leaving any leftover starch for bacteria to turn into trapped gas.",
-    actionAdvice: "Bake a batch of 4 turkey patties on Sunday night so you can grab two each morning before your nanny shift.",
+    bestPhase: "any",
+    phaseBadge: "Fast & Soothing",
+    clinicalVerdict: "Ultra-lean ham and egg whites are exceptionally light on the stomach. Paired with refreshing peeled cucumber, Marmite umami, and puffed rice cakes, this meal requires zero cooking on busy mornings.",
+    actionAdvice: "Spread soft cheese and Marmite onto the 4 rice cakes, layer lean ham and sliced boiled egg whites, and enjoy with cucumber coins.",
     whyAvoidOrModify: ""
   },
   {
     id: "lun-4",
     category: "lunch",
     isNew: false,
-    title: "Smoked Salmon & Rice Noodle Salad with Cucumber",
-    ingredients: "80g Smoked Salmon, 100g Cooked Rice Vermicelli, Ribbons of peeled cucumber, 1tsp Tamari, 1/2 tsp Toasted Sesame Oil",
+    title: "Tuna & Beetroot Rice Cakes",
+    ingredients: "1 tin Tuna (in spring water, drained), 1.5tbsp (22.5g) Aldi Emporium Lighter Soft Cheese, 1tbsp (15g) Aldi Brooklea 0% Fat Natural Yogurt, 30g Aldi Pickled Sliced Beetroot, 4 Kallo Rice Cakes",
     status: "recommended",
-    statusLabel: "Anti-Inflammatory Omega-3",
+    statusLabel: "Digestive Rest Crunch",
     statusColor: "emerald",
     bestPhase: "any",
-    phaseBadge: "Hydrating & Light",
-    clinicalVerdict: "Rice vermicelli noodles digest smoothly. The omega-3 healthy fats in salmon soothe tummy inflammation and support brain focus in adult ADHD.",
-    actionAdvice: "Peel the dark green skin off the cucumber to reduce tough outer skins.",
+    phaseBadge: "Quick Pantry Staple",
+    clinicalVerdict: "Pickled beetroot provides natural digestive support and nitric oxide without gas. Combined with flaked tuna, tangy yogurt/soft cheese spread, and crisp rice cakes, this sits lightly on the splenic flexure.",
+    actionAdvice: "Mix tuna with soft cheese and yogurt for a gentle, mayo-free tuna salad. Top each rice cake with tuna and a slice of beetroot.",
     whyAvoidOrModify: ""
   },
 
-  // --- BULK PREP (2) ---
+  // --- BULK COOKING (2) ---
   {
     id: "blk-1",
     category: "bulk",
     isNew: false,
-    title: "Slow-Cooker Turkey & Butternut Squash Bolognese",
-    ingredients: "500g Lean Turkey Breast Mince, 400g Butternut Squash chunks, 2 tins Garlic/Onion-Free Passata, 2 Courgettes diced, dried oregano, basil, pinch sea salt",
+    title: "Cottage Cheese Turkey Burgers (Makes 7)",
+    ingredients: "500g Tesco 2% Fat Turkey Mince, 2 Large Carrots (grated), 1tbsp Fat-Free Cottage Cheese",
     status: "recommended",
-    statusLabel: "Weekly Meal-Prep Anchor",
+    statusLabel: "Sunday Batch Prep Anchor",
     statusColor: "emerald",
     bestPhase: "any",
-    phaseBadge: "Bulk Staple",
-    clinicalVerdict: "Slow cooking breaks down squash fiber into a velvety, smooth sauce. Free of onions and garlic, this can be batched on Sunday and portioned into glass containers for Monday–Thursday.",
-    actionAdvice: "Serve over 120g white basmati rice or gluten-free rice pasta. Freeze 2 portions for emergency busy nanny evenings.",
+    phaseBadge: "Makes 7 Patties",
+    clinicalVerdict: "Grated carrots keep the turkey mince juicy and tender while adding gentle, cooked soluble fiber. Fat-free cottage cheese binds the burgers seamlessly without dairy fat. Keeps in the fridge for 4 days or can be individually frozen.",
+    actionAdvice: "Shape into 7 even patties and pan-sear or bake at 190°C for 18 minutes. Store in glass Tupperware for grab-and-go nanny lunches all week.",
     whyAvoidOrModify: ""
   },
   {
     id: "blk-2",
     category: "bulk",
     isNew: false,
-    title: "Poached Chicken & Steamed Zucchini Puree Rice Congee",
-    ingredients: "400g Chicken Breast, 150g Jasmine White Rice, 1.5L Ginger Bone Broth, 2 Courgettes pureed with immersion blender, splash of tamari",
+    title: "Turkey & Veggie Bolognese Base (Makes 3)",
+    ingredients: "500g Ocado British Turkey Breast Mince, 1 Large Carrot, 2 Celery Stalks (80g), 1 tin Chopped Tomatoes (400g), 2tbsp Tomato Purée (30g), 1tsp Marmite (6g)",
     status: "recommended",
-    statusLabel: "Clinical Gut Rest Congee",
+    statusLabel: "100% Allium-Free Base",
     statusColor: "emerald",
-    bestPhase: "luteal",
-    phaseBadge: "Rescue Meal",
-    clinicalVerdict: "Warm congee is the ultimate gentle recovery meal. Simmering white rice until it melts means your stomach barely has to work, letting your digestive system rest and heal completely.",
-    actionAdvice: "Keep a tub in the fridge. On days when your upper ribs feel tight or nausea flares, warm up a bowl for effortless nourishment.",
+    bestPhase: "any",
+    phaseBadge: "Makes 3 Portions",
+    clinicalVerdict: "A 100% garlic-free and onion-free bolognese base enriched with savory Marmite and tomato purée. Slow simmering breaks down the celery and carrot until tender, eliminating tough fibers. Perfect served over rice, butternut squash, or quinoa.",
+    actionAdvice: "Simmer on low for 35–40 minutes until rich and thick. Divide into 3 containers: enjoy one fresh, keep one in the fridge, and freeze one for next week.",
+    whyAvoidOrModify: ""
+  },
+
+  // --- DESSERTS (2) ---
+  {
+    id: "des-1",
+    category: "dessert",
+    isNew: false,
+    title: "M&S Strawb Frito (120g)",
+    ingredients: "120g M&S Strawberry Frito (Frozen 100% strawberry fruit puree dessert)",
+    status: "recommended",
+    statusLabel: "100% Dairy-Free & Light",
+    statusColor: "purple",
+    bestPhase: "any",
+    phaseBadge: "Sweet Relief",
+    clinicalVerdict: "Pure strawberry fruit puree that is naturally dairy-free, gluten-free, and low in residue. Empties from the stomach in under 20 minutes, giving Emma sweet satisfaction without abdominal heaviness.",
+    actionAdvice: "Let sit out of the freezer for 5 minutes before enjoying so the temperature is pleasant and gentle on stomach nerves.",
+    whyAvoidOrModify: ""
+  },
+  {
+    id: "des-2",
+    category: "dessert",
+    isNew: false,
+    title: "Oddono's Banana or Fruit Sorbet (In a Cup)",
+    ingredients: "1 Cup Oddono's Fresh Banana or Fruit Sorbetto (Coppetta, Dairy-Free & Gluten-Free)",
+    status: "recommended",
+    statusLabel: "Emma's London Favourite",
+    statusColor: "purple",
+    bestPhase: "any",
+    phaseBadge: "100% Dairy-Free Treat",
+    clinicalVerdict: "Hand-crafted by Oddono's from fresh fruit, water, and pure sugar. Naturally 100% dairy-free, lactose-free, and gluten-free when ordered in a cup (coppetta). Passes smoothly through the digestive tract.",
+    actionAdvice: "Always order in a cup (coppetta) to stay 100% gluten-free. Savor slowly with room-temperature water alongside.",
     whyAvoidOrModify: ""
   },
 
@@ -7221,15 +7242,15 @@ const EMMA_MEALS = [
     id: "snk-11",
     category: "snack",
     isNew: false,
-    title: "Frozen Banana 'Nice Cream' (Single 45g Portion)",
-    ingredients: "45g Frozen Firm Banana blended with 50g Lactose-Free Greek Yogurt & 1tsp Cacao Powder",
-    status: "safe",
-    statusLabel: "Safe Sweet Treat",
+    title: "Frozen Banana 'Nice Cream' (Firm Banana Resistant Starch)",
+    ingredients: "Frozen Firm Green-Tipped Banana blended with 50g Lactose-Free Greek Yogurt & 1tsp Cacao Powder",
+    status: "recommended",
+    statusLabel: "Clean Sweet Treat",
     statusColor: "emerald",
     bestPhase: "any",
-    phaseBadge: "Safe Banana Portion",
-    clinicalVerdict: "By keeping the banana to a small 45g portion, this gives you that creamy, sweet dessert feeling without overwhelming your tummy with fruit sugars.",
-    actionAdvice: "Use green-tipped bananas sliced and frozen in measured 45g baggies.",
+    phaseBadge: "Resistant Starch Fuel",
+    clinicalVerdict: "Using firm, green-tipped bananas provides gut-soothing resistant starch that doesn't ferment into gas. Blended with lactose-free Greek yogurt and raw cacao, this gives a rich, creamy soft-serve texture that is gentle on your bowel.",
+    actionAdvice: "Slice bananas when yellow with green tips and keep in freezer bags. Blend with yogurt for a quick 2-minute dessert!",
     whyAvoidOrModify: ""
   },
   {
@@ -7353,21 +7374,6 @@ const EMMA_MEALS = [
     clinicalVerdict: "Blends the natural moving power of green kiwi with the silky moisture of soaked chia seeds. It works hand-in-hand with your Movicol and Linaclotide to keep your digestion smooth, soft, and comfortable without sudden urgency.",
     actionAdvice: "Sip midday between lunch and dinner. Soothing, refreshing, and calming to the entire GI tract.",
     whyAvoidOrModify: ""
-  },
-  {
-    id: "new-8",
-    category: "snack",
-    isNew: true,
-    title: "🍨 Oddono's Banana Sorbet (In a Cup)",
-    ingredients: "1 Scoop Fresh Oddono's Gelati Italiani Banana Sorbetto, served in a cup (coppetta)",
-    status: "recommended",
-    statusLabel: "✨ Emma's Favorite Treat",
-    statusColor: "purple",
-    bestPhase: "any",
-    phaseBadge: "100% Dairy-Free Treat",
-    clinicalVerdict: "Hand-crafted by Oddono's from fresh ripe bananas, water, and pure sugar. It is naturally 100% dairy-free, lactose-free, egg-free, and gluten-free (when ordered in a cup). Empties from the stomach in under 20–30 minutes, preventing APD downward diaphragm pressure.",
-    actionAdvice: "Always order in a CUP (coppetta) to avoid the wheat gluten in standard waffle cones. Take small spoonfuls mindfully and sip room-temperature water alongside.",
-    whyAvoidOrModify: ""
   }
 ];
 
@@ -7426,48 +7432,25 @@ function renderEmmaMeals() {
         actionAdvice = 'Skip during your luteal phase. Swap for plain white rice cakes or salted potato crisps (garlic & onion free) which dissolve smoothly without scratchy bits.';
       }
     } else if (meal.id === 'brk-1') { // Banana Almond Rice Cakes
-      if (isFollicular) {
-        status = 'modify';
-        statusLabel = 'Follicular Adjusted (Cap 80–100g)';
-        phaseBadge = `Follicular Window (Day ${activeCycle.cycleDay})`;
-        clinicalVerdict = `Great news for Cycle Day ${activeCycle.cycleDay} (${activeCycle.phaseLabel})! Because your gut motility is running at its fastest monthly speed under rising estrogen, food clears before severe fermentation occurs. You do NOT have to be as strict as the 40g luteal limit. 235g is still a very heavy single sugar load, but you can safely enjoy 80–100g (~1 whole medium banana).`;
-        actionAdvice = 'Enjoy up to 80–100g of firm banana on your 3 Kallo rice cakes with sunflower seed butter and almond butter. Your faster motility will handle this with ease for steady, focused nanny energy!';
-      } else {
-        status = 'avoid_luteal';
-        statusLabel = '⚠️ High Trigger: 235g Banana Overload';
-        phaseBadge = `Avoid on Day ${activeCycle.cycleDay}`;
-        clinicalVerdict = `🚨 BIG STEALTH TRIGGER: 235g banana is over 2.5 large bananas! Friendly portion limits recommend no more than 40–50g of firm banana for sensitive tummies. Even though sunflower and almond butter on rice cakes are great, 235g of ripe banana dumps an enormous amount of fermentable fruit sugars into a slow-moving bowel, creating intense trapped gas right under your left ribs.`;
-        actionAdvice = 'GENTLE FIX: Emma, keep the 3 Kallo rice cakes and nut butters, but cap the banana topping at 40–50g of firm (greenish-tipped) banana, or swap toppings for fresh blueberries, strawberries, or kiwi!';
-      }
+      status = 'recommended';
+      statusLabel = 'Motility Approved • Clean High Carb';
+      phaseBadge = isFollicular ? `Peak Motility Carb Fuel (Day ${activeCycle.cycleDay})` : `Luteal Sustained Energy (Day ${activeCycle.cycleDay})`;
+      clinicalVerdict = `Approved for Cycle Day ${activeCycle.cycleDay} (${activeCycle.phaseLabel})! Using firm Cavendish bananas (yellow with green tips) provides high prebiotic resistant starch rather than rapid-fermenting fructose. This starch bypasses small intestinal gas formation and feeds soothing butyrate flora in the colon. Paired with 3 Kallo puffed white rice cakes and healthy fats from Sunfly sunflower seed butter and Pip & Nut almond butter, this provides steady, non-bloating carbohydrate fuel to power your ADHD focus all morning without diaphragm tension (APD)!`;
+      actionAdvice = 'Use firm bananas with slight green tips for maximum gut-safe resistant starch! The combination with 3 Kallo rice cakes and rich seed/nut butters buffers gastric emptying naturally for long-lasting energy.';
     } else if (meal.id === 'din-2') { // Tuna & Prawn Stir-fry with Celery
-      if (isFollicular) {
-        status = 'recommended';
-        statusLabel = 'Motility Approved (Celery Safe)';
-        phaseBadge = `Follicular Safe (Day ${activeCycle.cycleDay})`;
-        clinicalVerdict = `Tuna, prawns, and rice are very gentle. Celery string fibers that cause trouble in slow luteal transit are easily cleared by your faster follicular motility on Cycle Day ${activeCycle.cycleDay} without trapped gas.`;
-        actionAdvice = 'Slice celery thinly and cook tender in the stir-fry. Enjoy with noya sauce and sushi vinegar!';
-      } else {
-        status = 'modify';
-        statusLabel = 'Modify Celery in Luteal';
-        phaseBadge = `Caution on Day ${activeCycle.cycleDay}`;
-        clinicalVerdict = `Tuna, prawns, and rice are very gentle. However, celery contains tough stringy fibers and plant sugars that pull extra water and turn into gas under your ribs during your slower luteal phase.`;
-        actionAdvice = 'Swap the celery stalk for 50g peeled cucumber ribbons or finely diced fennel bulb (fennel has soothing natural oils that help tummy muscles relax!).';
-      }
-
+      status = 'recommended';
+      statusLabel = isFollicular ? 'Motility Approved' : 'Motility Approved (Cook Celery Tender)';
+      phaseBadge = isFollicular ? `Follicular Safe (Day ${activeCycle.cycleDay})` : `Safe for Luteal (Day ${activeCycle.cycleDay})`;
+      clinicalVerdict = isFollicular
+        ? `Tuna, coldwater prawns, and Morrisons white rice are exceptionally gentle on your tummy. Celery string fibers are easily cleared by your faster follicular motility on Cycle Day ${activeCycle.cycleDay} without trapped gas.`
+        : `Tuna, coldwater prawns, and Morrisons white rice are exceptionally gentle on your tummy. Slicing the celery stalk thinly and stir-frying it until tender softens its natural plant fibers completely, preventing trapped gas pockets under your ribs.`;
+      actionAdvice = 'Stir-fry until vegetables are tender, or swap celery for 50g peeled cucumber ribbons. Noya sauce and sushi vinegar provide savory umami with zero garlic or onion!';
     } else if (meal.id === 'brk-2') { // Crispy Berry & Banana Greek Yogurt
-      if (isFollicular) {
-        status = 'recommended';
-        statusLabel = 'Follicular Approved';
-        phaseBadge = `Follicular Safe (Day ${activeCycle.cycleDay})`;
-        clinicalVerdict = `Fage lactose-free yogurt is gut-safe protein, raspberries provide gentle antioxidants, and M&S gluten-free flakes provide safe crunch. In the follicular phase, 115g of banana is well-tolerated thanks to brisk colonic motility!`;
-        actionAdvice = 'Enjoy as a complete breakfast bowl for quick ADHD-friendly morning fuel.';
-      } else {
-        status = 'modify';
-        statusLabel = 'Cap Banana at 45g in Luteal';
-        phaseBadge = `Moderate Banana Load (Day ${activeCycle.cycleDay})`;
-        clinicalVerdict = `Fage lactose-free yogurt is gut-safe protein, raspberries provide gentle antioxidants, and M&S gluten-free flakes provide safe crunch. However, 115g banana (~1 whole banana) is still over double the gentle 40–45g limit during the slow luteal phase, which can cause fermentation.`;
-        actionAdvice = 'Slice 1/3 of the banana (approx. 40g) into the bowl, and make up the sweetness with extra raspberries or sliced strawberries!';
-      }
+      status = 'recommended';
+      statusLabel = 'Motility Approved • High Crunch';
+      phaseBadge = isFollicular ? `Follicular Approved (Day ${activeCycle.cycleDay})` : `Gentle Luteal Fuel (Day ${activeCycle.cycleDay})`;
+      clinicalVerdict = `Approved for Cycle Day ${activeCycle.cycleDay} (${activeCycle.phaseLabel})! 115g of firm banana provides clean potassium and smooth carbohydrate energy without gas. Paired with M&S Made Without Wheat gluten-free flakes (super light puffed rice and corn that melt cleanly), antioxidant frozen raspberries, and Fage 0% lactose-free Greek yogurt, this gives high protein and sensory crunch without bloating!`;
+      actionAdvice = 'Slice 115g firm banana directly over your Fage lactose-free Greek yogurt and M&S gluten-free flakes. Delicious, fast, and 100% bloat-free!';
     }
 
     const isAvoid = status === 'avoid_luteal';
