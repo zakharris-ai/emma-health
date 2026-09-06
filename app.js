@@ -875,353 +875,23 @@ function toggleRescueDrawer() {
 }
 
 // ============================================================================
-// 3B. 7-DAY CHRONO-NUTRITION & ROTATING BREAKFAST ENGINE (ADHD INTERACTIVE TRACKER)
 // ============================================================================
-const ALL_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-
-const BREAKFAST_MAP = {
-  shake: { label: '🫐 Form Shake', full: 'Form Blueberry Protein Shake' },
-  eggs: { label: '🍳 Eggs & Toast', full: 'Scrambled/Poached Eggs on GF Toast' },
-  yogurt: { label: '🥣 Berry Crunch', full: 'Fage Lactose-Free Berry Bowl' },
-  brunch: { label: '🥑 Weekend Brunch', full: 'Eggs, Smoked Salmon & Toast' },
-  pancake: { label: '🥞 Pancakes', full: '2-Ingredient Banana Egg Pancakes' }
-};
-
-const DEFAULT_BREAKFAST_TYPES = {
-  mon: 'shake',
-  tue: 'eggs',
-  wed: 'yogurt',
-  thu: 'shake',
-  fri: 'eggs',
-  sat: 'brunch',
-  sun: 'pancake'
-};
-
+// 3B. CIRCADIAN MOTILITY TIMING (INTERNAL CLINICAL BACKGROUND KNOWLEDGE)
+// Kept in memory for background clinical motility timing; hidden from Emma's UI
+// ============================================================================
 var chronoTrialState = {
-  mon: { breakfastType: 'shake', breakfast: false, lunch: false, dinner: false },
-  tue: { breakfastType: 'eggs', breakfast: false, lunch: false, dinner: false },
-  wed: { breakfastType: 'yogurt', breakfast: false, lunch: false, dinner: false },
-  thu: { breakfastType: 'shake', breakfast: false, lunch: false, dinner: false },
-  fri: { breakfastType: 'eggs', breakfast: false, lunch: false, dinner: false },
-  sat: { breakfastType: 'brunch', breakfast: false, lunch: false, dinner: false },
-  sun: { breakfastType: 'pancake', breakfast: false, lunch: false, dinner: false }
+  morningWindow: "40-minute Linaclotide fast window",
+  middayPeak: "Main daytime meal (12-2 PM)",
+  eveningRest: "Light dinner (6-7:30 PM) to protect splenic flexure"
 };
 
-function loadTrialState() {
-  try {
-    const saved = localStorage.getItem('emma_chrono_trial_v2') || localStorage.getItem('emma_chrono_trial_v1');
-    if (saved) {
-      chronoTrialState = JSON.parse(saved);
-      // Ensure all 7 days have breakfastType, breakfast, lunch, dinner
-      ALL_DAYS.forEach(d => {
-        if (!chronoTrialState[d]) {
-          chronoTrialState[d] = {
-            breakfastType: DEFAULT_BREAKFAST_TYPES[d],
-            breakfast: false,
-            lunch: false,
-            dinner: false
-          };
-        }
-        if (chronoTrialState[d].breakfast === undefined) {
-          chronoTrialState[d].breakfast = chronoTrialState[d].shake ?? false;
-        }
-        if (!chronoTrialState[d].breakfastType) {
-          chronoTrialState[d].breakfastType = DEFAULT_BREAKFAST_TYPES[d];
-        }
-        // Keep legacy shake in sync
-        chronoTrialState[d].shake = chronoTrialState[d].breakfast;
-      });
-    } else {
-      chronoTrialState = {
-        mon: { breakfastType: 'shake', breakfast: true, lunch: true, dinner: false },
-        tue: { breakfastType: 'eggs', breakfast: false, lunch: false, dinner: false },
-        wed: { breakfastType: 'yogurt', breakfast: false, lunch: false, dinner: false },
-        thu: { breakfastType: 'shake', breakfast: false, lunch: false, dinner: false },
-        fri: { breakfastType: 'eggs', breakfast: false, lunch: false, dinner: false },
-        sat: { breakfastType: 'brunch', breakfast: false, lunch: false, dinner: false },
-        sun: { breakfastType: 'pancake', breakfast: false, lunch: false, dinner: false }
-      };
-      saveTrialState();
-    }
-  } catch (e) {
-    console.error("Failed to load trial state", e);
-  }
-  renderTrialUI();
-}
+function loadTrialState() {}
+function saveTrialState() {}
+function toggleTrialMeal() {}
+function cycleTrialBreakfast() {}
+function toggleTrialStatus() {}
+function renderTrialUI() {}
 
-function saveTrialState() {
-  try {
-    localStorage.setItem('emma_chrono_trial_v2', JSON.stringify(chronoTrialState));
-    syncDataToServer();
-  } catch (e) {}
-}
-
-function toggleTrialMeal(day, mealType) {
-  if (!chronoTrialState[day]) return;
-  const prop = (mealType === 'shake' || mealType === 'breakfast') ? 'breakfast' : mealType;
-  chronoTrialState[day][prop] = !chronoTrialState[day][prop];
-  if (mealType === 'shake' || prop === 'breakfast') {
-    chronoTrialState[day].shake = chronoTrialState[day].breakfast;
-  }
-  saveTrialState();
-  renderTrialUI();
-
-  // ADHD reward confetti when completing a day's routine (breakfast, lunch, and dinner)
-  const isDayDone = chronoTrialState[day].breakfast && chronoTrialState[day].lunch && chronoTrialState[day].dinner;
-  if (isDayDone) {
-    if (typeof confetti === 'function') {
-      confetti({
-        particleCount: 60,
-        spread: 60,
-        origin: { y: 0.5 }
-      });
-    }
-    showDynamicToast(`🎉 Fantastic! All 3 meals logged for ${day.toUpperCase()}!`);
-  } else if (chronoTrialState[day][prop]) {
-    if (typeof confetti === 'function') {
-      confetti({
-        particleCount: 25,
-        spread: 35,
-        origin: { y: 0.5 }
-      });
-    }
-  }
-}
-
-function cycleTrialBreakfast(day, event) {
-  if (event) event.stopPropagation();
-  if (!chronoTrialState[day]) return;
-  const types = ['shake', 'eggs', 'yogurt', 'brunch', 'pancake'];
-  const cur = chronoTrialState[day].breakfastType || DEFAULT_BREAKFAST_TYPES[day] || 'shake';
-  const nextIdx = (types.indexOf(cur) + 1) % types.length;
-  const nextType = types[nextIdx];
-  chronoTrialState[day].breakfastType = nextType;
-  saveTrialState();
-  renderTrialUI();
-
-  const info = BREAKFAST_MAP[nextType];
-  showDynamicToast(`Swapped ${day.toUpperCase()} breakfast to: ${info?.label || nextType}`);
-}
-
-function getActiveDayOfWeekKey() {
-  const parts = activeDateStr.split('-');
-  if (parts.length === 3) {
-    const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-    const dayIndex = d.getDay(); // 0 = Sunday, 1 = Monday, ...
-    const map = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-    return map[dayIndex];
-  }
-  return 'sun';
-}
-
-function toggleTrialStatus() {
-  // Try today's meals first
-  const activeDayKey = getActiveDayOfWeekKey();
-  if (activeDayKey && chronoTrialState[activeDayKey]) {
-    if (!chronoTrialState[activeDayKey].breakfast) {
-      chronoTrialState[activeDayKey].breakfast = true;
-      chronoTrialState[activeDayKey].shake = true;
-      saveTrialState();
-      renderTrialUI();
-      if (typeof confetti === 'function') confetti({ particleCount: 30, spread: 35, origin: { y: 0.4 } });
-      return;
-    }
-    if (!chronoTrialState[activeDayKey].lunch) {
-      chronoTrialState[activeDayKey].lunch = true;
-      saveTrialState();
-      renderTrialUI();
-      if (typeof confetti === 'function') confetti({ particleCount: 35, spread: 40, origin: { y: 0.4 } });
-      return;
-    }
-    if (!chronoTrialState[activeDayKey].dinner) {
-      chronoTrialState[activeDayKey].dinner = true;
-      saveTrialState();
-      renderTrialUI();
-      if (typeof confetti === 'function') confetti({ particleCount: 45, spread: 50, origin: { y: 0.5 } });
-      return;
-    }
-  }
-
-  // Next unlogged across all 7 days
-  for (const day of ALL_DAYS) {
-    if (!chronoTrialState[day].breakfast) {
-      chronoTrialState[day].breakfast = true;
-      chronoTrialState[day].shake = true;
-      saveTrialState();
-      renderTrialUI();
-      if (typeof confetti === 'function') confetti({ particleCount: 30, spread: 35, origin: { y: 0.4 } });
-      return;
-    }
-    if (!chronoTrialState[day].lunch) {
-      chronoTrialState[day].lunch = true;
-      saveTrialState();
-      renderTrialUI();
-      if (typeof confetti === 'function') confetti({ particleCount: 35, spread: 40, origin: { y: 0.4 } });
-      return;
-    }
-    if (!chronoTrialState[day].dinner) {
-      chronoTrialState[day].dinner = true;
-      saveTrialState();
-      renderTrialUI();
-      if (typeof confetti === 'function') confetti({ particleCount: 45, spread: 50, origin: { y: 0.5 } });
-      return;
-    }
-  }
-
-  // If all 21 logged, offer to reset for the next week
-  if (confirm("All 7 days of your weekly chrono-nutrition routine are completed! 🎉 Would you like to reset for a fresh week?")) {
-    chronoTrialState = {
-      mon: { breakfastType: 'shake', breakfast: false, lunch: false, dinner: false },
-      tue: { breakfastType: 'eggs', breakfast: false, lunch: false, dinner: false },
-      wed: { breakfastType: 'yogurt', breakfast: false, lunch: false, dinner: false },
-      thu: { breakfastType: 'shake', breakfast: false, lunch: false, dinner: false },
-      fri: { breakfastType: 'eggs', breakfast: false, lunch: false, dinner: false },
-      sat: { breakfastType: 'brunch', breakfast: false, lunch: false, dinner: false },
-      sun: { breakfastType: 'pancake', breakfast: false, lunch: false, dinner: false }
-    };
-    saveTrialState();
-    renderTrialUI();
-  }
-}
-
-function renderTrialUI() {
-  let totalLogged = 0;
-
-  ALL_DAYS.forEach(day => {
-    const data = chronoTrialState[day] || { breakfastType: DEFAULT_BREAKFAST_TYPES[day], breakfast: false, lunch: false, dinner: false };
-    const isBfDone = Boolean(data.breakfast || data.shake);
-    const isLunchDone = Boolean(data.lunch);
-    const isDinnerDone = Boolean(data.dinner);
-    const dayCount = (isBfDone ? 1 : 0) + (isLunchDone ? 1 : 0) + (isDinnerDone ? 1 : 0);
-    totalLogged += dayCount;
-
-    // Update status badge
-    const statusEl = document.getElementById(`status-${day}`);
-    if (statusEl) {
-      if (dayCount === 3) {
-        statusEl.innerHTML = `<span class="text-emerald-700 font-extrabold">✓ 3/3</span>`;
-      } else if (dayCount > 0) {
-        statusEl.innerHTML = `<span class="text-brand-amber font-bold">${dayCount}/3</span>`;
-      } else {
-        statusEl.innerText = "0/3";
-      }
-    }
-
-    // Update dot indicator
-    const dotEl = document.getElementById(`dot-${day}`);
-    if (dotEl) {
-      if (dayCount === 3) {
-        dotEl.className = "w-2 h-2 rounded-full bg-emerald-500 mr-1.5 shrink-0";
-      } else if (dayCount > 0) {
-        dotEl.className = "w-2 h-2 rounded-full bg-brand-amber mr-1.5 shrink-0";
-      } else {
-        dotEl.className = "w-2 h-2 rounded-full bg-slate-300 mr-1.5 shrink-0";
-      }
-    }
-
-    // Update Breakfast Button & Label
-    const bfBtn = document.getElementById(`btn-${day}-shake`);
-    const bfLabel = document.getElementById(`label-${day}-breakfast`);
-    const bfType = data.breakfastType || DEFAULT_BREAKFAST_TYPES[day] || 'shake';
-    const bfInfo = BREAKFAST_MAP[bfType] || BREAKFAST_MAP['shake'];
-
-    if (bfLabel) {
-      bfLabel.innerText = bfInfo.label;
-    }
-
-    if (bfBtn) {
-      const checkSpan = bfBtn.querySelector('.trial-check');
-      if (isBfDone) {
-        bfBtn.className = "flex-1 text-left px-2 py-1.5 rounded-xl border border-purple-300 bg-purple-50/90 text-purple-950 text-[11px] font-bold flex items-center justify-between transition-all truncate";
-        if (checkSpan) {
-          checkSpan.innerText = "✓";
-          checkSpan.className = "trial-check text-xs font-bold text-purple-700 ml-1";
-        }
-      } else {
-        bfBtn.className = "flex-1 text-left px-2 py-1.5 rounded-xl border border-brand-border text-[11px] font-medium flex items-center justify-between hover:bg-brand-cream transition-all text-brand-textDark truncate";
-        if (checkSpan) {
-          checkSpan.innerText = "○";
-          checkSpan.className = "trial-check text-xs font-bold text-slate-400 ml-1";
-        }
-      }
-    }
-
-    // Update Lunch Button
-    const lunchBtn = document.getElementById(`btn-${day}-lunch`);
-    if (lunchBtn) {
-      const checkSpan = lunchBtn.querySelector('.trial-check');
-      if (isLunchDone) {
-        lunchBtn.className = "w-full text-left px-2 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50/90 text-emerald-950 text-[11px] font-bold flex items-center justify-between transition-all";
-        if (checkSpan) {
-          checkSpan.innerText = "✓";
-          checkSpan.className = "trial-check text-xs font-bold text-emerald-700";
-        }
-      } else {
-        lunchBtn.className = "w-full text-left px-2 py-1.5 rounded-xl border border-brand-border text-[11px] font-medium flex items-center justify-between hover:bg-brand-cream transition-all text-brand-textDark";
-        if (checkSpan) {
-          checkSpan.innerText = "○";
-          checkSpan.className = "trial-check text-xs font-bold text-slate-400";
-        }
-      }
-    }
-
-    // Update Dinner Button
-    const dinnerBtn = document.getElementById(`btn-${day}-dinner`);
-    if (dinnerBtn) {
-      const checkSpan = dinnerBtn.querySelector('.trial-check');
-      if (isDinnerDone) {
-        dinnerBtn.className = "w-full text-left px-2 py-1.5 rounded-xl border border-indigo-300 bg-indigo-50/90 text-indigo-950 text-[11px] font-bold flex items-center justify-between transition-all";
-        if (checkSpan) {
-          checkSpan.innerText = "✓";
-          checkSpan.className = "trial-check text-xs font-bold text-indigo-700";
-        }
-      } else {
-        dinnerBtn.className = "w-full text-left px-2 py-1.5 rounded-xl border border-brand-border text-[11px] font-medium flex items-center justify-between hover:bg-brand-cream transition-all text-brand-textDark";
-        if (checkSpan) {
-          checkSpan.innerText = "○";
-          checkSpan.className = "trial-check text-xs font-bold text-slate-400";
-        }
-      }
-    }
-
-    // Update Card Border
-    const cardEl = document.getElementById(`trialCard-${day}`);
-    if (cardEl) {
-      if (dayCount === 3) {
-        cardEl.className = "p-2.5 sm:p-3 rounded-2xl bg-white border-2 border-emerald-400/80 shadow-2xs space-y-2 transition-all";
-      } else if (dayCount > 0) {
-        cardEl.className = "p-2.5 sm:p-3 rounded-2xl bg-white border border-brand-amber/60 shadow-2xs space-y-2 transition-all";
-      } else {
-        cardEl.className = "p-2.5 sm:p-3 rounded-2xl bg-white border border-brand-border space-y-2 transition-all";
-      }
-    }
-  });
-
-  // Update Overall Header Count
-  const overallEl = document.getElementById('trialOverallProgress');
-  if (overallEl) {
-    overallEl.innerText = `${totalLogged} / 21 Logged`;
-  }
-
-  // Update Main Toggle Button Label
-  const btnLabel = document.getElementById('trialStatusLabel');
-  const btnIcon = document.getElementById('trialStatusIcon');
-  if (btnLabel && btnIcon) {
-    if (totalLogged === 21) {
-      btnLabel.innerText = "Week Done! 🎉";
-      btnIcon.innerText = "✨";
-    } else if (totalLogged % 3 === 0) {
-      btnLabel.innerText = "Log Next Breakfast";
-      btnIcon.innerText = "🌅";
-    } else if (totalLogged % 3 === 1) {
-      btnLabel.innerText = "Log Next Lunch";
-      btnIcon.innerText = "🍲";
-    } else {
-      btnLabel.innerText = "Log Light Dinner";
-      btnIcon.innerText = "🌙";
-    }
-  }
-}
 
 // ============================================================================
 // 3C. DYNAMIC CYCLE, DATE PROGRESSION & OURA ENGINE
@@ -5842,14 +5512,14 @@ const EMMA_MEALS = [
     id: "din-7",
     category: "dinner",
     isNew: false,
-    title: "Prawn & Egg White Stirfried Rice Bowl (130g Rice)",
-    ingredients: "100g King Prawns, 3 Egg Whites, 130g Cooked White Rice, 1 Courgette, 1/2 Red Bell Pepper, 2tsp Noya or Tamari Sauce",
+    title: "King Prawn & Courgette Tamari Rice Bowl (130g Rice)",
+    ingredients: "140g King Prawns, 130g Cooked White Rice, 1 Courgette, 1/2 Red Bell Pepper, 2tsp Noya or Tamari Sauce",
     status: "recommended",
     statusLabel: "Digestive Rest Bowl",
     statusColor: "emerald",
     bestPhase: "any",
     phaseBadge: "Great Evening Bowl",
-    clinicalVerdict: "Red bell pepper is completely safe in modest portions (under 43g) and provides gentle vitamin C. Paired with prawns and egg whites, this bowl creates virtually zero gas.",
+    clinicalVerdict: "Red bell pepper is completely safe in modest portions (under 43g) and provides gentle vitamin C. Paired with sweet prawns and tender courgette, this bowl creates virtually zero gas.",
     actionAdvice: "Peel the outer skin of the red pepper with a vegetable peeler if you experience evening acid reflux.",
     whyAvoidOrModify: ""
   },
@@ -5864,12 +5534,12 @@ const EMMA_MEALS = [
     statusColor: "emerald",
     bestPhase: "luteal",
     phaseBadge: "Ideal Weeknight Dinner",
-    clinicalVerdict: "This is the perfect benchmark light evening meal for your weekly chrono-nutrition routine! A lighter rice portion in the evening prevents heavy food sitting in your stomach overnight, so you wake up with a flatter, pain-free tummy.",
+    clinicalVerdict: "A lighter rice portion in the evening prevents heavy food sitting in your stomach overnight, so you wake up with a flatter, pain-free tummy.",
     actionAdvice: "Eat before 7:30 PM to ensure your stomach is 100% empty before you sleep.",
     whyAvoidOrModify: ""
   },
 
-  // --- BREAKFASTS (6) ---
+  // --- BREAKFASTS ---
   {
     id: "brk-shake",
     category: "breakfast",
@@ -5882,7 +5552,7 @@ const EMMA_MEALS = [
     bestPhase: "any",
     phaseBadge: "Light Morning Fuel",
     clinicalVerdict: "Emma's premier morning shake! Form Nutrition is 100% plant-based (organic pea, sprouted brown rice, and hemp) with digestive enzymes—completely free of whey/dairy, gluten, soy, and gut-irritating gums. Wild blueberries are Low-FODMAP and soothe the gut lining. Empties from the stomach in under 25–30 minutes, preventing post-meal fullness from pushing down the diaphragm (APD).",
-    actionAdvice: "Great for mornings when you want a fast, ultra-light breakfast before an active nanny shift! Rotate with warm eggs on GF toast and Fage berry crunch bowls throughout the week so you never get bored. Sip slowly 40–60 mins after taking your 7:00 AM Linaclotide.",
+    actionAdvice: "Great for mornings when you want a fast, ultra-light breakfast before an active nanny shift! Sip slowly 40–60 mins after taking your 7:00 AM Linaclotide.",
     whyAvoidOrModify: ""
   },
   {
@@ -5914,21 +5584,6 @@ const EMMA_MEALS = [
     clinicalVerdict: "Fage lactose-free yogurt is gut-safe protein, raspberries provide gentle antioxidants, and M&S gluten-free flakes provide safe crunch. However, 115g banana (~1 whole banana) is still over double the gentle 40–45g limit during the slow luteal phase, which can cause fermentation.",
     actionAdvice: "Slice 1/3 of the banana (approx. 40g) into the bowl, and make up the sweetness with extra raspberries or sliced strawberries!",
     whyAvoidOrModify: "115g banana is double the gentle portion limit for slow-transit luteal days."
-  },
-  {
-    id: "brk-3",
-    category: "breakfast",
-    isNew: false,
-    title: "Scrambled Egg Whites with Light Bread & Avocado",
-    ingredients: "4 Egg Whites (130g), 1 Slice Gluten-Free White Bread (toasted), 65g Avocado, pinch sea salt",
-    status: "modify",
-    statusLabel: "Cap Avocado at 30g in Luteal",
-    statusColor: "amber",
-    bestPhase: "follicular",
-    phaseBadge: "Portion Alert",
-    clinicalVerdict: "Egg whites and gluten-free bread are completely gut-safe. However, 65g avocado is too large a portion at once (the safe limit is 25–30g, about 2 thin slices). In your slower luteal phase, too much avocado can cause fluid shifts and bloating.",
-    actionAdvice: "Limit avocado to 2 thin slices (25–30g). Drizzle with 1/2 tsp extra virgin olive oil to make up the healthy fats.",
-    whyAvoidOrModify: "65g avocado is too large a portion, triggering fluid distension in slow-moving bowels."
   },
   {
     id: "brk-4",
@@ -6442,20 +6097,7 @@ function renderEmmaMeals() {
         clinicalVerdict = `Tuna, prawns, and rice are very gentle. However, celery contains tough stringy fibers and plant sugars that pull extra water and turn into gas under your ribs during your slower luteal phase.`;
         actionAdvice = 'Swap the celery stalk for 50g peeled cucumber ribbons or finely diced fennel bulb (fennel has soothing natural oils that help tummy muscles relax!).';
       }
-    } else if (meal.id === 'brk-3') { // Scrambled Whites & 65g Avocado
-      if (isFollicular) {
-        status = 'recommended';
-        statusLabel = 'Follicular Safe (65g Avocado Safe)';
-        phaseBadge = `Follicular Safe (Day ${activeCycle.cycleDay})`;
-        clinicalVerdict = `Gastric emptying is running at its fastest monthly speed. 65g avocado provides wholesome healthy fats that won't cause delayed emptying or nausea in this follicular window.`;
-        actionAdvice = 'Enjoy your full 65g avocado on toasted gluten-free bread with scrambled egg whites for clean, lasting energy!';
-      } else {
-        status = 'modify';
-        statusLabel = 'Cap Avocado at 30g in Luteal';
-        phaseBadge = `Caution on Day ${activeCycle.cycleDay}`;
-        clinicalVerdict = `Egg whites and gluten-free bread are completely gut-safe. However, 65g avocado is too large a portion at once (the safe limit is 25–30g, about 2 thin slices). In your slower luteal phase, too much avocado can cause fluid shifts and bloating.`;
-        actionAdvice = 'Limit avocado to 2 thin slices (25–30g). Drizzle with 1/2 tsp extra virgin olive oil to make up the healthy fats.';
-      }
+
     } else if (meal.id === 'brk-2') { // Crispy Berry & Banana Greek Yogurt
       if (isFollicular) {
         status = 'recommended';
