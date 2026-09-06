@@ -124,9 +124,9 @@ const DEFAULT_LOGS = [
     puffiness: ["Lower Tummy"],
     emotions: "Okay",
     mood: "flat",
-    medNotes: "Took linaclotide first thing empty stomach at 7am as advised!",
+    medNotes: "Took linaclotide first thing empty stomach upon waking as advised!",
     exercise: "1x dynamic Pilates, 30m strength, 16,000 steps",
-    notes: "Taking Linaclotide properly at 7am produced much better morning tolerability."
+    notes: "Taking Linaclotide properly on waking produced much better morning tolerability."
   },
   {
     id: "2026-08-31",
@@ -2512,9 +2512,10 @@ window.addEventListener('keydown', (e) => {
 });
 
 function initializeUI() {
-  // Pre-select Bristol & Mood buttons
+  // Pre-select Bristol, Mood & Sex Drive buttons
   selectBristol('liquid');
   selectMood('flat');
+  selectSexDrive('normal');
 
   // Load Mon-Thu Chrono-Nutrition Trial state
   loadTrialState();
@@ -2870,6 +2871,11 @@ function renderHistoryLogs() {
           <span class="px-2 py-0.5 rounded-md ${stoolBg} font-bold">${stoolIcon}</span>
           <span class="px-2 py-0.5 rounded-md bg-brand-cream text-brand-textMuted font-semibold">Bloat: <strong class="text-brand-coral">${item.diaphragmBloat}/10</strong></span>
           <span class="px-2 py-0.5 rounded-md bg-brand-cream text-brand-textMuted font-semibold">${moodBadge}</span>
+          ${item.sexDrive ? `
+            <span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 font-semibold text-[10px]">
+              ❤️ Libido: ${item.sexDrive === 'high' ? 'High' : (item.sexDrive === 'mild' ? 'Mild' : (item.sexDrive === 'low' ? 'Low' : 'Normal'))}
+            </span>
+          ` : ''}
         </div>
 
         <!-- Expandable Detail Section -->
@@ -2956,6 +2962,7 @@ function searchHistoryLogs() {
 var selectedBristolVal = 'none';
 var selectedMoodVal = 'flat';
 var selectedAlcoholVal = 'none';
+var selectedSexDriveVal = 'normal';
 var selectedFastingVal = 'kept_40';
 var selectedTags = new Set();
 
@@ -3030,9 +3037,10 @@ function openQuickLogModal() {
     }
   });
 
-  // 6. Drinks, Mood & Notes
+  // 6. Drinks, Mood, Sex Drive & Notes
   selectAlcohol(entry?.alcohol || 'none');
   selectMood(entry?.mood || 'flat');
+  selectSexDrive(entry?.sexDrive || 'normal');
 
   const noteInput = document.getElementById('logNote');
   if (noteInput) {
@@ -3105,7 +3113,7 @@ function correctClinicalVoiceNote(text) {
 
   // 5. Common Routine, Timing & Lifestyle Phrases
   s = s.replace(/\b(40\s*minute\s*fast|40\s*min\s*fast|forty\s*minute\s*fast)\b/gi, '40-min fast');
-  s = s.replace(/\b(7\s*a\s*m|7:00\s*a\s*m|seven\s*a\s*m)\b/gi, '7:00 AM');
+  s = s.replace(/\b(7\s*a\s*m|7:00\s*a\s*m|seven\s*a\s*m)\b/gi, 'on waking');
   s = s.replace(/\b(cold\s*plunge|ice\s*bath)\b/gi, 'cold plunge');
   s = s.replace(/\b(tequila\s*soda)\b/gi, 'tequila soda');
   s = s.replace(/\b(brain\s*fog)\b/gi, 'brain fog');
@@ -3424,6 +3432,15 @@ function selectAlcohol(val) {
   if (input) input.value = val;
   document.querySelectorAll('.alc-btn').forEach(btn => btn.classList.remove('selected', 'border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50'));
   const activeBtn = Array.from(document.querySelectorAll('.alc-btn')).find(b => b.getAttribute('onclick')?.includes(`'${val}'`));
+  if (activeBtn) activeBtn.classList.add('selected', 'border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50');
+}
+
+function selectSexDrive(val) {
+  selectedSexDriveVal = val;
+  const input = document.getElementById('logSexDrive');
+  if (input) input.value = val;
+  document.querySelectorAll('.sexdrive-btn').forEach(btn => btn.classList.remove('selected', 'border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50'));
+  const activeBtn = Array.from(document.querySelectorAll('.sexdrive-btn')).find(b => b.getAttribute('onclick')?.includes(`'${val}'`));
   if (activeBtn) activeBtn.classList.add('selected', 'border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50');
 }
 
@@ -5079,12 +5096,16 @@ function handleQuickLogSubmit(e) {
   const stoolNuance = document.getElementById('logStoolNuance')?.value || '';
   const alcoholVal = document.getElementById('logAlcohol')?.value || selectedAlcoholVal || 'none';
   const moodVal = document.getElementById('logMood')?.value || selectedMoodVal || 'flat';
+  const sexDriveVal = document.getElementById('logSexDrive')?.value || selectedSexDriveVal || 'normal';
   const noteVal = document.getElementById('logNote')?.value?.trim() || '';
 
   let puffinessArr = Array.from(selectedTags);
   if (alcoholVal === '1-2_wine') puffinessArr.push('🍷 1-2 Wine');
   if (alcoholVal === '3+_wine') puffinessArr.push('🥂 3+ Wine/Bubbles');
   if (alcoholVal === 'spirits') puffinessArr.push('🍸 Spirits');
+  if (sexDriveVal === 'high') puffinessArr.push('🔥 High Libido');
+  else if (sexDriveVal === 'mild') puffinessArr.push('❤️ Mild Libido');
+  else if (sexDriveVal === 'low') puffinessArr.push('🤍 Low/No Libido');
   if (electrolytesTaken) puffinessArr.push('⚡ Electrolyte & EAAs Taken');
   if (fastingVal === 'kept_40') puffinessArr.push('⏱️ 40m Fast Kept');
   if (warmTriggerVal) puffinessArr.push('☕ Warm Gastrocolic Trigger');
@@ -5134,9 +5155,10 @@ function handleQuickLogSubmit(e) {
     puffiness: puffinessArr,
     emotions: moodVal === 'great' ? 'Free & relaxed' : (moodVal === 'edgy' ? 'Edgy / tearful' : 'Tired / flat'),
     mood: moodVal,
+    sexDrive: sexDriveVal,
     alcohol: alcoholVal,
     symptoms: noteVal || (movementText !== 'None' ? movementText : "Daily check-in logged"),
-    medNotes: fastingVal === 'kept_40' ? "7:00 AM Linaclotide taken with 40-min fast" : (fastingVal === 'broke_early' ? "Linaclotide taken (fast broken early)" : "Linaclotide skipped"),
+    medNotes: fastingVal === 'kept_40' ? "Morning Linaclotide taken with 40-min fast" : (fastingVal === 'broke_early' ? "Linaclotide taken (fast broken early)" : "Linaclotide skipped"),
     exercise: "Gentle",
     notes: noteVal || "Saved via Emma's Unified Daily Check-In."
   };
@@ -5230,7 +5252,7 @@ volumes into a dyssynergic bowel. If splenic or pelvic transit is blocked, this 
 distends the colonic wall, paradoxically aggravating APD diaphragmatic reflex spasms.
 
 3. CHRONOTHERAPY & LIFESTYLE INTERVENTIONS:
-- Morning Linaclotide Protocol: Strictly restricted to 07:00 AM upon awakening, empty stomach, 
+- Morning Linaclotide Protocol: Strictly upon awakening on an empty stomach, 
   with 350-400ml room-temp water and a 30-45 minute delay before morning caloric intake.
 - Mon-Thu Chrono-Nutrition Trial: Shifting main caloric/nutrient load to midday lunch (12:00-14:00) 
   to align with peak colonic migrating motor complexes (MMC) and nanny activity, coupled with 
@@ -5605,7 +5627,7 @@ const EMMA_MEALS = [
     bestPhase: "any",
     phaseBadge: "Light Morning Fuel",
     clinicalVerdict: "Emma's premier morning shake! Form Nutrition is 100% plant-based (organic pea, sprouted brown rice, and hemp) with digestive enzymes—completely free of whey/dairy, gluten, soy, and gut-irritating gums. Wild blueberries are Low-FODMAP and soothe the gut lining. Empties from the stomach in under 25–30 minutes, preventing post-meal fullness from pushing down the diaphragm (APD).",
-    actionAdvice: "Great for mornings when you want a fast, ultra-light breakfast before an active nanny shift! Sip slowly 40–60 mins after taking your 7:00 AM Linaclotide.",
+    actionAdvice: "Great for mornings when you want a fast, ultra-light breakfast before an active nanny shift! Sip slowly 40–60 mins after taking your morning Linaclotide.",
     whyAvoidOrModify: ""
   },
   {
