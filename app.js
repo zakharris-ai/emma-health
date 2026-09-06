@@ -3697,7 +3697,12 @@ let foodAuditTimer = null;
 let activeAiEngineMode = localStorage.getItem('emma_ai_engine_preference') || 'gemini';
 
 function initAiEngineUI() {
-  const storedKey = localStorage.getItem('emma_gemini_api_key');
+  let storedKey = (localStorage.getItem('emma_gemini_api_key') || '').trim();
+  if (storedKey) {
+    storedKey = storedKey.split(/\s+/)[0].replace(/^["']|["']$/g, '');
+    localStorage.setItem('emma_gemini_api_key', storedKey);
+  }
+
   const statusBadge = document.getElementById('geminiConnectionStatusBadge');
   const keyInput = document.getElementById('geminiApiKeyInput');
 
@@ -3793,7 +3798,11 @@ function toggleApiKeyVisibility() {
 
 function testGeminiConnection() {
   const input = document.getElementById('geminiApiKeyInput');
-  const key = (input?.value || '').trim();
+  const rawKey = (input?.value || '').trim();
+  const key = rawKey.split(/\s+/)[0].replace(/^["']|["']$/g, '');
+  if (input && key) {
+    input.value = key;
+  }
   const feedback = document.getElementById('geminiTestFeedback');
   const testBtn = document.getElementById('testGeminiBtn');
 
@@ -3961,7 +3970,10 @@ function checkFoodSafety() {
     lucide.createIcons();
   }
 
-  const storedKey = localStorage.getItem('emma_gemini_api_key');
+  let storedKey = (localStorage.getItem('emma_gemini_api_key') || '').trim();
+  if (storedKey) {
+    storedKey = storedKey.split(/\s+/)[0].replace(/^["']|["']$/g, '');
+  }
 
   // Always query Gemini proxy endpoint
   fetch('/api/gemini-audit', {

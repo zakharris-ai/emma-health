@@ -112,10 +112,19 @@ PRIMARY_MODEL = "gemini-3.8-flash"
 FALLBACK_MODEL = "gemini-3.7-flash"
 SECONDARY_FALLBACK_MODEL = "gemini-2.5-flash"
 
+def sanitize_api_key(raw_key):
+    if not raw_key:
+        return ""
+    cleaned = str(raw_key).strip().strip('"').strip("'")
+    parts = cleaned.split()
+    if parts:
+        return parts[0]
+    return ""
+
 def get_stored_gemini_key():
     # 1. Environment variable
     if os.environ.get('GEMINI_API_KEY'):
-        return os.environ.get('GEMINI_API_KEY').strip()
+        return sanitize_api_key(os.environ.get('GEMINI_API_KEY'))
 
     # 2. Check local and user .env files
     env_paths = [
@@ -132,7 +141,7 @@ def get_stored_gemini_key():
                         if line.startswith("GEMINI_API_KEY="):
                             val = line.split("=", 1)[1].strip().strip('"').strip("'")
                             if val:
-                                return val
+                                return sanitize_api_key(val)
             except Exception:
                 pass
 
@@ -140,7 +149,7 @@ def get_stored_gemini_key():
     if os.path.isfile(KEY_FILE):
         try:
             with open(KEY_FILE, 'r', encoding='utf-8') as f:
-                return f.read().strip()
+                return sanitize_api_key(f.read())
         except Exception:
             return ""
     return ""
@@ -468,7 +477,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             content_length = int(self.headers.get('Content-Length', 0))
             raw_body = self.rfile.read(content_length).decode('utf-8')
             payload = json.loads(raw_body) if raw_body else {}
-            api_key = payload.get('apiKey') or get_stored_gemini_key()
+            api_key = sanitize_api_key(payload.get('apiKey')) or get_stored_gemini_key()
             if not api_key:
                 self._send_json(400, {"ok": False, "error": "No API key provided"})
                 return
@@ -486,8 +495,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 used_model, _ = call_gemini_api(api_key, test_payload, PRIMARY_MODEL, timeout=12)
                 self._send_json(200, {
                     "ok": True,
-                    "message": "Gemini 3.8 Flash (High Reasoning) verified successfully!",
-                    "model": "gemini-3.8-flash"
+                    "message": f"Gemini 3.8 Flash verified successfully ({used_model})!",
+                    "model": used_model
                 })
             except urllib.error.HTTPError as e:
                 err_body = e.read().decode('utf-8')
@@ -505,7 +514,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             content_length = int(self.headers.get('Content-Length', 0))
             raw_body = self.rfile.read(content_length).decode('utf-8')
             payload = json.loads(raw_body) if raw_body else {}
-            api_key = payload.get('apiKey', '').strip()
+            api_key = sanitize_api_key(payload.get('apiKey'))
             if api_key:
                 with open(KEY_FILE, 'w') as f:
                     f.write(api_key)
@@ -527,7 +536,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             cycle_day = payload.get('cycleDay', 19)
             phase = payload.get('phase', 'luteal')
             phase_label = payload.get('phaseLabel', 'Late Luteal (Slow Motility)')
-            api_key = payload.get('apiKey') or get_stored_gemini_key()
+            api_key = sanitize_api_key(payload.get('apiKey')) or get_stored_gemini_key()
 
             if not api_key:
                 # Cleanly signal fallback to client autonomous clinical engine
