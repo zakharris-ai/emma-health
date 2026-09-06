@@ -259,9 +259,9 @@ const DEFAULT_LOGS = [
     temp: 36.07,
     movement: "Barely anything, felt very uncomfortable in morning",
     bristol: "none",
-    symptoms: "Really sore lower and upper tummy. Felt horrific all day, jeans not fitting",
+    symptoms: "Really sore lower and upper tummy. Felt horrific all day, trousers/bottoms not fitting",
     diaphragmBloat: 9,
-    puffiness: ["Jeans Tight", "Diaphragm Bloat", "Inflamed"],
+    puffiness: ["All Trousers/Bottoms Feeling Tight", "Diaphragm Bloat", "Inflamed"],
     emotions: "Edgy / exhausted / snappy / anxious",
     mood: "edgy",
     medNotes: "Really bad sleep, woke numerous times",
@@ -283,7 +283,7 @@ const DEFAULT_LOGS = [
     bristol: "none",
     symptoms: "So puffy, inflamed everywhere and felt so self conscious and big",
     diaphragmBloat: 9,
-    puffiness: ["Puffy Arms", "Chest Tight", "Jeans Tight", "Inflamed Everywhere"],
+    puffiness: ["Puffy Arms", "Chest Tight", "All Trousers/Bottoms Feeling Tight", "Inflamed Everywhere"],
     emotions: "Tearful in morning, adrenaline shakes, anxious for hen party",
     mood: "edgy",
     medNotes: "Drank alcohol, worsened next day hangover",
@@ -3019,7 +3019,11 @@ function openQuickLogModal() {
   document.querySelectorAll('#quickLogModal .tag-btn').forEach(btn => {
     btn.classList.remove('selected', 'bg-brand-coral', 'text-white', 'border-brand-coral');
     btn.classList.add('bg-white', 'text-brand-textMuted');
-    if (entry?.puffiness && entry.puffiness.includes(btn.innerText)) {
+    const hasTag = entry?.puffiness && (
+      entry.puffiness.includes(btn.innerText) ||
+      (btn.innerText === "All Trousers/Bottoms Feeling Tight" && entry.puffiness.includes("Jeans Tight"))
+    );
+    if (hasTag) {
       btn.classList.add('selected', 'bg-brand-coral', 'text-white', 'border-brand-coral');
       btn.classList.remove('bg-white', 'text-brand-textMuted');
       selectedTags.add(btn.innerText);
@@ -5412,7 +5416,7 @@ function showRescueGuide(type) {
         </div>
         <div class="p-2.5 rounded-xl bg-rose-50/70 border border-rose-200">
           <strong class="text-rose-900 block font-bold">✗ Quarantine for 7 Days:</strong>
-          <span class="text-rose-950">Non-stretch high-waist jeans, tight belts, underwire bras that dig into your ribcage.</span>
+          <span class="text-rose-950">Non-stretch trousers/bottoms, stiff waistbands, tight belts, underwire bras that dig into your ribcage.</span>
         </div>
       </div>
     `;
