@@ -1486,9 +1486,9 @@ function toggleElectrolyteBuffer() {
     if (typeof confetti === 'function') {
       confetti({ particleCount: 35, spread: 60, origin: { y: 0.7 } });
     }
-    showDynamicToast("🧂 Electrolyte Buffer Logged! Replenishes Cl- & Na+ lost to Linaclotide, preventing afternoon water retention & puffy arms.");
+    showDynamicToast("⚡ Electrolyte & EAAs Logged! Supports colonic hydration and muscle recovery.");
   } else {
-    showDynamicToast("Electrolyte buffer status set to Pending.");
+    showDynamicToast("Electrolyte & EAAs status set to Pending.");
   }
 }
 
@@ -1714,14 +1714,14 @@ function renderSpecialistTrackingUI() {
 
   if (dState.electrolyteBuffered) {
     if (badge) {
-      badge.innerText = "Buffered ✨";
+      badge.innerText = "Taken ✨";
       badge.className = "text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200";
     }
     if (btn) {
       btn.className = "shrink-0 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-2xs active:scale-95 transition-all flex items-center gap-1";
     }
     if (icon) icon.innerText = "✓";
-    if (text) text.innerText = "Buffered";
+    if (text) text.innerText = "Taken";
   } else {
     if (badge) {
       badge.innerText = "Pending";
@@ -1730,8 +1730,8 @@ function renderSpecialistTrackingUI() {
     if (btn) {
       btn.className = "shrink-0 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-[11px] shadow-2xs active:scale-95 transition-all flex items-center gap-1";
     }
-    if (icon) icon.innerText = "🧂";
-    if (text) text.innerText = "Log Salt Buffer";
+    if (icon) icon.innerText = "⚡";
+    if (text) text.innerText = "Log Electrolyte & EAAs";
   }
 
   // 2. Stool Discriminator Buttons
@@ -3471,10 +3471,10 @@ function updateDashboardCheckInBadge(entry) {
 
     if (sStatus) {
       if (entry.electrolyteBuffered || entry.electrolytesTaken) {
-        sStatus.innerText = "Buffered ✨";
+        sStatus.innerText = "Taken ✨";
         sStatus.className = "font-extrabold text-emerald-700";
       } else {
-        sStatus.innerText = "Not Taken";
+        sStatus.innerText = "Pending";
         sStatus.className = "font-extrabold text-slate-400";
       }
     }
@@ -5081,7 +5081,7 @@ function handleQuickLogSubmit(e) {
   if (alcoholVal === '1-2_wine') puffinessArr.push('🍷 1-2 Wine');
   if (alcoholVal === '3+_wine') puffinessArr.push('🥂 3+ Wine/Bubbles');
   if (alcoholVal === 'spirits') puffinessArr.push('🍸 Spirits');
-  if (electrolytesTaken) puffinessArr.push('🧂 Electrolyte Buffer Taken');
+  if (electrolytesTaken) puffinessArr.push('⚡ Electrolyte & EAAs Taken');
   if (fastingVal === 'kept_40') puffinessArr.push('⏱️ 40m Fast Kept');
   if (warmTriggerVal) puffinessArr.push('☕ Warm Gastrocolic Trigger');
   if (diaphragmResetDone) puffinessArr.push('🫁 Diaphragm Reset Done');

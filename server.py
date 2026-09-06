@@ -556,7 +556,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 "- Abdomino-Phrenic Dyssynergia (APD): paradoxical diaphragmatic descent & anterior abdominal wall protrusion triggered by gas, fermentation, or gastric cold shock\n"
                 "- Splenic flexure gas trapping causing sharp left subcostal rib pain/pressure\n"
                 "- Risk of paradoxical liquid bypass / diarrhea if fluid backs up behind retained stool\n"
-                "- Medications: Linaclotide 290mcg (morning secretagogue), Mestinon 180mg daily (cholinergic parasympathetic boost), Prucalopride 2mg (bedtime 5-HT4 propulsive wave trigger)\n"
+                "- Medications & Routine: Linaclotide 290mcg (morning secretagogue), Mestinon 180mg daily (cholinergic parasympathetic boost), Prucalopride 2mg (bedtime 5-HT4 propulsive wave trigger), Electrolytes & EAAs (Essential Amino Acids) in water for colonic mucosal hydration and muscular energy.\n"
                 "- STRICT Dietary Rules: 100% garlic-free & onion-free (all alliums banned), 100% gluten-free, lactose-free only, low-FODMAP, minimal harsh insoluble fiber.\n"
                 "- BEVERAGE & FERMENTATION MANDATES:\n"
                 "  * BEER / LAGER / CRAFT BEER / ALES / STOUTS: NEVER mark as 'Safe to Enjoy' or theme 'green'! Contains barley gluten, brewer's yeast (Saccharomyces), and dissolved CO2 carbonation. CO2 stretches the gastric fundus, firing the visco-phrenic reflex and triggering immediate downward diaphragmatic spasm (APD) and severe left-rib splenic flexure gas trapping. MUST be marked theme 'red' with badge 'High Trigger — Safe Swap' (swap to 100% Blue Agave Blanco Tequila Soda + Lime or crisp dry white wine).\n"
