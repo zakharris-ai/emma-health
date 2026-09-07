@@ -588,6 +588,48 @@
       </div>
 
       <!-- ============================================================= -->
+      <!-- TODAY'S HEADSPACE & THOUGHTS (ADHD BRAIN DUMP & MINDSET)       -->
+      <!-- ============================================================= -->
+      <div id="dashboardHeadspaceCard" class="bg-white rounded-3xl border border-brand-border p-4 sm:p-5 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold text-sm shadow-xs">
+              <i data-lucide="brain" class="w-4 h-4 text-purple-700"></i>
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <h3 class="font-bold text-sm text-brand-textDark">Today’s Headspace & Thoughts</h3>
+                <span id="headspaceStateBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-800 border border-purple-200">
+                  💭 Overthinking
+                </span>
+              </div>
+              <p class="text-[11px] text-brand-textMuted" id="headspaceSubtitle">Raw feelings, task overwhelm & ADHD capacity</p>
+            </div>
+          </div>
+          <button type="button" onclick="openQuickLogModal()" class="px-2.5 py-1 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 text-xs font-bold transition-all flex items-center gap-1 active:scale-95 shadow-2xs">
+            <i data-lucide="mic" class="w-3 h-3"></i>
+            <span>Dump Thoughts</span>
+          </button>
+        </div>
+
+        <div id="headspaceContentContainer" class="p-3.5 rounded-2xl bg-purple-50/50 border border-purple-100 space-y-2 text-xs">
+          <!-- Dynamically populated by renderDashboardHeadspaceCard() -->
+          <div class="flex items-start gap-2.5">
+            <span class="text-base leading-none text-purple-400 font-serif">“</span>
+            <p class="text-[12px] text-purple-950 font-medium leading-relaxed italic" id="headspaceQuoteText">
+              Opening big WhatsApp messages is feeling overwhelming for me today, and sending letters to the GP to sort my prescription feels like too much. Literally only have energy to go nannying.
+            </p>
+          </div>
+          <div class="flex items-center justify-between pt-1 border-t border-purple-200/50 text-[10px]">
+            <span class="text-purple-800 font-semibold flex items-center gap-1">
+              <span>💜</span>
+              <span>ADHD Validation: Task paralysis is common with high progesterone. Work-only energy is a valid boundary!</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================= -->
       <!-- TODAY'S CYCLE-SYNCED MOVEMENT & THIRD SPACE PROTOCOL          -->
       <!-- ============================================================= -->
       <div id="movementSpaCard" class="bg-white rounded-3xl border border-brand-border p-4 sm:p-5 shadow-xs space-y-3">
@@ -1659,17 +1701,47 @@
           </div>
         </div>
 
-        <!-- 6. PUFFINESS & SOMATIC SENSATIONS -->
-        <div class="space-y-1.5">
-          <label class="block text-[11px] font-bold text-brand-textDark">
-            <span>💆‍♀️</span>
-            <span>6. Puffiness & Sensations (Tap to toggle)</span>
-          </label>
-          <div class="flex flex-wrap gap-1.5">
-            <button type="button" onclick="toggleTag(this)" class="tag-btn text-[11px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-textMuted bg-white transition-all">Puffy Arms</button>
-            <button type="button" onclick="toggleTag(this)" class="tag-btn text-[11px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-textMuted bg-white transition-all">Tight Chest</button>
+        <!-- 6. SYMPTOMS & BLOATING DISCRIMINATOR -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-brand-textDark flex items-center gap-1">
+              <span>💆‍♀️</span>
+              <span>6. Symptoms & Bloating (Tap to toggle)</span>
+            </span>
+            <span class="text-[9px] text-brand-coral font-bold bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+              Upper vs Lower Bloat
+            </span>
+          </div>
+
+          <!-- Upper vs Lower Bloating Highlight Pills -->
+          <div class="p-2.5 rounded-2xl bg-amber-50/70 border border-amber-200/90 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-extrabold text-amber-950 flex items-center gap-1">
+                <span>🎈</span> <span>Abdominal Bloating Location:</span>
+              </span>
+              <span class="text-[9px] text-amber-800/80 font-medium">Select one or both</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs p-2.5 rounded-xl border border-brand-border text-brand-textDark bg-white font-bold transition-all flex items-center justify-center gap-1.5 shadow-2xs hover:border-amber-400">
+                <span>🎈</span>
+                <span>Upper Tummy Bloating</span>
+              </button>
+              <button type="button" onclick="toggleTag(this)" class="tag-btn text-xs p-2.5 rounded-xl border border-brand-border text-brand-textDark bg-white font-bold transition-all flex items-center justify-center gap-1.5 shadow-2xs hover:border-amber-400">
+                <span>🫧</span>
+                <span>Lower Tummy Bloating</span>
+              </button>
+            </div>
+            <p class="text-[9px] text-amber-900/80 leading-tight">
+              <strong>Upper:</strong> Diaphragm tension, rib fullness & APD trapped gas. <strong>Lower:</strong> Pelvic distension & colonic pooling below navel.
+            </p>
+          </div>
+
+          <!-- Other Somatic Symptoms -->
+          <div class="flex flex-wrap gap-1.5 pt-0.5">
             <button type="button" onclick="toggleTag(this)" class="tag-btn text-[11px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-textMuted bg-white transition-all">Left Rib Pressure</button>
             <button type="button" onclick="toggleTag(this)" class="tag-btn text-[11px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-textMuted bg-white transition-all">All Trousers/Bottoms Feeling Tight</button>
+            <button type="button" onclick="toggleTag(this)" class="tag-btn text-[11px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-textMuted bg-white transition-all">Tight Chest</button>
+            <button type="button" onclick="toggleTag(this)" class="tag-btn text-[11px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-textMuted bg-white transition-all">Puffy Arms</button>
             <button type="button" onclick="toggleTag(this)" class="tag-btn text-[11px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-textMuted bg-white transition-all">Facial Spots</button>
             <button type="button" onclick="toggleTag(this)" class="tag-btn text-[11px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-textMuted bg-white transition-all">Headache</button>
             <button type="button" onclick="toggleTag(this)" class="tag-btn text-[11px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-textMuted bg-white transition-all">Muscle Twitches</button>
@@ -1678,11 +1750,11 @@
           </div>
         </div>
 
-        <!-- 7. LIFESTYLE, DRINKS, SEX DRIVE & NOTES -->
+        <!-- 7. LIFESTYLE, DRINKS, SEX DRIVE & HEADSPACE -->
         <div class="space-y-3">
           <span class="text-[11px] font-bold text-brand-textDark flex items-center gap-1">
             <span>🍷</span>
-            <span>7. Drinks, Headspace, Libido & Notes</span>
+            <span>7. Drinks, Mental State, Libido & Headspace</span>
           </span>
 
           <!-- Alcohol Intake -->
@@ -1708,18 +1780,33 @@
             <input type="hidden" id="logAlcohol" value="none">
           </div>
 
-          <!-- Headspace -->
-          <div>
-            <label class="block text-[10px] font-bold text-brand-textDark mb-1">Headspace / Energy</label>
+          <!-- Mental State / Headspace Selector (Emma's 6-Option Grid) -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="block text-[10px] font-bold text-brand-textDark flex items-center gap-1">
+                <span>🧠</span>
+                <span>Mental State / Headspace (How do you feel in your head?)</span>
+              </label>
+              <span class="text-[9px] text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">ADHD Validating</span>
+            </div>
             <div class="grid grid-cols-3 gap-1.5 text-center">
-              <button type="button" onclick="selectMood('great')" class="mood-btn p-2 rounded-xl border border-brand-border text-xs font-semibold">
-                ☀️ Free & Calm
+              <button type="button" onclick="selectMood('calm')" class="mood-btn p-2 rounded-xl border border-brand-border text-xs font-semibold hover:border-emerald-400 bg-white transition-all">
+                🌿 Calm
               </button>
-              <button type="button" onclick="selectMood('flat')" class="mood-btn p-2 rounded-xl border border-brand-border text-xs font-semibold">
-                ☁️ Flat & Tired
+              <button type="button" onclick="selectMood('happy')" class="mood-btn p-2 rounded-xl border border-brand-border text-xs font-semibold hover:border-amber-400 bg-white transition-all">
+                😊 Happy
               </button>
-              <button type="button" onclick="selectMood('edgy')" class="mood-btn p-2 rounded-xl border border-brand-border text-xs font-semibold">
-                🌧️ Edgy
+              <button type="button" onclick="selectMood('edgy')" class="mood-btn p-2 rounded-xl border border-brand-border text-xs font-semibold hover:border-rose-400 bg-white transition-all">
+                ⚡ Edgy
+              </button>
+              <button type="button" onclick="selectMood('anxious')" class="mood-btn p-2 rounded-xl border border-brand-border text-xs font-semibold hover:border-orange-400 bg-white transition-all">
+                🌪️ Anxious
+              </button>
+              <button type="button" onclick="selectMood('overthinking')" class="mood-btn p-2 rounded-xl border border-brand-border text-xs font-semibold hover:border-indigo-400 bg-white transition-all">
+                💭 Overthinking
+              </button>
+              <button type="button" onclick="selectMood('flat')" class="mood-btn p-2 rounded-xl border border-brand-border text-xs font-semibold hover:border-slate-400 bg-white transition-all">
+                ☁️ Flat / Tired
               </button>
             </div>
             <input type="hidden" id="logMood" value="flat">
@@ -1769,55 +1856,78 @@
             <input type="text" id="logExercise" placeholder="e.g. 60m Reformer stretch, 14,000 steps, or rest day..." class="w-full text-xs p-2.5 bg-slate-50 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium">
           </div>
 
-          <!-- Quick Note with Speech-to-Text & Auto-Correct -->
-          <div class="space-y-1.5 pt-1">
+          <!-- Dedicated Headspace & Daily Thoughts (ADHD Brain Dump) -->
+          <div class="p-3.5 rounded-2xl bg-gradient-to-br from-purple-50/80 via-white to-indigo-50/60 border border-purple-200/90 space-y-2.5 shadow-2xs">
             <div class="flex items-center justify-between">
-              <label class="block text-[10px] font-bold text-brand-textDark flex items-center gap-1.5">
-                <span>📝 Emma's Daily Notes</span>
-                <span class="text-[9px] font-normal text-brand-textMuted">(Spoken or typed)</span>
+              <label class="block text-[11px] font-bold text-purple-950 flex items-center gap-1.5">
+                <span>💭</span>
+                <span>Emma's Headspace & Daily Thoughts</span>
               </label>
               <div class="flex items-center gap-1.5">
                 <button type="button" id="voiceNoteClearBtn" onclick="clearVoiceNote()" class="text-[10px] font-bold text-slate-400 hover:text-slate-600 px-2 py-0.5 rounded-lg hover:bg-slate-100 transition-all hidden">
                   Clear
                 </button>
-                <button type="button" id="voiceNotePolishBtn" onclick="polishVoiceNoteWithAi()" class="text-[10px] font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2 py-0.5 rounded-lg transition-all hidden flex items-center gap-1">
+                <button type="button" id="voiceNotePolishBtn" onclick="polishVoiceNoteWithAi()" class="text-[10px] font-bold text-purple-700 bg-purple-100/70 hover:bg-purple-200 border border-purple-300 px-2 py-0.5 rounded-lg transition-all hidden flex items-center gap-1">
                   <span>✨ Polish</span>
                 </button>
-                <button type="button" id="voiceDictationBtn" onclick="toggleVoiceDictation()" class="px-2.5 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 bg-teal-600 hover:bg-teal-700 text-white border border-teal-700">
+                <button type="button" id="voiceDictationBtn" onclick="toggleVoiceDictation()" class="px-2.5 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 bg-purple-600 hover:bg-purple-700 text-white border border-purple-700">
                   <i data-lucide="mic" class="w-3.5 h-3.5" id="voiceDictationMicIcon"></i>
-                  <span id="voiceDictationBtnText">Speak Note</span>
+                  <span id="voiceDictationBtnText">Speak Thoughts</span>
                 </button>
               </div>
             </div>
 
+            <p class="text-[10px] text-purple-900/80 leading-relaxed">
+              Safe space for thoughts, task overload, or social fatigue. Tap a quick chip below or speak freely without typing:
+            </p>
+
+            <!-- Quick ADHD Brain Dump Chips (1-tap insert) -->
+            <div class="flex flex-wrap gap-1.5 pt-0.5">
+              <button type="button" onclick="insertHeadspaceChip('Big WhatsApp messages feel overwhelming today')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-100 text-purple-950 border border-purple-200 text-[10px] font-semibold transition-all active:scale-95 shadow-2xs">
+                💬 WhatsApp Overwhelm
+              </button>
+              <button type="button" onclick="insertHeadspaceChip('Sorting GP / prescription admin feels like too much today')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-100 text-purple-950 border border-purple-200 text-[10px] font-semibold transition-all active:scale-95 shadow-2xs">
+                📋 GP / Admin Overload
+              </button>
+              <button type="button" onclick="insertHeadspaceChip('Literally only have energy to go nannying today')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-100 text-purple-950 border border-purple-200 text-[10px] font-semibold transition-all active:scale-95 shadow-2xs">
+                👶 Work-Only Energy
+              </button>
+              <button type="button" onclick="insertHeadspaceChip('Mind racing and overthinking today')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-100 text-purple-950 border border-purple-200 text-[10px] font-semibold transition-all active:scale-95 shadow-2xs">
+                🧠 Overthinking Loop
+              </button>
+              <button type="button" onclick="insertHeadspaceChip('Social battery completely at zero, need quiet')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-100 text-purple-950 border border-purple-200 text-[10px] font-semibold transition-all active:scale-95 shadow-2xs">
+                🔋 Zero Social Battery
+              </button>
+            </div>
+
             <!-- Live Voice Recording Banner -->
-            <div id="voiceDictationBanner" class="hidden p-2.5 rounded-2xl bg-teal-50 border border-teal-200 text-teal-900 text-xs flex items-center justify-between shadow-2xs">
+            <div id="voiceDictationBanner" class="hidden p-2.5 rounded-2xl bg-purple-100 border border-purple-300 text-purple-950 text-xs flex items-center justify-between shadow-2xs">
               <div class="flex items-center gap-2">
                 <span class="relative flex h-2.5 w-2.5">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-teal-600"></span>
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-600"></span>
                 </span>
                 <div class="leading-tight">
-                  <span id="voiceDictationStatus" class="text-[11px] font-bold text-teal-900">Listening in British English... speak naturally</span>
-                  <span class="block text-[9px] text-teal-700/80">Emma's clinical glossary active • Pauses welcome</span>
+                  <span id="voiceDictationStatus" class="text-[11px] font-bold text-purple-950">Listening in British English... speak your thoughts</span>
+                  <span class="block text-[9px] text-purple-800/80">Emma's clinical glossary active • Pauses welcome</span>
                 </div>
               </div>
-              <button type="button" onclick="stopVoiceDictation()" class="text-[10px] font-extrabold bg-teal-600 text-white px-2.5 py-1 rounded-xl hover:bg-teal-700 transition-all active:scale-95">
+              <button type="button" onclick="stopVoiceDictation()" class="text-[10px] font-extrabold bg-purple-700 text-white px-2.5 py-1 rounded-xl hover:bg-purple-800 transition-all active:scale-95">
                 Done Speaking ✓
               </button>
             </div>
 
             <!-- Note Textarea -->
             <div class="relative">
-              <textarea id="logNote" rows="2" placeholder="Speak or type (e.g., 'Waking Linaclotide kept 40m fast, Oddono's banana sorbet in a cup, gentle walk, mild left rib pressure at 4pm')..." class="w-full text-xs p-2.5 bg-brand-cream border border-brand-border rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-hidden transition-all resize-none leading-relaxed" oninput="handleVoiceNoteInput()"></textarea>
+              <textarea id="logNote" rows="3" placeholder="Speak or write whatever is in your head... e.g., 'Opening big WhatsApp messages is feeling overwhelming for me today, and sending letters to the GP to sort my prescription feels like too much. Literally only have energy to go nannying.'" class="w-full text-xs p-3 bg-white border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-hidden transition-all resize-none leading-relaxed shadow-2xs" oninput="handleVoiceNoteInput()"></textarea>
             </div>
 
             <div class="flex items-center justify-between text-[10px] text-brand-textMuted px-0.5">
-              <span class="flex items-center gap-1">
-                <span class="text-teal-600 font-bold">✓</span>
-                <span>Auto-corrects Linaclotide, APD, Oddono's, Bristol & clinical terms</span>
+              <span class="flex items-center gap-1 text-purple-900 font-medium">
+                <span class="text-purple-600 font-bold">✓</span>
+                <span>Auto-corrects clinical terms • Private & non-judgmental</span>
               </span>
-              <span id="voiceNoteWordCount" class="font-mono text-[9px]">0 words</span>
+              <span id="voiceNoteWordCount" class="font-mono text-[9px] text-purple-700">0 words</span>
             </div>
           </div>
         </div>

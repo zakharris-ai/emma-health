@@ -725,25 +725,33 @@ function downloadCsvExport() {
     "Phase",
     "Bristol Stool (1-7)",
     "Bloating Score (1-5)",
+    "Upper Tummy Bloat",
+    "Lower Tummy Bloat",
+    "Mental State / Mood",
     "Motility Speed",
     "Abdominal Pain (1-5)",
     "Splenic Pressure (1-5)",
     "Diaphragm Done",
     "Supplements",
+    "Headspace Notes",
     "Notes"
   ];
 
   const rows = logs.map(l => [
     `"${l.date || ''}"`,
     `"${l.cycleDay || ''}"`,
-    `"${l.cyclePhase || ''}"`,
-    `"${l.bristolStool || ''}"`,
-    `"${l.bloatingScore || ''}"`,
+    `"${l.cyclePhase || l.phase || ''}"`,
+    `"${l.bristolStool || l.bristol || ''}"`,
+    `"${l.bloatingScore || l.diaphragmBloat || ''}"`,
+    `"${l.upperTummyBloat ? 'Yes' : ((l.puffiness && (l.puffiness.includes('🎈 Upper Tummy Bloating') || l.puffiness.includes('Upper Tummy Bloating'))) ? 'Yes' : 'No')}"`,
+    `"${l.lowerTummyBloat ? 'Yes' : ((l.puffiness && (l.puffiness.includes('🫧 Lower Tummy Bloating') || l.puffiness.includes('Lower Tummy Bloating'))) ? 'Yes' : 'No')}"`,
+    `"${l.mood || ''}"`,
     `"${l.motilitySpeed || ''}"`,
     `"${l.abdominalPain || ''}"`,
     `"${l.splenicPressure || ''}"`,
     `"${l.diaphragmDone ? 'Yes' : 'No'}"`,
     `"${(l.supplements || []).join('; ')}"`,
+    `"${(l.headspaceNotes || '').replace(/"/g, '""')}"`,
     `"${(l.dailyNotes || l.notes || '').replace(/"/g, '""')}"`
   ]);
 
@@ -1241,7 +1249,110 @@ function applyActiveDate(targetDateStr) {
     renderCycleExercisePrescription();
   }
 
+  // 15. Re-render Dashboard Headspace & Thoughts Card for active date
+  renderDashboardHeadspaceCard(activeLogEntry, info);
+
   triggerLucideIcons();
+}
+
+// ============================================================================
+// TODAY'S HEADSPACE & THOUGHTS: ADHD-AWARE DASHBOARD CARD
+// ============================================================================
+function renderDashboardHeadspaceCard(entry, cycleInfo) {
+  const container = document.getElementById('dashboardHeadspaceCard');
+  if (!container) return;
+
+  if (!cycleInfo) {
+    cycleInfo = (typeof getCurrentCycleInfo === 'function') 
+      ? getCurrentCycleInfo() 
+      : { cycleDay: 19, phase: 'luteal' };
+  }
+
+  const moodBadges = {
+    calm: { text: '🌿 Calm', class: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+    happy: { text: '😊 Happy', class: 'bg-amber-100 text-amber-900 border-amber-200' },
+    edgy: { text: '⚡ Edgy', class: 'bg-rose-100 text-rose-800 border-rose-200' },
+    anxious: { text: '🌪️ Anxious', class: 'bg-orange-100 text-orange-900 border-orange-200' },
+    overthinking: { text: '💭 Overthinking', class: 'bg-indigo-100 text-indigo-900 border-indigo-200' },
+    flat: { text: '☁️ Flat / Tired', class: 'bg-slate-100 text-slate-700 border-slate-300' },
+    great: { text: '☀️ Free & Calm', class: 'bg-emerald-100 text-emerald-800 border-emerald-200' }
+  };
+
+  const activeMood = entry?.mood || 'overthinking';
+  const moodBadgeInfo = moodBadges[activeMood] || moodBadges.flat;
+
+  // Luteal vs Follicular ADHD Neuro-Affirming Insight
+  let adhdInsight = '';
+  if (cycleInfo.phase === 'luteal') {
+    adhdInsight = '💜 <strong>ADHD Luteal Reality:</strong> Lower dopamine and high progesterone make messages and admin feel 10x louder. Choosing only work/nannying is a smart energy boundary!';
+  } else if (cycleInfo.phase === 'ovulation') {
+    adhdInsight = '✨ <strong>High Estrogen Window:</strong> Mental focus and social battery are higher. Great time to clear small admin tasks if you feel like it.';
+  } else if (cycleInfo.cycleDay <= 4) {
+    adhdInsight = '🌸 <strong>Menstrual Reset:</strong> Energy is lowest right now. Complete permission to rest, skip social texting, and keep demands minimal.';
+  } else {
+    adhdInsight = '🌿 <strong>Rising Dopamine Window:</strong> Brain fog is lower and cognitive resilience is climbing. Trust your natural rhythm.';
+  }
+
+  const userThought = (entry?.headspaceNotes || entry?.notes || '').trim();
+  const hasLoggedThought = userThought && userThought !== "Saved via Emma's Unified Daily Check-In." && userThought !== "Daily check-in logged";
+
+  container.innerHTML = `
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold text-sm shadow-xs">
+          <i data-lucide="brain" class="w-4 h-4 text-purple-700"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h3 class="font-bold text-sm text-brand-textDark">Today’s Headspace & Thoughts</h3>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${moodBadgeInfo.class}">
+              ${moodBadgeInfo.text}
+            </span>
+          </div>
+          <p class="text-[11px] text-brand-textMuted">Cycle Day ${cycleInfo.cycleDay} • Raw thoughts, task overwhelm & ADHD capacity</p>
+        </div>
+      </div>
+      <button type="button" onclick="openQuickLogModal()" class="px-2.5 py-1 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 text-xs font-bold transition-all flex items-center gap-1 active:scale-95 shadow-2xs">
+        <i data-lucide="edit-3" class="w-3 h-3"></i>
+        <span>${hasLoggedThought ? 'Update Thoughts' : 'Dump Thoughts'}</span>
+      </button>
+    </div>
+
+    <div class="p-3.5 rounded-2xl bg-gradient-to-br from-purple-50/60 via-white to-purple-50/40 border border-purple-200/70 space-y-2.5 text-xs shadow-2xs">
+      ${hasLoggedThought ? `
+        <div class="flex items-start gap-2.5">
+          <span class="text-xl leading-none text-purple-400 font-serif shrink-0">“</span>
+          <p class="text-[12px] text-purple-950 font-medium leading-relaxed italic">
+            ${userThought}
+          </p>
+        </div>
+      ` : `
+        <div class="flex items-center justify-between py-1">
+          <p class="text-[11px] text-purple-900/80 italic">
+            No thoughts dumped yet today. Tap below to log task overwhelm, WhatsApp fatigue, or how your head feels.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-1 pt-0.5">
+          <button type="button" onclick="openQuickLogModal(); insertHeadspaceChip('Big WhatsApp messages feel overwhelming today');" class="px-2 py-0.8 rounded-lg bg-white hover:bg-purple-100 text-purple-900 border border-purple-200 text-[10px] font-semibold transition-all shadow-2xs">
+            💬 WhatsApp Overwhelm
+          </button>
+          <button type="button" onclick="openQuickLogModal(); insertHeadspaceChip('Sorting GP / prescription admin feels like too much today');" class="px-2 py-0.8 rounded-lg bg-white hover:bg-purple-100 text-purple-900 border border-purple-200 text-[10px] font-semibold transition-all shadow-2xs">
+            📋 GP Admin Overload
+          </button>
+          <button type="button" onclick="openQuickLogModal(); insertHeadspaceChip('Literally only have energy to go nannying today');" class="px-2 py-0.8 rounded-lg bg-white hover:bg-purple-100 text-purple-900 border border-purple-200 text-[10px] font-semibold transition-all shadow-2xs">
+            👶 Work-Only Energy
+          </button>
+        </div>
+      `}
+      <div class="pt-2 border-t border-purple-200/50 text-[10px] text-purple-900/90 leading-normal">
+        ${adhdInsight}
+      </div>
+    </div>
+  `;
+
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    lucide.createIcons();
+  }
 }
 
 // ============================================================================
@@ -3311,10 +3422,15 @@ function renderHistoryLogs() {
     if (item.bristol === 'hard') { stoolIcon = '🪨 Hard'; stoolBg = 'bg-brand-amberLight text-brand-amber'; }
     if (item.bristol === 'normal') { stoolIcon = '✨ Satisfying'; stoolBg = 'bg-brand-sageLight text-brand-sage'; }
 
-    // Mood Badge
+    // Mood Badge (Emma's 6 Headspace States + Backwards compat)
     let moodBadge = '☁️ Flat';
-    if (item.mood === 'great') moodBadge = '☀️ Free';
-    if (item.mood === 'edgy') moodBadge = '🌧️ Edgy';
+    if (item.mood === 'calm') moodBadge = '🌿 Calm';
+    else if (item.mood === 'happy') moodBadge = '😊 Happy';
+    else if (item.mood === 'edgy') moodBadge = '⚡ Edgy';
+    else if (item.mood === 'anxious') moodBadge = '🌪️ Anxious';
+    else if (item.mood === 'overthinking') moodBadge = '💭 Overthinking';
+    else if (item.mood === 'flat') moodBadge = '☁️ Flat';
+    else if (item.mood === 'great') moodBadge = '☀️ Free';
 
     // Logo and styling for the cycle day emblem
     let cycleLogo = '🌸';
@@ -3375,6 +3491,16 @@ function renderHistoryLogs() {
           <span class="px-2 py-0.5 rounded-md ${stoolBg} font-bold">${stoolIcon}</span>
           <span class="px-2 py-0.5 rounded-md bg-brand-cream text-brand-textMuted font-semibold">Bloat: <strong class="text-brand-coral">${item.diaphragmBloat}/10</strong></span>
           <span class="px-2 py-0.5 rounded-md bg-brand-cream text-brand-textMuted font-semibold">${moodBadge}</span>
+          ${(item.upperTummyBloat || (item.puffiness && (item.puffiness.includes('🎈 Upper Tummy Bloating') || item.puffiness.includes('Upper Tummy Bloating')))) ? `
+            <span class="px-2 py-0.5 rounded-md bg-amber-100/90 text-amber-900 border border-amber-300 font-bold text-[10px] inline-flex items-center gap-1">
+              <span>🎈</span><span>Upper Bloat</span>
+            </span>
+          ` : ''}
+          ${(item.lowerTummyBloat || (item.puffiness && (item.puffiness.includes('🫧 Lower Tummy Bloating') || item.puffiness.includes('Lower Tummy Bloating')))) ? `
+            <span class="px-2 py-0.5 rounded-md bg-amber-100/90 text-amber-900 border border-amber-300 font-bold text-[10px] inline-flex items-center gap-1">
+              <span>🫧</span><span>Lower Bloat</span>
+            </span>
+          ` : ''}
           ${item.sexDrive ? `
             <span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 font-semibold text-[10px]">
               ❤️ Libido: ${item.sexDrive === 'high' ? 'High' : (item.sexDrive === 'mild' ? 'Mild' : (item.sexDrive === 'low' ? 'Low' : 'Normal'))}
@@ -3407,20 +3533,34 @@ function renderHistoryLogs() {
 
           ${item.puffiness && item.puffiness.length > 0 ? `
             <div class="flex flex-wrap gap-1">
-              ${item.puffiness.map(p => `<span class="px-2 py-0.5 rounded-md bg-brand-coralLight text-brand-coral text-[10px] font-semibold">${p}</span>`).join('')}
+              ${item.puffiness.map(p => {
+                const isBloat = p.includes('Upper Tummy') || p.includes('Lower Tummy');
+                const badgeClass = isBloat ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-brand-coralLight text-brand-coral';
+                return `<span class="px-2 py-0.5 rounded-md ${badgeClass} text-[10px] font-semibold">${p}</span>`;
+              }).join('')}
               ${item.exercise ? `<span class="px-2 py-0.5 rounded-md bg-brand-sageLight text-brand-sage text-[10px] font-semibold">🏃 ${item.exercise}</span>` : ''}
             </div>
           ` : ''}
 
-          ${item.notes || item.medNotes ? `
-            <div class="p-2.5 bg-brand-amberLight/60 rounded-xl border border-brand-amber/30 text-[11px] text-brand-textDark leading-relaxed">
+          ${(item.notes || item.headspaceNotes || item.medNotes) ? `
+            <div class="space-y-2">
               ${item.medNotes ? `
-                <div class="font-bold text-brand-amber mb-0.5 flex items-center gap-1.5">
-                  <span>${item.medNotes.toLowerCase().includes('linaclotide') || item.medNotes.includes('7:') ? '🌅' : (item.medNotes.toLowerCase().includes('night') || item.medNotes.toLowerCase().includes('sleep') ? '🌙' : '💊')}</span>
-                  <span>Meds: ${item.medNotes}</span>
+                <div class="p-2.5 bg-brand-amberLight/60 rounded-xl border border-brand-amber/30 text-[11px] text-brand-textDark leading-relaxed">
+                  <div class="font-bold text-brand-amber mb-0.5 flex items-center gap-1.5">
+                    <span>${item.medNotes.toLowerCase().includes('linaclotide') || item.medNotes.includes('7:') ? '🌅' : (item.medNotes.toLowerCase().includes('night') || item.medNotes.toLowerCase().includes('sleep') ? '🌙' : '💊')}</span>
+                    <span>Meds: ${item.medNotes}</span>
+                  </div>
                 </div>
               ` : ''}
-              ${item.notes ? `<div>${item.notes}</div>` : ''}
+              ${(item.headspaceNotes || item.notes) ? `
+                <div class="p-2.5 bg-purple-50/70 rounded-xl border border-purple-200/80 text-[11px] text-purple-950 leading-relaxed shadow-2xs">
+                  <div class="font-bold text-purple-800 text-[10px] uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <span>💭</span>
+                    <span>Emma's Headspace & Daily Thoughts</span>
+                  </div>
+                  <div class="italic text-brand-textDark whitespace-pre-line">${item.headspaceNotes || item.notes}</div>
+                </div>
+              ` : ''}
             </div>
           ` : ''}
 
@@ -3549,25 +3689,42 @@ function openQuickLogModal() {
     updateDiaphragmSliderDisplay(dVal);
   }
 
-  // 5. Puffiness Tags
+  // 5. Symptoms, Bloating & Puffiness Tags
   selectedTags.clear();
   document.querySelectorAll('#quickLogModal .tag-btn').forEach(btn => {
-    btn.classList.remove('selected', 'bg-brand-coral', 'text-white', 'border-brand-coral');
-    btn.classList.add('bg-white', 'text-brand-textMuted');
-    const hasTag = entry?.puffiness && (
-      entry.puffiness.includes(btn.innerText) ||
-      (btn.innerText === "All Trousers/Bottoms Feeling Tight" && entry.puffiness.includes("Jeans Tight"))
+    btn.classList.remove('selected', 'bg-brand-coral', 'text-white', 'border-brand-coral', 'bg-amber-600', 'border-amber-600');
+    const text = btn.innerText.trim();
+    const isBloatTag = text.includes('Upper Tummy Bloating') || text.includes('Lower Tummy Bloating');
+
+    if (isBloatTag) {
+      btn.classList.add('bg-white', 'text-brand-textDark', 'border-brand-border');
+    } else {
+      btn.classList.add('bg-white', 'text-brand-textMuted');
+    }
+
+    const hasTag = entry && (
+      (entry.puffiness && entry.puffiness.includes(text)) ||
+      (text.includes('Upper Tummy Bloating') && (entry.upperTummyBloat || entry.puffiness?.includes('🎈 Upper Tummy Bloating') || entry.puffiness?.includes('Upper Tummy Bloating') || entry.symptoms?.toLowerCase().includes('upper bloating'))) ||
+      (text.includes('Lower Tummy Bloating') && (entry.lowerTummyBloat || entry.puffiness?.includes('🫧 Lower Tummy Bloating') || entry.puffiness?.includes('Lower Tummy Bloating') || entry.symptoms?.toLowerCase().includes('lower tummy'))) ||
+      (text === "All Trousers/Bottoms Feeling Tight" && entry.puffiness && entry.puffiness.includes("Jeans Tight"))
     );
+
     if (hasTag) {
-      btn.classList.add('selected', 'bg-brand-coral', 'text-white', 'border-brand-coral');
-      btn.classList.remove('bg-white', 'text-brand-textMuted');
-      selectedTags.add(btn.innerText);
+      btn.classList.add('selected');
+      if (isBloatTag) {
+        btn.classList.add('bg-amber-600', 'text-white', 'border-amber-600', 'shadow-xs');
+        btn.classList.remove('bg-white', 'text-brand-textDark', 'border-brand-border');
+      } else {
+        btn.classList.add('bg-brand-coral', 'text-white', 'border-brand-coral');
+        btn.classList.remove('bg-white', 'text-brand-textMuted');
+      }
+      selectedTags.add(text);
     }
   });
 
   // 6. Drinks, Mood, Sex Drive & Notes
   selectAlcohol(entry?.alcohol || 'none');
-  selectMood(entry?.mood || 'flat');
+  selectMood(entry?.mood || 'overthinking');
   selectSexDrive(entry?.sexDrive || 'normal');
 
   const exerciseInput = document.getElementById('logExercise');
@@ -3954,9 +4111,32 @@ function selectMood(val) {
   selectedMoodVal = val;
   const input = document.getElementById('logMood');
   if (input) input.value = val;
-  document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('selected', 'border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50'));
+  document.querySelectorAll('.mood-btn').forEach(btn => {
+    btn.classList.remove('selected', 'border-purple-600', 'border-emerald-500', 'border-amber-500', 'border-rose-500', 'border-orange-500', 'border-indigo-500', 'ring-2', 'ring-purple-500', 'ring-emerald-500', 'ring-amber-500', 'ring-rose-500', 'ring-orange-500', 'ring-indigo-500', 'bg-purple-50', 'bg-emerald-50', 'bg-amber-50', 'bg-rose-50', 'bg-orange-50', 'bg-indigo-50');
+  });
   const activeBtn = Array.from(document.querySelectorAll('.mood-btn')).find(b => b.getAttribute('onclick')?.includes(`'${val}'`));
-  if (activeBtn) activeBtn.classList.add('selected', 'border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50');
+  if (activeBtn) {
+    activeBtn.classList.add('selected');
+    if (val === 'calm') activeBtn.classList.add('border-emerald-500', 'ring-2', 'ring-emerald-500', 'bg-emerald-50');
+    else if (val === 'happy') activeBtn.classList.add('border-amber-500', 'ring-2', 'ring-amber-500', 'bg-amber-50');
+    else if (val === 'edgy') activeBtn.classList.add('border-rose-500', 'ring-2', 'ring-rose-500', 'bg-rose-50');
+    else if (val === 'anxious') activeBtn.classList.add('border-orange-500', 'ring-2', 'ring-orange-500', 'bg-orange-50');
+    else if (val === 'overthinking') activeBtn.classList.add('border-indigo-500', 'ring-2', 'ring-indigo-500', 'bg-indigo-50');
+    else activeBtn.classList.add('border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50');
+  }
+}
+
+function insertHeadspaceChip(text) {
+  const textarea = document.getElementById('logNote');
+  if (!textarea) return;
+  const current = textarea.value.trim();
+  if (!current) {
+    textarea.value = text;
+  } else if (!current.includes(text)) {
+    textarea.value = `${current}. ${text}`;
+  }
+  handleVoiceNoteInput();
+  textarea.focus();
 }
 
 function selectAlcohol(val) {
@@ -3979,15 +4159,27 @@ function selectSexDrive(val) {
 
 function toggleTag(btn) {
   btn.classList.toggle('selected');
-  const tagText = btn.innerText;
+  const tagText = btn.innerText.trim();
+  const isBloatTag = tagText.includes('Upper Tummy Bloating') || tagText.includes('Lower Tummy Bloating');
+
   if (selectedTags.has(tagText)) {
     selectedTags.delete(tagText);
-    btn.classList.remove('bg-brand-coral', 'text-white', 'border-brand-coral');
-    btn.classList.add('bg-white', 'text-brand-textMuted');
+    if (isBloatTag) {
+      btn.classList.remove('bg-amber-600', 'text-white', 'border-amber-600', 'shadow-xs');
+      btn.classList.add('bg-white', 'text-brand-textDark', 'border-brand-border');
+    } else {
+      btn.classList.remove('bg-brand-coral', 'text-white', 'border-brand-coral');
+      btn.classList.add('bg-white', 'text-brand-textMuted');
+    }
   } else {
     selectedTags.add(tagText);
-    btn.classList.add('bg-brand-coral', 'text-white', 'border-brand-coral');
-    btn.classList.remove('bg-white', 'text-brand-textMuted');
+    if (isBloatTag) {
+      btn.classList.add('bg-amber-600', 'text-white', 'border-amber-600', 'shadow-xs');
+      btn.classList.remove('bg-white', 'text-brand-textDark', 'border-brand-border');
+    } else {
+      btn.classList.add('bg-brand-coral', 'text-white', 'border-brand-coral');
+      btn.classList.remove('bg-white', 'text-brand-textMuted');
+    }
   }
 }
 
@@ -6621,6 +6813,9 @@ function handleQuickLogSubmit(e) {
   const noteVal = document.getElementById('logNote')?.value?.trim() || '';
 
   let puffinessArr = Array.from(selectedTags);
+  const upperTummyBloat = selectedTags.has('🎈 Upper Tummy Bloating') || selectedTags.has('Upper Tummy Bloating');
+  const lowerTummyBloat = selectedTags.has('🫧 Lower Tummy Bloating') || selectedTags.has('Lower Tummy Bloating');
+
   if (alcoholVal === '1-2_wine') puffinessArr.push('🍷 1-2 Wine');
   if (alcoholVal === '3+_wine') puffinessArr.push('🥂 3+ Wine/Bubbles');
   if (alcoholVal === 'spirits') puffinessArr.push('🍸 Spirits');
@@ -6650,6 +6845,17 @@ function handleQuickLogSubmit(e) {
 
   const cycleInfo = getCycleInfoForDate(dateVal);
 
+  const moodLabels = {
+    calm: '🌿 Calm & Grounded',
+    happy: '😊 Happy & Positive',
+    edgy: '⚡ Edgy / Irritable',
+    anxious: '🌪️ Anxious / Nervous',
+    overthinking: '💭 Overthinking / Mind Racing',
+    flat: '☁️ Flat / Low Energy',
+    great: '☀️ Free & Calm'
+  };
+  const emotionText = moodLabels[moodVal] || 'Tired / flat';
+
   const newEntry = {
     id: dateVal,
     date: dateVal,
@@ -6675,15 +6881,18 @@ function handleQuickLogSubmit(e) {
     bristol: selectedBristolVal,
     stoolNuance: stoolNuance,
     diaphragmBloat: diaphragmVal,
+    upperTummyBloat: upperTummyBloat,
+    lowerTummyBloat: lowerTummyBloat,
     puffiness: puffinessArr,
-    emotions: moodVal === 'great' ? 'Free & relaxed' : (moodVal === 'edgy' ? 'Edgy / tearful' : 'Tired / flat'),
+    emotions: emotionText,
     mood: moodVal,
     sexDrive: sexDriveVal,
     alcohol: alcoholVal,
     symptoms: noteVal || (movementText !== 'None' ? movementText : "Daily check-in logged"),
     medNotes: fastingVal === 'kept_40' ? "Morning Linaclotide taken with 40-min fast" : (fastingVal === 'broke_early' ? "Linaclotide taken (fast broken early)" : "Linaclotide skipped"),
     exercise: exerciseVal,
-    notes: noteVal || "Saved via Emma's Unified Daily Check-In."
+    notes: noteVal || "Saved via Emma's Unified Daily Check-In.",
+    headspaceNotes: noteVal
   };
 
   // Prepend or update existing for same date
@@ -6706,9 +6915,10 @@ function handleQuickLogSubmit(e) {
   saveSpecialistTracking();
   renderSpecialistTrackingUI();
 
-  // Update Stats & Charts
+  // Update Stats, Headspace Card & Charts
   updateDashboardCheckInBadge(newEntry);
   updateDashboardStats(newEntry);
+  renderDashboardHeadspaceCard(newEntry, cycleInfo);
   renderDashboardTrends();
   renderOuraChart();
   renderHistoryLogs();
