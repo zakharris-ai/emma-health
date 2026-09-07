@@ -41,7 +41,7 @@ const DEFAULT_LOGS = [
     puffiness: [
       "🫧 Lower Tummy Bloating",
       "Puffy Arms",
-      "Heavy Legs",
+      "Achy Body",
       "Muscle Twitches",
       "Brain Fog",
       "Headache",
@@ -4416,7 +4416,7 @@ function loadSavedCheckInIntoModal(customDate) {
     }
 
     const hasTag = (
-      (entry.puffiness && entry.puffiness.includes(text)) ||
+      (entry.puffiness && (entry.puffiness.includes(text) || (text === 'Achy Body' && entry.puffiness.includes('Heavy Legs')))) ||
       (text.includes('Upper Tummy Bloating') && (entry.upperTummyBloat || entry.puffiness?.includes('🎈 Upper Tummy Bloating') || entry.puffiness?.includes('Upper Tummy Bloating') || entry.symptoms?.toLowerCase().includes('upper bloating'))) ||
       (text.includes('Lower Tummy Bloating') && (entry.lowerTummyBloat || entry.puffiness?.includes('🫧 Lower Tummy Bloating') || entry.puffiness?.includes('Lower Tummy Bloating') || entry.symptoms?.toLowerCase().includes('lower tummy'))) ||
       (text.includes('Gassiness') && (entry.gassiness || entry.puffiness?.some(p => p.toLowerCase().includes('gass') || p.toLowerCase().includes('trapped gas')) || entry.symptoms?.toLowerCase().includes('gass'))) ||
