@@ -1604,6 +1604,7 @@ function applyActiveDate(targetDateStr) {
   }
   
   // Dynamically update Today's Movement & Spa protocol for this cycle day/phase
+  currentMovementEnergyMode = 'cycle';
   renderMovementAndSpa(info);
 
   const auditorSubtitle = document.getElementById('auditorPhaseSubtitle');
@@ -1756,170 +1757,484 @@ function renderDashboardHeadspaceCard(entry, cycleInfo) {
 }
 
 // ============================================================================
-// TODAY'S MOVEMENT & SPA: CYCLE-SYNCED ADAPTIVE PROTOCOL
+// TODAY'S MOVEMENT & SPA: CYCLE-SYNCED & ADHD-ADAPTIVE PROTOCOL
 // ============================================================================
-function getMovementAndSpaData(dayNum, phase) {
-  // 1. Menstrual Phase (Days 1 - 4)
-  if (dayNum >= 1 && dayNum <= 4) {
+let currentMovementEnergyMode = 'cycle';
+
+function setMovementEnergyMode(mode) {
+  if (currentMovementEnergyMode === mode && mode !== 'cycle') {
+    currentMovementEnergyMode = 'cycle';
+  } else {
+    currentMovementEnergyMode = mode;
+  }
+  const info = (typeof getCurrentCycleInfo === 'function') 
+    ? getCurrentCycleInfo() 
+    : { cycleDay: 19, phase: 'luteal' };
+  renderMovementAndSpa(info);
+}
+window.setMovementEnergyMode = setMovementEnergyMode;
+
+function getMovementAndSpaData(dayNum, phase, mode = 'cycle') {
+  let boundedDay = parseInt(dayNum, 10);
+  if (isNaN(boundedDay)) boundedDay = 19;
+  if (boundedDay < 1) boundedDay = 1;
+  if (boundedDay > 28) boundedDay = 28;
+
+  // -------------------------------------------------------------
+  // 1. OVERRIDE: Low Battery / Overwhelmed Mode (ADHD Emergency Protocol)
+  // -------------------------------------------------------------
+  if (mode === 'low_battery') {
     return {
-      badgeText: "Restorative • Low Pelvic Load",
-      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1",
+      badgeText: "Low Battery • 10-Min Win",
+      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-900 border border-rose-200 flex items-center gap-1",
       badgeDot: "bg-rose-500",
-      subtitle: `🌸 Gentle restorative pace for Day ${dayNum} • Soothes uterine cramps & releases pelvic floor tension`,
+      subtitle: `🛋️ Low Battery / Overwhelmed Mode • Zero guilt; frictionless restorative movement for Emma today`,
       cards: [
         {
-          theme: "emerald",
-          icon: "🌿",
-          title: "Gentle Walk & Pelvic Mobility",
-          tag: "20–35 min • Low pelvic load",
-          desc: "Gentle flat walking or restorative mat mobility. Avoid heavy squats or breath-holding that strains the pelvic floor."
+          theme: "rose",
+          icon: "🛋️",
+          title: "10-Min Pajama Stretch or Legs-Up-The-Wall",
+          tag: "10 min • Zero-barrier entry",
+          desc: "No gym clothes, no leaving home. Just 10 minutes of legs-up-the-wall or gentle floor cat-cows. This fully satisfies your movement goal."
         },
         {
           theme: "teal",
           icon: "🧖‍♀️",
-          title: "Warm Eucalyptus Steam & Soak",
-          tag: "Gentle heat • Relaxes smooth muscle",
-          desc: "Warm steam room and hydro pool relax pelvic floor hypertonicity and low-back ache. Skip freezing plunge if cramping."
+          title: "Steam & Quiet Lounger (Zero Workout)",
+          tag: "Passive recovery • Sensory refuge",
+          desc: "If you make it to Third Space, skip the gym floor completely. Walk straight into the eucalyptus steam, warm rinse, and relax on the loungers."
         },
         {
-          theme: "rose",
+          theme: "slate",
           icon: "🚫",
-          title: "Skip Heavy Straining & Core Pikes",
-          tag: "Protect pelvic floor",
-          desc: "No heavy leg press, barbell deadlifts, or intense core crunches while the uterine lining is actively shedding."
+          title: "Banish All Workout Guilt & 'Shoulds'",
+          tag: "Dopamine protection",
+          desc: "Forcing high-effort workouts during executive burnout spikes cortisol, freezes colonic transit, and sparks APD diaphragmatic spasms."
         }
-      ]
+      ],
+      adhd: {
+        theme: "rose",
+        badgeText: "🛋️ Low Battery Override Active",
+        badgeClass: "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-100 text-rose-900 border border-rose-200",
+        title: "The Frictionless Sanctuary Rule",
+        text: "Executive dysfunction has won today, and that is 100% OK and physiologically valid. Your nervous system is depleted of dopamine. Pushing through guilt will only prolong burnout. A warm shower, 10 minutes lying down, or a slow breathwork break is your complete victory today.",
+        motility: "Lowering sympathetic fight-or-flight panic releases hypertonic tension on the enteric nervous system, helping your gut move naturally without forced effort."
+      }
     };
   }
 
-  // 2. Follicular Phase (Days 5 - 13)
-  if (dayNum >= 5 && dayNum <= 13) {
+  // -------------------------------------------------------------
+  // 2. OVERRIDE: High Energy Boost Mode (Dopamine Surge Protocol)
+  // -------------------------------------------------------------
+  if (mode === 'high_energy') {
     return {
-      badgeText: "High Energy • Strength Peak",
-      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1",
+      badgeText: "High Energy • Strength & Drive",
+      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-200 flex items-center gap-1",
       badgeDot: "bg-emerald-500",
-      subtitle: `🌿 High energy window for Day ${dayNum} • Estrogen accelerates gut transit; prime for Third Space weights`,
+      subtitle: `⚡ High Energy Boost Active • Dopamine is high; ready to challenge Third Space weights or dynamic Reformer`,
       cards: [
         {
           theme: "emerald",
           icon: "🏋️‍♀️",
-          title: "Strength Training & Dynamic Reformer",
-          tag: "45–60 min • Progressive loading",
-          desc: "Prime window for progressive weights (squats, hip thrusts, upper body) and athletic Reformer Pilates. High joint resilience."
+          title: "Dynamic Reformer or Progressive Weights",
+          tag: "45–55 min • High output & power",
+          desc: "Channel your energy into progressive weights (squats, deadlifts, overhead presses) or an athletic Reformer class. Focus on crisp form and controlled tempos."
         },
         {
           theme: "teal",
           icon: "🧖‍♀️",
           title: "Contrast Therapy Power Rounds",
-          tag: "15m Sauna ➔ 2–3m Cold Plunge (x2)",
-          desc: "Finnish sauna followed by cold plunge. Drives massive dopamine release, accelerates muscle repair, and clears inflammation."
+          tag: "15m Sauna ➔ 2m Cold Plunge (x2)",
+          desc: "Finnish sauna followed by full immersion cold plunge. Delivers an instant sustained 250% dopamine surge, sharpens mental clarity, and boosts cellular repair."
         },
         {
           theme: "amber",
           icon: "⚠️",
-          title: "Don't Under-Fuel Post-Lift",
-          tag: "Carb replenishment",
-          desc: "Avoid fasted heavy lifting. Refuel with easy carbs (rice cakes / Special Flakes) to prevent cortisol spikes from underfueling."
+          title: "Avoid Fasted Lifting & Dehydration",
+          tag: "Carb & electrolyte fuel",
+          desc: "Refuel with easy carbs (Special Flakes, rice cakes, banana) and plenty of water with electrolytes to prevent post-lift blood sugar crashes."
         }
-      ]
+      ],
+      adhd: {
+        theme: "emerald",
+        badgeText: "⚡ High Energy Override Active",
+        badgeClass: "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-200",
+        title: "Hyperfocus Flow Channel",
+        text: "You have surplus energy and dopamine flowing today! Take advantage of this surge to challenge yourself with progressive weights or a dynamic class. Ride the natural momentum while keeping form controlled.",
+        motility: "Keep hydration high and pause for 3 diaphragmatic belly breaths between heavy sets to prevent intra-abdominal bearing down from tensing your diaphragm."
+      }
     };
   }
 
-  // 3. Ovulation Window (Days 14 - 16)
-  if (dayNum >= 14 && dayNum <= 16) {
+  // -------------------------------------------------------------
+  // 3. CYCLE-SYNCED DAY-SPECIFIC PROTOCOLS (Days 1 - 28)
+  // -------------------------------------------------------------
+
+  // Window 1: Days 1 - 3 (Menstrual Shedding / Lowest Dopamine / Pelvic Release)
+  if (boundedDay >= 1 && boundedDay <= 3) {
     return {
-      badgeText: "Peak Stamina • Pelvic Awareness",
-      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200 flex items-center gap-1",
-      badgeDot: "bg-amber-500",
-      subtitle: `✨ Peak stamina for Day ${dayNum} • High power output; stay mindful of ovulatory ovary twinges`,
+      badgeText: "Restorative • Zero Pressure",
+      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-900 border border-rose-200 flex items-center gap-1",
+      badgeDot: "bg-rose-500",
+      subtitle: `🌸 Menstrual Reset for Day ${boundedDay} • Low dopamine & pelvic tension; prioritize gentle restoration`,
       cards: [
         {
-          theme: "emerald",
-          icon: "🤸‍♀️",
-          title: "Athletic Reformer or Incline Walk",
-          tag: "45–50 min • Controlled form",
-          desc: "High physical stamina for challenging Reformer carriage work or brisk incline treadmill. Keep core bracing controlled."
+          theme: "rose",
+          icon: "🌿",
+          title: "Gentle Stroll or Legs-Up-The-Wall",
+          tag: "15–25 min • Floor mobility & pelvic release",
+          desc: "Slow flat stroll or 15 mins legs-up-the-wall in pajamas. Releases pelvic congestion and eases uterine cramping without abdominal strain."
         },
         {
           theme: "teal",
           icon: "🧖‍♀️",
-          title: "Cold Plunge & Mineral Pool",
-          tag: "2–3m plunge • Vagal activation",
-          desc: "Crisp cold plunge immediately reduces exercise inflammation, followed by relaxing in the mineral hydro pool."
+          title: "Warm Eucalyptus Steam & Hydro Pool",
+          tag: "Soothing heat • Relaxes smooth muscle",
+          desc: "Warm steam room and hydrotherapy pool relax pelvic floor hypertonicity and lower back ache. Skip the freezing cold plunge today (cold induces uterine vasoconstriction)."
         },
         {
-          theme: "amber",
-          icon: "⚠️",
-          title: "Modify Ballistic Twists",
-          tag: "Protect tender follicle",
-          desc: "If feeling ovulatory ovary tenderness (mittelschmerz), modify explosive rotational plyometrics or deep ballistic twists."
+          theme: "slate",
+          icon: "🚫",
+          title: "Skip Heavy Hip Thrusts & Abdominal Pikes",
+          tag: "Pelvic floor guard",
+          desc: "No heavy leg press, barbell hip thrusts, or intense core crunches while uterine smooth muscle is actively contracting."
         }
-      ]
+      ],
+      adhd: {
+        theme: "rose",
+        badgeText: "🛋️ Dopamine Trough • Zero Guilt",
+        badgeClass: "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-100 text-rose-900 border border-rose-200",
+        title: "The Radical Permission Rule",
+        text: "Estrogen and progesterone are at baseline, making dopamine replenishment slow. Task initiation feels heavy and brain fog is real. Reframe rest as active neurological recovery. Doing 10 minutes of floor stretching in your pajamas is a 100% win—drop any shame about skipping a hard workout.",
+        motility: "Pelvic floor tension mimics constipation. Soft belly diaphragmatic breathing calms the pudendal nerve and prevents cramping from locking your diaphragm."
+      }
     };
   }
 
-  // 4. Early-to-Mid Luteal Phase (Days 17 - 22, including Day 19)
-  if (dayNum >= 17 && dayNum <= 22) {
+  // Window 2: Days 4 - 6 (Late Menstrual / Estrogen Rising / Dopamine Awakening)
+  if (boundedDay >= 4 && boundedDay <= 6) {
     return {
-      badgeText: "Low Stress • Colonic Motility",
-      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200 flex items-center gap-1",
-      badgeDot: "bg-purple-500",
-      subtitle: `🌸 Gentle extended pace for Day ${dayNum} • Progesterone slows transit; protects mesenteric blood flow`,
+      badgeText: "Awakening • Gentle Ramp",
+      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-900 border border-teal-200 flex items-center gap-1",
+      badgeDot: "bg-teal-500",
+      subtitle: `🌿 Dopamine Awakening for Day ${boundedDay} • Estrogen begins climbing; brain fog begins lifting`,
       cards: [
         {
           theme: "emerald",
           icon: "🧘‍♀️",
-          title: "Reformer Align or 60–80m Gentle Walk",
-          tag: "60–80 min LISS • HR <120 bpm",
-          desc: "Low-incline gentle walk or Reformer Align & Stretch. Rhythmic mechanical colonic stimulation without adrenaline spikes."
+          title: "Reformer Pilates Align & Light Dumbbells",
+          tag: "35–45 min • Joint alignment & core control",
+          desc: "Reformer carriage work focusing on postural alignment, glute activation, and light dumbbell upper body circuits. Keep breathing fluid."
         },
         {
           theme: "teal",
           icon: "🧖‍♀️",
-          title: "Moderate Sauna & Quick Cold Plunge",
-          tag: "10–12m sauna • 1–2m cold dip",
-          desc: "Moderate sauna stimulates vagal gut motility; quick 1m cold plunge helps drain luteal fluid retention. Sip electrolytes!"
+          title: "Warm Finnish Sauna + 1m Cool Rinse",
+          tag: "12m sauna • Gentle contrast",
+          desc: "Warm Finnish sauna to ease any remaining pelvic stiffness, followed by a cool (not freezing) shower to gently awaken circulation."
+        },
+        {
+          theme: "amber",
+          icon: "⚠️",
+          title: "Avoid Skipping Meals Before Movement",
+          tag: "Blood sugar stability",
+          desc: "Don't exercise on empty. Rising estrogen needs steady glucose; grab 2 rice cakes with almond butter or a banana 30 mins before."
+        }
+      ],
+      adhd: {
+        theme: "teal",
+        badgeText: "🌱 Dopamine Awakening • Momentum Window",
+        badgeClass: "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-teal-100 text-teal-900 border border-teal-200",
+        title: "Dopamine Stacking & Novelty",
+        text: "As estrogen rises, dopamine receptors in your prefrontal cortex become more sensitive. You'll feel executive inertia starting to thaw. Ride this wave by using novelty: try a new Reformer sequence or queue a fresh upbeat playlist for your walk to spark dopamine.",
+        motility: "Rising estrogen naturally accelerates gut transit. Gentle carriage work stimulates the vagus nerve and aids morning bowel movement."
+      }
+    };
+  }
+
+  // Window 3: Days 7 - 10 (Mid-Follicular / Estrogen Surge / High Energy & Strength Window)
+  if (boundedDay >= 7 && boundedDay <= 10) {
+    return {
+      badgeText: "High Energy • Strength Peak",
+      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-200 flex items-center gap-1",
+      badgeDot: "bg-emerald-500",
+      subtitle: `🌿 Strength & Motivation Surge for Day ${boundedDay} • High dopamine; prime for Third Space weights`,
+      cards: [
+        {
+          theme: "emerald",
+          icon: "🏋️‍♀️",
+          title: "Progressive Strength Training (Squats & Upper Body)",
+          tag: "45–55 min • Moderate-to-heavy loading",
+          desc: "Prime window for strength: goblet squats, Romanian deadlifts, lat pulldowns, and dumbbell press. Muscular power and recovery are at their best."
+        },
+        {
+          theme: "teal",
+          icon: "🧖‍♀️",
+          title: "Contrast Therapy Power Rounds (Sauna + Plunge)",
+          tag: "15m Sauna ➔ 2m Cold Plunge (x2)",
+          desc: "Full contrast rounds at Third Space. Triggers a massive sustained release of norepinephrine and dopamine, boosting mood and mental sharpness for hours."
+        },
+        {
+          theme: "amber",
+          icon: "⚠️",
+          title: "Don't Rush Your Warm-Up",
+          tag: "Joint prep & mobility",
+          desc: "Estrogen increases joint laxity slightly. Spend 5 mins on dynamic hip openers and thoracic rotations before picking up heavy dumbbells."
+        }
+      ],
+      adhd: {
+        theme: "emerald",
+        badgeText: "⚡ High Dopamine Window • Hyperfocus Prime",
+        badgeClass: "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-200",
+        title: "Hyperfocus Power Channel",
+        text: "Your prefrontal cortex has optimal dopamine and acetylcholine right now. Working memory, focus, and drive feel effortless. Channel this into learning new lift variations or tackling workouts that usually feel intimidating. Third Space will feel exhilarating today.",
+        motility: "Gut motility is fast and resilient. Splanchnic blood flow easily tolerates moderate loading without triggering reflux or splenic bloating."
+      }
+    };
+  }
+
+  // Window 4: Days 11 - 13 (Late Follicular / Estrogen Zenith / Peak Power & Output)
+  if (boundedDay >= 11 && boundedDay <= 13) {
+    return {
+      badgeText: "Peak Power • Max Dopamine",
+      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-200 flex items-center gap-1",
+      badgeDot: "bg-emerald-500",
+      subtitle: `⚡ Peak Power Window for Day ${boundedDay} • Maximum estrogen & dopamine drive; high coordination`,
+      cards: [
+        {
+          theme: "emerald",
+          icon: "🤸‍♀️",
+          title: "Dynamic Athletic Reformer or Heavy Strength Lift",
+          tag: "50–60 min • High stamina & power",
+          desc: "Push the intensity: athletic Reformer jumps, progressive loading on compound lifts, or brisk hill incline treadmill walks. High motor control."
+        },
+        {
+          theme: "teal",
+          icon: "🧖‍♀️",
+          title: "Cold Plunge (2–3 min) & Hydro Jets",
+          tag: "2–3m plunge • Rapid muscle recovery",
+          desc: "Crisp cold plunge immediately post-workout to calm inflammation, followed by high-pressure hydrotherapy jets on glutes and upper back."
+        },
+        {
+          theme: "amber",
+          icon: "⚠️",
+          title: "Don't Under-Fuel Post-Workout",
+          tag: "Carb & protein refill",
+          desc: "High metabolic output means glycogen drains quickly. Refuel within 45 minutes (chicken, rice, or Special Flakes with almond milk) to prevent an evening crash."
+        }
+      ],
+      adhd: {
+        theme: "emerald",
+        badgeText: "🔥 Dopamine Zenith • Frictionless Execution",
+        badgeClass: "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-200",
+        title: "The Single-Alarm Launch Rule",
+        text: "Your brain has all the dopamine it needs, but ADHD time-blindness can lead to endless fiddling before leaving the house. Set one countdown timer, put shoes on immediately, and walk out the door without checking emails first.",
+        motility: "Your diaphragm and colon are in their most cooperative state. Enjoy the natural abdominal decompression and flat belly confidence!"
+      }
+    };
+  }
+
+  // Window 5: Days 14 - 16 (Ovulation Window / LH Surge / High Stamina & Sensory Awareness)
+  if (boundedDay >= 14 && boundedDay <= 16) {
+    return {
+      badgeText: "Peak Stamina • Sensory Alert",
+      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200 flex items-center gap-1",
+      badgeDot: "bg-amber-500",
+      subtitle: `✨ Ovulation Surge for Day ${boundedDay} • High physical stamina; stay mindful of ovulatory twinges`,
+      cards: [
+        {
+          theme: "emerald",
+          icon: "🤸‍♀️",
+          title: "Athletic Reformer Flow or Incline LISS Walk",
+          tag: "45–50 min • Controlled cadence",
+          desc: "High cardiovascular stamina. Incline treadmill walking (12% incline, 4.5 km/h) or dynamic Reformer carriage work. Keep abdominal bracing controlled."
+        },
+        {
+          theme: "teal",
+          icon: "🧖‍♀️",
+          title: "Magnesium Mineral Pool & Cold Dip",
+          tag: "Mineral soak • Vagal calm",
+          desc: "Soak in Third Space's mineral hydrotherapy pool to absorb transdermal magnesium, followed by a crisp 90-second cold plunge to sharpen focus."
+        },
+        {
+          theme: "amber",
+          icon: "⚠️",
+          title: "Modify Ballistic Twists (Mittelschmerz Guard)",
+          tag: "Protect tender follicle",
+          desc: "If you feel sharp ovulatory twinges on one side of your lower pelvis, avoid explosive rotational ball slams or deep ballistic twists."
+        }
+      ],
+      adhd: {
+        theme: "amber",
+        badgeText: "🎯 Sensory Sensitivity Alert",
+        badgeClass: "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200",
+        title: "The Third Space Sensory Shield",
+        text: "The ovulation estrogen/testosterone spike heightens all sensory processing. Clattering weights, bright gym spotlights, or crowded locker rooms can cause sensory overload. Wear your noise-canceling headphones, choose a quieter corner, and stick to your zone.",
+        motility: "Pelvic fluid from follicle release can create temporary pelvic fullness. Controlled diaphragmatic breaths prevent your pelvic floor from tensing up."
+      }
+    };
+  }
+
+  // Window 6: Days 17 - 19 (Early Luteal / Progesterone Ramp / Motility & Splanchnic Flow Focus - TODAY Day 19!)
+  if (boundedDay >= 17 && boundedDay <= 19) {
+    return {
+      badgeText: "Low Stress • Colonic Motility",
+      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200 flex items-center gap-1",
+      badgeDot: "bg-purple-500",
+      subtitle: `🌸 Early Luteal Motility Pace for Day ${boundedDay} • Progesterone slows colon transit; protect mesenteric blood flow`,
+      cards: [
+        {
+          theme: "emerald",
+          icon: "🧘‍♀️",
+          title: "Reformer Align & Stretch or 60–80m Gentle Flat Walk",
+          tag: "60–80 min LISS • Heart Rate <120 bpm",
+          desc: "Flat outdoor walk or Reformer Align. Low-intensity steady-state movement rhythmically massages the colon and stimulates peristalsis without cortisol spikes."
+        },
+        {
+          theme: "teal",
+          icon: "🧖‍♀️",
+          title: "Moderate Sauna (10–12m) + Quick 1m Dip",
+          tag: "Vagal tone • Electrolyte replenishment",
+          desc: "Warm Finnish sauna relaxes gastrointestinal smooth muscle and activates the vagus nerve. Follow with a brief 60s cold dip to drain luteal fluid retention. Sip electrolytes!"
         },
         {
           theme: "rose",
           icon: "🚫",
-          title: "Skip HIIT, Sprints & Intense Spin",
+          title: "Skip Breathless HIIT, Sprints & Intense Spin",
           tag: "Prevents splanchnic steal",
-          desc: "Adrenaline surges steal 80% of blood flow from bowel to muscles, freezing transit and locking the diaphragm into APD spasm."
+          desc: "High-intensity cardio causes splanchnic steal (diverts 80% blood away from bowel to muscles), freezing colon transit and triggering APD diaphragmatic spasm."
         }
-      ]
+      ],
+      adhd: {
+        theme: "purple",
+        badgeText: "🧠 Progesterone Dopamine Dip • Initiation Paralysis",
+        badgeClass: "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200",
+        title: "The '10-Minute Initiation Rule'",
+        text: "Rising progesterone dampens dopamine transmission, so the thought of exercising feels like wading through wet cement today. Don't commit to an hour—commit to putting on your trainers and walking for just 10 minutes while listening to an engaging podcast. Once outside, momentum takes over, but you have full permission to turn back after 10 mins if you want.",
+        motility: "Your splenic flexure is vulnerable to gas pockets today. Rhythmic walking mechanically pushes gas past the splenic bend, keeping your tummy flat and comfortable."
+      }
     };
   }
 
-  // 5. Late Luteal / Pre-Reset Phase (Days 23 - 28)
+  // Window 7: Days 20 - 22 (Mid-Luteal / Progesterone Peak / Executive Fatigue & De-Bloat)
+  if (boundedDay >= 20 && boundedDay <= 22) {
+    return {
+      badgeText: "Gentle Flow • Brain-Fog Shield",
+      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200 flex items-center gap-1",
+      badgeDot: "bg-purple-500",
+      subtitle: `🌸 Mid-Luteal De-Bloat for Day ${boundedDay} • Progesterone peak causes slow transit & dopamine fog`,
+      cards: [
+        {
+          theme: "emerald",
+          icon: "🚶‍♀️",
+          title: "Low-Incline Treadmill Walk or Gentle Reformer Flow",
+          tag: "35–45 min • Low cognitive friction",
+          desc: "Keep it simple: 40 mins on the treadmill at 3-4% incline listening to an audiobook, or a gentle Reformer stretch class. Steady, predictable, zero performance pressure."
+        },
+        {
+          theme: "teal",
+          icon: "🧖‍♀️",
+          title: "Warm Hydrotherapy Pool & Eucalyptus Steam",
+          tag: "Hydrostatic decompression",
+          desc: "Hydro pool water pressure provides gentle lymphatic drainage for water retention. Warm eucalyptus steam soothes upper abdominal tension and relaxes the diaphragm."
+        },
+        {
+          theme: "rose",
+          icon: "🚫",
+          title: "Avoid Compressive Gym Waistbands & Heavy Pikes",
+          tag: "Zero abdominal constriction",
+          desc: "Ditch ultra-tight high-waisted leggings that compress your splenic flexure. Skip hanging leg pikes and weighted crunches that trap gas."
+        }
+      ],
+      adhd: {
+        theme: "purple",
+        badgeText: "🛋️ Executive Function Fatigue • Low Friction",
+        badgeClass: "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200",
+        title: "The Zero-Decision Friction Hack",
+        text: "Decision fatigue is at its peak. Every choice (what to wear, what workout to do) drains your limited dopamine. Eliminate choices: put comfortable, non-restrictive clothes in your bag the night before, and pick one simple routine. If you only make it to the Third Space lounge with a hot tea, that still counts.",
+        motility: "Constipation triggers the APD reflex. Gentle pelvic circles and hip flexor stretches keep the descending colon from kinking."
+      }
+    };
+  }
+
+  // Window 8: Days 23 - 25 (Late Luteal / APD Diaphragm Guard / Sensory Sanctuary)
+  if (boundedDay >= 23 && boundedDay <= 25) {
+    return {
+      badgeText: "APD Guard • Restorative Sanctuary",
+      badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-200 flex items-center gap-1",
+      badgeDot: "bg-indigo-500",
+      subtitle: `🌸 Diaphragmatic Guard for Day ${boundedDay} • High APD sensitivity; soothe the nervous system`,
+      cards: [
+        {
+          theme: "emerald",
+          icon: "🌿",
+          title: "Gentle Stroll, Water Float or Mat Mobility",
+          tag: "30–40 min • Diaphragmatic release",
+          desc: "Leisurely walk in nature, gentle pool laps/floating, or floor mobility focusing on cat-cows and lateral rib expansion. Avoid all valsalva breath-holding."
+        },
+        {
+          theme: "teal",
+          icon: "🧖‍♀️",
+          title: "Eucalyptus Steam & Relaxation Lounger",
+          tag: "Vagal down-regulation",
+          desc: "12 mins in the eucalyptus steam room to soften chest and diaphragm tightness. Lie on the quiet loungers for 10 mins with closed eyes to calm the nervous system."
+        },
+        {
+          theme: "rose",
+          icon: "🚫",
+          title: "Skip Heavy Valsalva Lifts & High-Impact Running",
+          tag: "Protects against APD spasm",
+          desc: "No heavy barbell squats or jumping. Heavy bearing down forces the diaphragm into paradoxical descent, pushing your lower abdomen outwards into distension."
+        }
+      ],
+      adhd: {
+        theme: "indigo",
+        badgeText: "🛡️ Low Emotional Bandwidth • Sensory Sanctuary",
+        badgeClass: "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-200",
+        title: "Third Space as a Sensory Sanctuary",
+        text: "Your nervous system is raw and easily overstimulated. Treat Third Space not as a fitness challenge, but as a sensory recovery retreat. Leave your phone in the locker, wrap yourself in a fluffy towel, and let warm water and steam down-regulate your fight-or-flight sympathetic tone.",
+        motility: "Diaphragmatic 4-7-8 breathing unclamps the crura of the diaphragm, allowing trapped gas to pass freely through the splenic flexure without bloating."
+      }
+    };
+  }
+
+  // Window 9: Days 26 - 28 (Pre-Menstrual Reset / Hormonal Plunge / Radical Neuro-Rest)
   return {
-    badgeText: "Vagal Reset • De-Bloat Focus",
-    badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-200 flex items-center gap-1",
-    badgeDot: "bg-indigo-500",
-    subtitle: `🌸 Restorative pace for Day ${dayNum} • Relieves rib pressure, reduces fluid retention & sensory overwhelm`,
+    badgeText: "Reset Mode • Radical Self-Care",
+    badgeClass: "text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-900 border border-rose-200 flex items-center gap-1",
+    badgeDot: "bg-rose-500",
+    subtitle: `🌸 Pre-Menstrual Reset for Day ${boundedDay} • Hormones plummeting; radical neuro-affirming rest`,
     cards: [
       {
-        theme: "emerald",
-        icon: "🚶‍♀️",
-        title: "Low-Incline Treadmill or Gentle Swim",
-        tag: "40–50 min • Hydrostatic drainage",
-        desc: "Relaxed low-incline stroll or easy pool swimming. Water hydrostatic pressure naturally massages abdomen and drains fluid."
+        theme: "rose",
+        icon: "🛋️",
+        title: "Pajama Mobility & 15m Legs-Up-The-Wall",
+        tag: "15–20 min • Zero-pressure recovery",
+        desc: "Stay in comfy clothes. 15 minutes of legs-up-the-wall with a hot water bottle on your pelvis, or a slow 20-minute neighborhood stroll for fresh air."
       },
       {
         theme: "teal",
         icon: "🧖‍♀️",
-        title: "Eucalyptus Steam & Quiet Lounger",
-        tag: "Diaphragmatic release",
-        desc: "Warm eucalyptus steam softens tight diaphragm and pelvic tissues. Finish with 10 mins diaphragmatic breathing on the lounger."
+        title: "Warm Mineral Bath & Gentle Steam",
+        tag: "Deep warmth • No cold shocks",
+        desc: "Warm hydro pool soak to ease pre-menstrual lower back aching. Strictly avoid cold plunge pools today—your nervous system needs warmth and safety, not shocks."
       },
       {
-        theme: "rose",
+        theme: "slate",
         icon: "🚫",
-        title: "Skip Tight Waistbands & Heavy Pikes",
-        tag: "No abdominal compression",
-        desc: "Avoid restrictive gym waistbands, hanging leg raises, or heavy crunches that compress trapped splenic flexure gas."
+        title: "Skip All High-Intensity & Hard Workouts",
+        tag: "Prevent burnout & cramps",
+        desc: "No heavy lifting, no high-intensity classes, no guilt. Pushing through exhaustion now elevates prostaglandins and worsens upcoming period pain."
       }
-    ]
+    ],
+    adhd: {
+      theme: "rose",
+      badgeText: "🛋️ Lowest Dopamine Baseline • Full Permission",
+      badgeClass: "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-100 text-rose-900 border border-rose-200",
+      title: "Radical Neuro-Affirming Rest",
+      text: "Both estrogen and progesterone are dropping rapidly. Dopamine and serotonin are at their monthly trough. ADHD self-criticism ('I should be doing more') is merely neurochemistry talking. Give yourself complete, unconditional permission to rest. You are preserving energy for the follicular surge in a few days.",
+      motility: "Water retention will naturally release over the next 48 hours as bleeding starts. Rest supports colonic relaxation and reduces pelvic floor spasm."
+    }
   };
 }
 
@@ -1935,10 +2250,35 @@ function renderMovementAndSpa(info) {
   const subtitleEl = document.getElementById('movementCycleSubtitle');
   const badgeEl = document.getElementById('movementStressBadge');
   const containerEl = document.getElementById('movementSpaCardsContainer');
+  const adhdContainerEl = document.getElementById('movementAdhdContainer');
+  const labelCycleEl = document.getElementById('labelEnergyCycle');
+  const btnCycleEl = document.getElementById('btnEnergyCycle');
+  const btnLowEl = document.getElementById('btnEnergyLow');
+  const btnHighEl = document.getElementById('btnEnergyHigh');
 
-  if (!containerEl) return;
+  if (labelCycleEl) {
+    labelCycleEl.innerText = `Cycle Synced (Day ${dayNum})`;
+  }
 
-  const data = getMovementAndSpaData(dayNum, phase);
+  // Update button active styles
+  if (btnCycleEl && btnLowEl && btnHighEl) {
+    const baseClass = "flex-1 py-1.5 px-2 rounded-xl text-[11px] transition-all flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 cursor-pointer";
+    if (currentMovementEnergyMode === 'cycle') {
+      btnCycleEl.className = `${baseClass} font-bold shadow-2xs bg-white text-brand-textDark border border-slate-200/90`;
+      btnLowEl.className = `${baseClass} font-medium text-slate-500 hover:text-slate-800`;
+      btnHighEl.className = `${baseClass} font-medium text-slate-500 hover:text-slate-800`;
+    } else if (currentMovementEnergyMode === 'low_battery') {
+      btnCycleEl.className = `${baseClass} font-medium text-slate-500 hover:text-slate-800`;
+      btnLowEl.className = `${baseClass} font-bold shadow-2xs bg-rose-100 text-rose-900 border border-rose-200`;
+      btnHighEl.className = `${baseClass} font-medium text-slate-500 hover:text-slate-800`;
+    } else if (currentMovementEnergyMode === 'high_energy') {
+      btnCycleEl.className = `${baseClass} font-medium text-slate-500 hover:text-slate-800`;
+      btnLowEl.className = `${baseClass} font-medium text-slate-500 hover:text-slate-800`;
+      btnHighEl.className = `${baseClass} font-bold shadow-2xs bg-emerald-100 text-emerald-900 border border-emerald-200`;
+    }
+  }
+
+  const data = getMovementAndSpaData(dayNum, phase, currentMovementEnergyMode);
 
   if (subtitleEl) {
     subtitleEl.innerText = data.subtitle;
@@ -1984,28 +2324,119 @@ function renderMovementAndSpa(info) {
       title: 'text-purple-950',
       tag: 'text-purple-800 bg-purple-100/70',
       desc: 'text-purple-900/90'
+    },
+    slate: {
+      box: 'bg-slate-50 border border-slate-200/80',
+      title: 'text-slate-900',
+      tag: 'text-slate-700 bg-slate-200/70',
+      desc: 'text-slate-800/90'
     }
   };
 
-  containerEl.innerHTML = data.cards.map(card => {
-    const st = themeStyles[card.theme] || themeStyles.emerald;
-    return `
-      <div class="p-3 rounded-2xl ${st.box} space-y-1.5 transition-all hover:shadow-2xs">
-        <div class="flex items-center justify-between gap-1">
-          <div class="font-bold ${st.title} flex items-center gap-1.5 text-xs">
-            <span class="text-sm shrink-0">${card.icon}</span>
-            <span class="truncate">${card.title}</span>
+  if (containerEl) {
+    containerEl.innerHTML = data.cards.map(card => {
+      const st = themeStyles[card.theme] || themeStyles.emerald;
+      return `
+        <div class="p-3 rounded-2xl ${st.box} space-y-1.5 transition-all hover:shadow-2xs">
+          <div class="flex items-center justify-between gap-1">
+            <div class="font-bold ${st.title} flex items-center gap-1.5 text-xs">
+              <span class="text-sm shrink-0">${card.icon}</span>
+              <span class="truncate">${card.title}</span>
+            </div>
           </div>
+          <div class="inline-block px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wide ${st.tag}">
+            ${card.tag}
+          </div>
+          <p class="text-[11px] ${st.desc} leading-tight">
+            ${card.desc}
+          </p>
         </div>
-        <div class="inline-block px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wide ${st.tag}">
-          ${card.tag}
+      `;
+    }).join('');
+  }
+
+  // Render ADHD coaching container
+  if (adhdContainerEl && data.adhd) {
+    const adhdStyles = {
+      purple: {
+        box: 'bg-purple-50/70 border border-purple-200/80',
+        headText: 'text-purple-950',
+        titleText: 'text-purple-900',
+        bodyText: 'text-purple-950/90',
+        guardBorder: 'border-purple-200/60',
+        guardText: 'text-purple-900'
+      },
+      emerald: {
+        box: 'bg-emerald-50/70 border border-emerald-200/80',
+        headText: 'text-emerald-950',
+        titleText: 'text-emerald-900',
+        bodyText: 'text-emerald-950/90',
+        guardBorder: 'border-emerald-200/60',
+        guardText: 'text-emerald-900'
+      },
+      rose: {
+        box: 'bg-rose-50/70 border border-rose-200/80',
+        headText: 'text-rose-950',
+        titleText: 'text-rose-900',
+        bodyText: 'text-rose-950/90',
+        guardBorder: 'border-rose-200/60',
+        guardText: 'text-rose-900'
+      },
+      amber: {
+        box: 'bg-amber-50/70 border border-amber-200/80',
+        headText: 'text-amber-950',
+        titleText: 'text-amber-900',
+        bodyText: 'text-amber-950/90',
+        guardBorder: 'border-amber-200/60',
+        guardText: 'text-amber-900'
+      },
+      indigo: {
+        box: 'bg-indigo-50/70 border border-indigo-200/80',
+        headText: 'text-indigo-950',
+        titleText: 'text-indigo-900',
+        bodyText: 'text-indigo-950/90',
+        guardBorder: 'border-indigo-200/60',
+        guardText: 'text-indigo-900'
+      },
+      teal: {
+        box: 'bg-teal-50/70 border border-teal-200/80',
+        headText: 'text-teal-950',
+        titleText: 'text-teal-900',
+        bodyText: 'text-teal-950/90',
+        guardBorder: 'border-teal-200/60',
+        guardText: 'text-teal-900'
+      }
+    };
+    const ast = adhdStyles[data.adhd.theme] || adhdStyles.purple;
+
+    adhdContainerEl.className = `p-3.5 rounded-2xl ${ast.box} space-y-2 text-xs transition-all`;
+    adhdContainerEl.innerHTML = `
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        <div class="flex items-center gap-1.5 font-bold ${ast.headText} text-xs">
+          <span class="text-sm">🧠</span>
+          <span>ADHD Dopamine & Executive Rhythm</span>
         </div>
-        <p class="text-[11px] ${st.desc} leading-tight">
-          ${card.desc}
+        <span class="${data.adhd.badgeClass}">
+          ${data.adhd.badgeText}
+        </span>
+      </div>
+      
+      <div class="space-y-1">
+        <div class="font-bold ${ast.titleText} text-xs flex items-center gap-1.5">
+          <span>💡</span>
+          <span>${data.adhd.title}</span>
+        </div>
+        <p class="text-[11.5px] ${ast.bodyText} leading-relaxed font-normal">
+          ${data.adhd.text}
         </p>
       </div>
+
+      <div class="pt-2 border-t ${ast.guardBorder} flex items-start gap-1.5 text-[10.5px] ${ast.guardText} font-medium leading-normal">
+        <span class="shrink-0 text-xs mt-0.5">🛡️</span>
+        <span><strong>Gut Motility & APD Guard:</strong> ${data.adhd.motility}</span>
+      </div>
     `;
-  }).join('');
+  }
 }
 
 function updateFoodPresetsForPhase(info) {
