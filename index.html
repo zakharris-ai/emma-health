@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles.css?v=20260907-v6">
+  <link rel="stylesheet" href="styles.css?v=20260907-v7">
   <script>
     tailwind.config = {
       theme: {
@@ -94,7 +94,7 @@
       </div>
 
       <!-- Quick Actions (Desktop Tabs + Mobile Log Button) -->
-      <div class="flex items-center space-x-2 sm:space-x-3">
+      <div class="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
         <!-- Desktop Nav -->
         <nav class="hidden md:flex items-center space-x-1 bg-brand-cream p-1 rounded-2xl border border-brand-border text-xs font-semibold">
           <button onclick="switchTab('dashboard')" id="nav-dashboard" class="tab-btn active-tab px-3 py-1.5 rounded-xl transition-all flex items-center space-x-1.5">
@@ -119,27 +119,27 @@
           </button>
         </nav>
 
-        <!-- Oura Ring Period Date Helper Button (Small at top) -->
-        <button onclick="openOuraPeriodModal()" title="Oura Ring Setup: Last Period Date" class="h-9 px-2 sm:px-2.5 flex items-center space-x-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-900 transition-all shadow-2xs text-[11px] font-bold active:scale-95">
-          <span class="text-xs">💍</span>
-          <span class="hidden sm:inline text-purple-950 font-bold">Oura Period: <strong class="text-purple-700 font-extrabold">19 Aug</strong></span>
-          <span class="sm:hidden font-bold text-purple-900">19 Aug</span>
+        <!-- Oura Ring Period Date Helper Button (Small, sleek, non-wrapping) -->
+        <button onclick="openOuraPeriodModal()" title="Oura Ring Setup: Last Period Began 19 Aug 2026 (Tap for Details)" class="h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-900 flex items-center gap-1 sm:gap-1.5 text-[11px] font-bold transition-all shadow-2xs shrink-0 whitespace-nowrap active:scale-95">
+          <span class="text-xs leading-none">💍</span>
+          <span class="hidden md:inline font-semibold text-purple-800">Oura Period:</span>
+          <span class="font-extrabold text-purple-950">19 Aug</span>
         </button>
 
-        <!-- Doctor Export Button -->
-        <button onclick="openDoctorExportModal()" title="Doctor Summary Report" class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-brand-border text-brand-textMuted hover:text-brand-sage transition-all shadow-2xs">
+        <!-- Doctor Export Button (hidden on narrow mobile to give breathing room) -->
+        <button onclick="openDoctorExportModal()" title="Doctor Summary Report" class="hidden sm:flex w-8 h-8 sm:w-9 sm:h-9 items-center justify-center rounded-xl bg-white border border-brand-border text-brand-textMuted hover:text-brand-sage transition-all shadow-2xs shrink-0">
           <i data-lucide="stethoscope" class="w-4 h-4"></i>
         </button>
 
         <!-- Cloud Sync & Data Safety Indicator -->
-        <button onclick="openDataSafetyModal()" id="cloudSyncBtn" title="Data Safety & Cloud Backup" class="h-9 px-2.5 flex items-center space-x-1.5 rounded-xl bg-white border border-brand-border text-brand-textMuted hover:text-brand-sage transition-all shadow-2xs text-[11px] font-medium">
+        <button onclick="openDataSafetyModal()" id="cloudSyncBtn" title="Data Safety & Cloud Backup" class="h-8 sm:h-9 px-2 sm:px-2.5 flex items-center space-x-1 sm:space-x-1.5 rounded-xl bg-white border border-brand-border text-brand-textMuted hover:text-brand-sage transition-all shadow-2xs text-[11px] font-medium shrink-0">
           <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
           <span id="syncStatusText" class="hidden sm:inline">Saved</span>
         </button>
 
         <!-- 15s Quick Log Primary CTA -->
-        <button onclick="openQuickLogModal()" class="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-brand-textDark hover:bg-black text-white text-xs font-bold transition-all shadow-sm active:scale-95">
-          <i data-lucide="plus" class="w-4 h-4 text-brand-coral"></i>
+        <button onclick="openQuickLogModal()" class="flex items-center space-x-1 sm:space-x-1.5 h-8 sm:h-9 px-3 sm:px-3.5 rounded-xl bg-brand-textDark hover:bg-black text-white text-xs font-bold transition-all shadow-sm active:scale-95 shrink-0 whitespace-nowrap">
+          <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-coral"></i>
           <span>Check In</span>
         </button>
       </div>
@@ -163,12 +163,7 @@
             <span class="font-extrabold text-brand-textDark text-xs sm:text-sm" id="activeDateDisplay">Sunday, 6th September 2026</span>
             <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-brand-coralLight text-brand-coral" id="activeDayOfWeekBadge">TODAY</span>
           </div>
-          <div class="flex items-center flex-wrap gap-1.5 mt-0.5">
-            <p class="text-[11px] text-brand-textMuted" id="activeCycleSubtitle">Cycle Day 19 • Early Luteal</p>
-            <button type="button" onclick="openOuraPeriodModal()" class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-800 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2 py-0.5 rounded-full transition-all active:scale-95 shadow-2xs">
-              <span>💍 Oura Last Period: <strong>19th Aug 2026</strong> ↗</span>
-            </button>
-          </div>
+          <p class="text-[11px] text-brand-textMuted mt-0.5" id="activeCycleSubtitle">Cycle Day 19 • Early Luteal</p>
         </div>
       </div>
 
@@ -2880,7 +2875,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260907-v6"></script>
+  <script src="app.js?v=20260907-v7"></script>
   <script>
     // Safeguard: Guarantee Lucide icons and logos render on first paint
     (function() {
