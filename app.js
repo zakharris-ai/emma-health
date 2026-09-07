@@ -723,6 +723,18 @@ function mergeLogs(listA = [], listB = []) {
       if (!base.stoolNuance) base.stoolNuance = donor.stoolNuance;
     }
 
+    // 7. Preserve headspace moods
+    const baseHasMoods = (Array.isArray(base.moods) && base.moods.length > 0) || (base.mood && base.mood.trim() !== '');
+    if (!baseHasMoods) {
+      if (donor.moods && Array.isArray(donor.moods) && donor.moods.length > 0) {
+        base.moods = [...donor.moods];
+        base.mood = donor.mood || donor.moods.join(',');
+      } else if (donor.mood) {
+        base.mood = donor.mood;
+        base.moods = donor.mood.split(',').map(s => s.trim()).filter(Boolean);
+      }
+    }
+
     return base;
   }
 
@@ -1615,8 +1627,16 @@ function renderDashboardHeadspaceCard(entry, cycleInfo) {
     great: { text: '☀️ Free & Calm', class: 'bg-emerald-100 text-emerald-800 border-emerald-200' }
   };
 
-  const activeMood = entry?.mood || 'overthinking';
-  const moodBadgeInfo = moodBadges[activeMood] || moodBadges.flat;
+  const entryMoods = (Array.isArray(entry?.moods) && entry.moods.length > 0)
+    ? entry.moods
+    : (entry?.mood ? entry.mood.split(',').map(s => s.trim()).filter(Boolean) : []);
+
+  const moodBadgesHtml = entryMoods.length > 0
+    ? entryMoods.map(m => {
+        const info = moodBadges[m] || moodBadges.flat;
+        return `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${info.class} shadow-2xs">${info.text}</span>`;
+      }).join(' ')
+    : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${moodBadges.flat.class} shadow-2xs">${moodBadges.flat.text}</span>`;
 
   // Luteal vs Follicular ADHD Neuro-Affirming Insight
   let adhdInsight = '';
@@ -1640,11 +1660,9 @@ function renderDashboardHeadspaceCard(entry, cycleInfo) {
           <i data-lucide="brain" class="w-4 h-4 text-purple-700"></i>
         </div>
         <div>
-          <div class="flex items-center space-x-2">
+          <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
             <h3 class="font-bold text-sm text-brand-textDark">Today’s Headspace & Thoughts</h3>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${moodBadgeInfo.class}">
-              ${moodBadgeInfo.text}
-            </span>
+            ${moodBadgesHtml}
           </div>
           <p class="text-[11px] text-brand-textMuted">Cycle Day ${cycleInfo.cycleDay} • Raw thoughts, task overwhelm & ADHD capacity</p>
         </div>
@@ -3468,6 +3486,7 @@ function initializeUI() {
   // Clear any default active selections so check-in is 100% clean by default
   selectedBristolVal = '';
   selectedMoodVal = '';
+  if (typeof selectedMoods !== 'undefined' && selectedMoods.clear) selectedMoods.clear();
   selectedSexDriveVal = '';
   selectedFastingVal = '';
   selectedSennaTeaVal = null;
@@ -3762,15 +3781,27 @@ function renderHistoryLogs() {
     if (item.bristol === 'hard') { stoolIcon = '🪨 Hard'; stoolBg = 'bg-brand-amberLight text-brand-amber'; }
     if (item.bristol === 'normal') { stoolIcon = '✨ Satisfying'; stoolBg = 'bg-brand-sageLight text-brand-sage'; }
 
-    // Mood Badge (Emma's 6 Headspace States + Backwards compat)
-    let moodBadge = '☁️ Flat';
-    if (item.mood === 'calm') moodBadge = '🌿 Calm';
-    else if (item.mood === 'happy') moodBadge = '😊 Happy';
-    else if (item.mood === 'edgy') moodBadge = '⚡ Edgy';
-    else if (item.mood === 'anxious') moodBadge = '🌪️ Anxious';
-    else if (item.mood === 'overthinking') moodBadge = '💭 Overthinking';
-    else if (item.mood === 'flat') moodBadge = '☁️ Flat';
-    else if (item.mood === 'great') moodBadge = '☀️ Free';
+    // Mood Badges (Emma's 6 Headspace States + Backwards compat, supporting multi-select)
+    const moodBadgesMap = {
+      calm: { text: '🌿 Calm', class: 'bg-emerald-50 text-emerald-800 border-emerald-200' },
+      happy: { text: '😊 Happy', class: 'bg-amber-50 text-amber-900 border-amber-200' },
+      edgy: { text: '⚡ Edgy', class: 'bg-rose-50 text-rose-800 border-rose-200' },
+      anxious: { text: '🌪️ Anxious', class: 'bg-orange-50 text-orange-900 border-orange-200' },
+      overthinking: { text: '💭 Overthinking', class: 'bg-indigo-50 text-indigo-900 border-indigo-200' },
+      flat: { text: '☁️ Flat', class: 'bg-slate-50 text-slate-700 border-slate-200' },
+      great: { text: '☀️ Free', class: 'bg-emerald-50 text-emerald-800 border-emerald-200' }
+    };
+
+    const itemMoods = (Array.isArray(item.moods) && item.moods.length > 0)
+      ? item.moods
+      : (item.mood ? item.mood.split(',').map(s => s.trim()).filter(Boolean) : []);
+
+    const moodBadgesHtml = itemMoods.length > 0
+      ? itemMoods.map(m => {
+          const b = moodBadgesMap[m] || { text: m, class: 'bg-brand-cream text-brand-textMuted border-brand-border' };
+          return `<span class="px-2 py-0.5 rounded-md border ${b.class} font-bold text-[10px] shadow-2xs">${b.text}</span>`;
+        }).join('')
+      : `<span class="px-2 py-0.5 rounded-md bg-brand-cream text-brand-textMuted font-semibold text-[10px]">☁️ Flat</span>`;
 
     // Logo and styling for the cycle day emblem
     let cycleLogo = '🌸';
@@ -3830,7 +3861,7 @@ function renderHistoryLogs() {
         <div class="flex flex-wrap items-center gap-1.5 text-[11px] pt-1 border-t border-brand-border/60">
           <span class="px-2 py-0.5 rounded-md ${stoolBg} font-bold">${stoolIcon}</span>
           <span class="px-2 py-0.5 rounded-md bg-brand-cream text-brand-textMuted font-semibold">Bloat: <strong class="text-brand-coral">${item.diaphragmBloat}/10</strong></span>
-          <span class="px-2 py-0.5 rounded-md bg-brand-cream text-brand-textMuted font-semibold">${moodBadge}</span>
+          ${moodBadgesHtml}
           ${(item.upperTummyBloat || (item.puffiness && (item.puffiness.includes('🎈 Upper Tummy Bloating') || item.puffiness.includes('Upper Tummy Bloating')))) ? `
             <span class="px-2 py-0.5 rounded-md bg-amber-100/90 text-amber-900 border border-amber-300 font-bold text-[10px] inline-flex items-center gap-1">
               <span>🎈</span><span>Upper Bloat</span>
@@ -3978,6 +4009,7 @@ function searchHistoryLogs() {
 // ============================================================================
 var selectedBristolVal = '';
 var selectedMoodVal = '';
+var selectedMoods = new Set();
 var selectedAlcoholVal = '';
 var selectedSexDriveVal = '';
 var selectedFastingVal = '';
@@ -4107,6 +4139,7 @@ function resetQuickLogModalToBlank() {
   selectedBristolVal = '';
   selectedAlcoholVal = '';
   selectedMoodVal = '';
+  if (typeof selectedMoods !== 'undefined' && selectedMoods.clear) selectedMoods.clear();
   selectedSexDriveVal = '';
   selectedSennaTeaVal = null;
 
@@ -4337,7 +4370,7 @@ function loadSavedCheckInIntoModal(customDate) {
 
   // 6. Drinks, Mood, Sex Drive & Notes
   selectAlcohol(entry.alcohol || '');
-  selectMood(entry.mood || '');
+  selectMood(entry.moods || entry.mood || '', true);
   selectSexDrive(entry.sexDrive || '');
 
   const exerciseInput = document.getElementById('logExercise');
@@ -4733,28 +4766,73 @@ function selectStoolNuance(nuance) {
   }
 }
 
-function selectMood(val) {
-  if (val && selectedMoodVal === val) {
-    val = '';
+function selectMood(val, isReplace) {
+  if (typeof selectedMoods === 'undefined' || !selectedMoods) {
+    selectedMoods = new Set();
   }
-  selectedMoodVal = val || '';
-  const input = document.getElementById('logMood');
-  if (input) input.value = selectedMoodVal;
-  document.querySelectorAll('.mood-btn').forEach(btn => {
-    btn.classList.remove('selected', 'border-purple-600', 'border-emerald-500', 'border-amber-500', 'border-rose-500', 'border-orange-500', 'border-indigo-500', 'ring-2', 'ring-purple-500', 'ring-emerald-500', 'ring-amber-500', 'ring-rose-500', 'ring-orange-500', 'ring-indigo-500', 'bg-purple-50', 'bg-emerald-50', 'bg-amber-50', 'bg-rose-50', 'bg-orange-50', 'bg-indigo-50');
-  });
-  if (selectedMoodVal) {
-    const activeBtn = Array.from(document.querySelectorAll('.mood-btn')).find(b => b.getAttribute('onclick')?.includes(`'${selectedMoodVal}'`));
-    if (activeBtn) {
-      activeBtn.classList.add('selected');
-      if (selectedMoodVal === 'calm') activeBtn.classList.add('border-emerald-500', 'ring-2', 'ring-emerald-500', 'bg-emerald-50');
-      else if (selectedMoodVal === 'happy') activeBtn.classList.add('border-amber-500', 'ring-2', 'ring-amber-500', 'bg-amber-50');
-      else if (selectedMoodVal === 'edgy') activeBtn.classList.add('border-rose-500', 'ring-2', 'ring-rose-500', 'bg-rose-50');
-      else if (selectedMoodVal === 'anxious') activeBtn.classList.add('border-orange-500', 'ring-2', 'ring-orange-500', 'bg-orange-50');
-      else if (selectedMoodVal === 'overthinking') activeBtn.classList.add('border-indigo-500', 'ring-2', 'ring-indigo-500', 'bg-indigo-50');
-      else activeBtn.classList.add('border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50');
+
+  if (val === '' || val === null || val === undefined) {
+    selectedMoods.clear();
+  } else if (isReplace || Array.isArray(val) || (typeof val === 'string' && val.includes(','))) {
+    selectedMoods.clear();
+    const items = Array.isArray(val) ? val : (typeof val === 'string' ? val.split(',') : []);
+    items.forEach(item => {
+      const clean = (item || '').trim();
+      if (clean) selectedMoods.add(clean);
+    });
+  } else {
+    // Single tap toggle: allows Emma to select multiple headspace states!
+    const clean = String(val).trim();
+    if (clean) {
+      if (selectedMoods.has(clean)) {
+        selectedMoods.delete(clean);
+      } else {
+        selectedMoods.add(clean);
+      }
     }
   }
+
+  selectedMoodVal = Array.from(selectedMoods).join(',');
+  const input = document.getElementById('logMood');
+  if (input) input.value = selectedMoodVal;
+
+  // Re-render highlight classes for all mood buttons
+  document.querySelectorAll('.mood-btn').forEach(btn => {
+    btn.classList.remove(
+      'selected',
+      'border-purple-600', 'border-emerald-500', 'border-amber-500', 'border-rose-500', 'border-orange-500', 'border-indigo-500', 'border-slate-500',
+      'ring-2', 'ring-purple-500', 'ring-emerald-500', 'ring-amber-500', 'ring-rose-500', 'ring-orange-500', 'ring-indigo-500', 'ring-slate-400',
+      'bg-purple-50', 'bg-emerald-50', 'bg-amber-50', 'bg-rose-50', 'bg-orange-50', 'bg-indigo-50', 'bg-slate-100',
+      'text-emerald-950', 'text-amber-950', 'text-rose-950', 'text-orange-950', 'text-indigo-950', 'text-slate-900',
+      'font-extrabold', 'shadow-xs'
+    );
+    btn.classList.add('border-brand-border', 'bg-white');
+
+    const onclickAttr = btn.getAttribute('onclick') || '';
+    const match = onclickAttr.match(/selectMood\(['"]([^'"]+)['"]\)/);
+    const btnMood = match ? match[1] : '';
+
+    if (btnMood && selectedMoods.has(btnMood)) {
+      btn.classList.add('selected', 'shadow-xs');
+      btn.classList.remove('border-brand-border', 'bg-white');
+
+      if (btnMood === 'calm') {
+        btn.classList.add('border-emerald-500', 'ring-2', 'ring-emerald-500', 'bg-emerald-50', 'text-emerald-950', 'font-extrabold');
+      } else if (btnMood === 'happy') {
+        btn.classList.add('border-amber-500', 'ring-2', 'ring-amber-500', 'bg-amber-50', 'text-amber-950', 'font-extrabold');
+      } else if (btnMood === 'edgy') {
+        btn.classList.add('border-rose-500', 'ring-2', 'ring-rose-500', 'bg-rose-50', 'text-rose-950', 'font-extrabold');
+      } else if (btnMood === 'anxious') {
+        btn.classList.add('border-orange-500', 'ring-2', 'ring-orange-500', 'bg-orange-50', 'text-orange-950', 'font-extrabold');
+      } else if (btnMood === 'overthinking') {
+        btn.classList.add('border-indigo-500', 'ring-2', 'ring-indigo-500', 'bg-indigo-50', 'text-indigo-950', 'font-extrabold');
+      } else if (btnMood === 'flat') {
+        btn.classList.add('border-slate-500', 'ring-2', 'ring-slate-400', 'bg-slate-100', 'text-slate-900', 'font-extrabold');
+      } else {
+        btn.classList.add('border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50', 'font-extrabold');
+      }
+    }
+  });
 }
 
 function insertHeadspaceChip(text) {
@@ -7477,7 +7555,9 @@ function handleQuickLogSubmit(e) {
   const diaphragmVal = parseInt(document.getElementById('logDiaphragm')?.value || '0', 10);
   const stoolNuance = document.getElementById('logStoolNuance')?.value || '';
   const alcoholVal = document.getElementById('logAlcohol')?.value || selectedAlcoholVal || '';
-  const moodVal = document.getElementById('logMood')?.value || selectedMoodVal || '';
+  const moodsArr = Array.from(selectedMoods || []);
+  const moodVal = moodsArr.length > 0 ? moodsArr.join(',') : (document.getElementById('logMood')?.value || selectedMoodVal || '');
+  const finalMoods = moodVal ? moodVal.split(',').map(m => m.trim()).filter(Boolean) : [];
   const sexDriveVal = document.getElementById('logSexDrive')?.value || selectedSexDriveVal || '';
   const exerciseVal = document.getElementById('logExercise')?.value?.trim() || '';
   const noteVal = document.getElementById('logNote')?.value?.trim() || '';
@@ -7529,7 +7609,9 @@ function handleQuickLogSubmit(e) {
     flat: '☁️ Flat / Low Energy',
     great: '☀️ Free & Calm'
   };
-  const emotionText = moodVal ? (moodLabels[moodVal] || moodVal) : '';
+  const emotionText = finalMoods.length > 0
+    ? finalMoods.map(m => moodLabels[m] || m).join(' • ')
+    : (moodVal ? (moodLabels[moodVal] || moodVal) : '');
 
   let medNotesText = '';
   if (fastingVal === 'kept_40') {
@@ -7574,6 +7656,7 @@ function handleQuickLogSubmit(e) {
     burpiness: hasBurpiness || existing?.burpiness || false,
     puffiness: Array.from(new Set([...(existing?.puffiness || []), ...puffinessArr])),
     emotions: emotionText || existing?.emotions || '',
+    moods: finalMoods.length > 0 ? finalMoods : (existing?.moods || (moodVal ? moodVal.split(',').map(m => m.trim()).filter(Boolean) : [])),
     mood: moodVal || existing?.mood || '',
     sexDrive: sexDriveVal || existing?.sexDrive || '',
     alcohol: alcoholVal || existing?.alcohol || '',
