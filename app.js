@@ -748,6 +748,22 @@ function mergeLogs(listA = [], listB = []) {
     if (!base.warmTrigger && donor.warmTrigger) base.warmTrigger = true;
     if (!base.diaphragmResetDone && donor.diaphragmResetDone) base.diaphragmResetDone = true;
 
+    // 3B. Preserve Daily Motility Focus checklist state
+    if (!base.dailyFocus && donor.dailyFocus) {
+      base.dailyFocus = { ...donor.dailyFocus };
+    } else if (base.dailyFocus && donor.dailyFocus) {
+      base.dailyFocus = {
+        linaclotide: base.dailyFocus.linaclotide !== undefined ? base.dailyFocus.linaclotide : donor.dailyFocus.linaclotide,
+        warmMeals: base.dailyFocus.warmMeals !== undefined ? base.dailyFocus.warmMeals : donor.dailyFocus.warmMeals,
+        diaphragmRelease: base.dailyFocus.diaphragmRelease !== undefined ? base.dailyFocus.diaphragmRelease : donor.dailyFocus.diaphragmRelease
+      };
+    }
+    if (base.dailyFocus) {
+      if (base.dailyFocus.diaphragmRelease) base.diaphragmResetDone = true;
+      if (base.dailyFocus.linaclotide) base.linaclotideTaken = true;
+      if (base.dailyFocus.warmMeals) { base.safeWarmMeals = true; base.warmTrigger = true; }
+    }
+
     // 4. Union puffiness tags (deduplicated)
     const tagsA = Array.isArray(a.puffiness) ? a.puffiness : [];
     const tagsB = Array.isArray(b.puffiness) ? b.puffiness : [];
@@ -863,6 +879,7 @@ function loadLogs() {
         persistLogsToIndexedDB(logs);
         renderDashboardTrends();
         renderHistoryLogs();
+        if (typeof renderDailyFocusUI === 'function') renderDailyFocusUI(activeDateStr);
       }
     }
   });
@@ -1045,6 +1062,7 @@ function fetchServerDataOnLoad() {
           if (typeof renderTrialUI === 'function') renderTrialUI();
           if (typeof renderSpecialistTrackingUI === 'function') renderSpecialistTrackingUI();
           if (typeof renderFoodDiaryUI === 'function') renderFoodDiaryUI();
+          if (typeof renderDailyFocusUI === 'function') renderDailyFocusUI(activeDateStr);
           triggerLucideIcons();
         }
 
@@ -1259,25 +1277,242 @@ function switchTab(tabId) {
   lucide.createIcons();
 }
 
-// ADHD Non-Negotiables Checkbox with Confetti Reward
-let checkedCount = 0;
-function toggleCheckItem(card) {
-  card.classList.toggle('checked');
-  const checkedCards = document.querySelectorAll('.check-card.checked');
-  checkedCount = checkedCards.length;
+// ============================================================================
+// TODAY'S FOCUS: PROTECT YOUR MOTILITY (PERMANENT DAILY LOGGING & ADHD REWARD)
+// ============================================================================
+function getDailyFocusState(targetDateStr) {
+  const dStr = targetDateStr || activeDateStr || getTodayISOString();
+  const entry = logs.find(l => l.date === dStr);
+
+  const isLinaclotide = !!(
+    entry?.dailyFocus?.linaclotide !== undefined
+      ? entry.dailyFocus.linaclotide
+      : (entry?.linaclotideTaken || entry?.fastingAdherence === 'kept_40' || (entry?.medNotes && entry.medNotes.toLowerCase().includes('linaclotide taken')) || false)
+  );
+
+  const isWarmMeals = !!(
+    entry?.dailyFocus?.warmMeals !== undefined
+      ? entry.dailyFocus.warmMeals
+      : (entry?.safeWarmMeals || entry?.warmTrigger || false)
+  );
+
+  let isDiaphragm = !!(
+    entry?.dailyFocus?.diaphragmRelease !== undefined
+      ? entry.dailyFocus.diaphragmRelease
+      : (entry?.diaphragmResetDone || false)
+  );
+  if (!isDiaphragm && typeof specialistTrackingState !== 'undefined' && specialistTrackingState.history && specialistTrackingState.history[dStr]) {
+    if (specialistTrackingState.history[dStr].diaphragmDone) isDiaphragm = true;
+  }
+
+  return {
+    linaclotide: isLinaclotide,
+    warmMeals: isWarmMeals,
+    diaphragmRelease: isDiaphragm
+  };
+}
+
+function renderDailyFocusUI(targetDateStr) {
+  const dStr = targetDateStr || activeDateStr || getTodayISOString();
+  const focus = getDailyFocusState(dStr);
+
+  const items = [
+    { id: 'focusCard-linaclotide', done: focus.linaclotide },
+    { id: 'focusCard-warmMeals', done: focus.warmMeals },
+    { id: 'focusCard-diaphragmRelease', done: focus.diaphragmRelease }
+  ];
+
+  let completedCount = 0;
+  items.forEach(item => {
+    const cardEl = document.getElementById(item.id);
+    if (cardEl) {
+      const icon = cardEl.querySelector('.check-icon');
+      if (item.done) {
+        cardEl.classList.add('checked');
+        if (icon) {
+          icon.classList.remove('hidden');
+          icon.style.display = 'block';
+        }
+        completedCount++;
+      } else {
+        cardEl.classList.remove('checked');
+        if (icon) {
+          icon.classList.add('hidden');
+          icon.style.display = 'none';
+        }
+      }
+    }
+  });
+
   const progressEl = document.getElementById('checklistProgress');
   if (progressEl) {
-    if (checkedCount === 3) {
+    if (completedCount === 3) {
       progressEl.innerHTML = `<span class="text-brand-sage font-extrabold">All 3 Done! 🎉 Amazing job!</span>`;
-      if (typeof confetti === 'function') {
-        confetti({
-          particleCount: 60,
-          spread: 60,
-          origin: { y: 0.6 }
-        });
-      }
     } else {
-      progressEl.innerText = `${checkedCount} of 3 done`;
+      progressEl.innerText = `${completedCount} of 3 done`;
+    }
+  }
+
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    lucide.createIcons();
+  }
+}
+
+function toggleDailyFocusItem(key) {
+  const dStr = activeDateStr || getTodayISOString();
+  let entry = logs.find(l => l.date === dStr);
+
+  if (!entry) {
+    const cycleInfo = getCycleInfoForDate(dStr);
+    const dateObj = new Date(dStr + 'T12:00:00Z');
+    const day = dateObj.getDate();
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const displayDate = `${day}th ${monthNames[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+
+    entry = {
+      id: dStr,
+      date: dStr,
+      displayDate: cycleInfo.displayDate || displayDate,
+      month: monthNames[dateObj.getMonth()].toLowerCase(),
+      cycleDay: cycleInfo.cycleDay,
+      phase: cycleInfo.phase,
+      phaseLabel: cycleInfo.phaseLabel,
+      temp: cycleInfo.temp || null,
+      fastingAdherence: '',
+      warmTrigger: false,
+      electrolytesTaken: false,
+      eaasTaken: false,
+      sennaTea: null,
+      diaphragmResetDone: false,
+      movement: '',
+      bristol: 'none',
+      stoolNuance: '',
+      diaphragmBloat: 0,
+      upperTummyBloat: false,
+      lowerTummyBloat: false,
+      gassiness: false,
+      burpiness: false,
+      puffiness: [],
+      emotions: '',
+      moods: [],
+      mood: '',
+      notes: "Daily motility focus logged.",
+      headspaceNotes: '',
+      dailyFocus: {
+        linaclotide: false,
+        warmMeals: false,
+        diaphragmRelease: false
+      }
+    };
+    logs.push(entry);
+  }
+
+  const currentFocus = getDailyFocusState(dStr);
+  entry.dailyFocus = { ...currentFocus };
+
+  // Toggle the selected item
+  const newState = !entry.dailyFocus[key];
+  entry.dailyFocus[key] = newState;
+
+  let toastMessage = "";
+  const info = getCycleInfoForDate(dStr);
+  const dayName = (dStr === getTodayISOString()) ? "Today" : (info.displayDate || dStr);
+
+  if (key === 'linaclotide') {
+    entry.linaclotideTaken = newState;
+    if (newState) {
+      if (!entry.fastingAdherence) entry.fastingAdherence = 'kept_40';
+      if (!entry.medNotes) entry.medNotes = "Morning Linaclotide taken with 40-min fast";
+      if (!entry.puffiness) entry.puffiness = [];
+      if (!entry.puffiness.includes('⏱️ 40m Fast Kept')) entry.puffiness.push('⏱️ 40m Fast Kept');
+      toastMessage = `🌸 Morning Linaclotide logged for ${dayName}! Motility protected on waking.`;
+    } else {
+      if (entry.fastingAdherence === 'kept_40') entry.fastingAdherence = '';
+      if (entry.puffiness) entry.puffiness = entry.puffiness.filter(p => p !== '⏱️ 40m Fast Kept');
+      toastMessage = `Morning Linaclotide marked as pending for ${dayName}.`;
+    }
+  } else if (key === 'warmMeals') {
+    entry.safeWarmMeals = newState;
+    entry.warmTrigger = newState;
+    if (newState) {
+      if (!entry.puffiness) entry.puffiness = [];
+      if (!entry.puffiness.includes('☕ Warm Gastrocolic Trigger')) entry.puffiness.push('☕ Warm Gastrocolic Trigger');
+      toastMessage = `🍲 Emma's Safe Warm Meals logged for ${dayName}! Soothing splenic flexure.`;
+    } else {
+      if (entry.puffiness) entry.puffiness = entry.puffiness.filter(p => p !== '☕ Warm Gastrocolic Trigger');
+      toastMessage = `Safe Warm Meals marked as pending for ${dayName}.`;
+    }
+  } else if (key === 'diaphragmRelease') {
+    entry.diaphragmResetDone = newState;
+    if (newState) {
+      if (!entry.puffiness) entry.puffiness = [];
+      if (!entry.puffiness.includes('🫁 Diaphragm Reset Done')) entry.puffiness.push('🫁 Diaphragm Reset Done');
+      toastMessage = `🫁 Diaphragm Release logged for ${dayName}! 10-min pressure reset complete.`;
+    } else {
+      if (entry.puffiness) entry.puffiness = entry.puffiness.filter(p => p !== '🫁 Diaphragm Reset Done');
+      toastMessage = `Diaphragm Release marked as pending for ${dayName}.`;
+    }
+
+    // Sync to specialist tracking state
+    if (typeof getOrCreateDateSpecialistState === 'function') {
+      const dState = getOrCreateDateSpecialistState(dStr);
+      dState.diaphragmDone = newState;
+      if (typeof saveSpecialistTracking === 'function') saveSpecialistTracking();
+      if (typeof renderSpecialistTrackingUI === 'function') renderSpecialistTrackingUI();
+    }
+  }
+
+  // Stamp update timestamp for conflict-free union merge
+  entry.updatedAt = new Date().toISOString();
+
+  // Deduplicate and merge
+  logs = mergeLogs([entry], logs);
+
+  // Permanently save to LocalStorage, IndexedDB, and server database
+  saveLogs(true);
+  saveSingleCheckinToServer(entry);
+
+  // Update UI immediately
+  renderDailyFocusUI(dStr);
+  renderHistoryLogs();
+  renderDashboardTrends();
+
+  // Check if all 3 are completed
+  const updatedFocus = getDailyFocusState(dStr);
+  const isAllDone = updatedFocus.linaclotide && updatedFocus.warmMeals && updatedFocus.diaphragmRelease;
+
+  if (newState && isAllDone) {
+    if (typeof confetti === 'function') {
+      confetti({
+        particleCount: 70,
+        spread: 65,
+        origin: { y: 0.6 }
+      });
+    }
+    showDynamicToast(`🎉 All 3 Motility Goals Completed for ${dayName}! You are doing amazing, Emma! 🌸`);
+  } else {
+    showDynamicToast(toastMessage);
+  }
+}
+
+// Backward-compatible alias for any legacy callers
+function toggleCheckItem(card, itemKey) {
+  if (itemKey) {
+    toggleDailyFocusItem(itemKey);
+    return;
+  }
+  if (card) {
+    if (card.id === 'focusCard-linaclotide' || card.innerText.includes('Linaclotide')) {
+      toggleDailyFocusItem('linaclotide');
+      return;
+    }
+    if (card.id === 'focusCard-warmMeals' || card.innerText.includes('Warm Meals')) {
+      toggleDailyFocusItem('warmMeals');
+      return;
+    }
+    if (card.id === 'focusCard-diaphragmRelease' || card.innerText.includes('Diaphragm')) {
+      toggleDailyFocusItem('diaphragmRelease');
+      return;
     }
   }
 }
@@ -1616,6 +1851,9 @@ function applyActiveDate(targetDateStr) {
   // Dynamically update Today's Movement & Spa protocol for this cycle day/phase
   currentMovementEnergyMode = 'cycle';
   renderMovementAndSpa(info);
+
+  // Dynamically update Today's Focus checklist for this active date
+  if (typeof renderDailyFocusUI === 'function') renderDailyFocusUI(activeDateStr);
 
   const auditorSubtitle = document.getElementById('auditorPhaseSubtitle');
   if (auditorSubtitle) {
@@ -4395,6 +4633,21 @@ function renderHistoryLogs() {
               🧬 EAAs
             </span>
           ` : ''}
+          ${(item.dailyFocus?.linaclotide || item.linaclotideTaken || item.fastingAdherence === 'kept_40') ? `
+            <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold text-[10px]">
+              🌸 Linaclotide
+            </span>
+          ` : ''}
+          ${(item.dailyFocus?.warmMeals || item.safeWarmMeals || item.warmTrigger) ? `
+            <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-semibold text-[10px]">
+              🍲 Warm Meals
+            </span>
+          ` : ''}
+          ${(item.dailyFocus?.diaphragmRelease || item.diaphragmResetDone) ? `
+            <span class="px-2 py-0.5 rounded-md bg-teal-50 text-teal-800 border border-teal-200 font-semibold text-[10px]">
+              🫁 Diaphragm
+            </span>
+          ` : ''}
         </div>
 
         <!-- Expandable Detail Section -->
@@ -4989,6 +5242,7 @@ function confirmDeleteDiaryEntry() {
   const currentDayLog = logs.find(l => l.date === activeDateStr);
   renderDashboardHeadspaceCard(currentDayLog);
   updateDashboardStats(currentDayLog || {});
+  if (typeof renderDailyFocusUI === 'function') renderDailyFocusUI(activeDateStr);
 
   showDynamicToast("🗑️ Diary entry for " + dateLabel + " has been deleted.");
 }
@@ -8264,7 +8518,18 @@ function handleQuickLogSubmit(e) {
     medNotes: medNotesText || existing?.medNotes || '',
     exercise: exerciseVal || existing?.exercise || 'Gentle',
     notes: noteVal || existing?.notes || "Saved via Emma's Unified Daily Check-In.",
-    headspaceNotes: noteVal || existing?.headspaceNotes || ''
+    headspaceNotes: noteVal || existing?.headspaceNotes || '',
+    dailyFocus: {
+      linaclotide: (existing?.dailyFocus && typeof existing.dailyFocus.linaclotide === 'boolean')
+        ? existing.dailyFocus.linaclotide
+        : (fastingVal === 'kept_40' || existing?.linaclotideTaken || false),
+      warmMeals: (existing?.dailyFocus && typeof existing.dailyFocus.warmMeals === 'boolean')
+        ? existing.dailyFocus.warmMeals
+        : (warmTriggerVal || existing?.safeWarmMeals || false),
+      diaphragmRelease: (existing?.dailyFocus && typeof existing.dailyFocus.diaphragmRelease === 'boolean')
+        ? existing.dailyFocus.diaphragmRelease
+        : (diaphragmResetDone || existing?.diaphragmResetDone || false)
+    }
   };
 
   newEntry.updatedAt = new Date().toISOString();
@@ -8292,6 +8557,7 @@ function handleQuickLogSubmit(e) {
   renderDashboardTrends();
   renderOuraChart();
   renderHistoryLogs();
+  if (typeof renderDailyFocusUI === 'function') renderDailyFocusUI(dateVal);
 
   closeQuickLogModal();
 

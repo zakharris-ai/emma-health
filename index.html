@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles.css?v=20260907-v8">
+  <link rel="stylesheet" href="styles.css?v=20260907-v9">
   <script>
     tailwind.config = {
       theme: {
@@ -353,7 +353,7 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <!-- Item 1 -->
-          <div onclick="toggleCheckItem(this)" class="check-card p-3.5 rounded-2xl border border-brand-border bg-brand-cream/60 hover:bg-white transition-all cursor-pointer flex items-start space-x-3 select-none">
+          <div id="focusCard-linaclotide" onclick="toggleDailyFocusItem('linaclotide')" class="check-card p-3.5 rounded-2xl border border-brand-border bg-brand-cream/60 hover:bg-white transition-all cursor-pointer flex items-start space-x-3 select-none">
             <div class="check-box w-5 h-5 rounded-lg border-2 border-slate-300 flex items-center justify-center shrink-0 mt-0.5 transition-all">
               <i data-lucide="check" class="w-3 h-3 text-white hidden check-icon"></i>
             </div>
@@ -364,7 +364,7 @@
           </div>
 
           <!-- Item 2 -->
-          <div onclick="toggleCheckItem(this)" class="check-card p-3.5 rounded-2xl border border-brand-border bg-brand-cream/60 hover:bg-white transition-all cursor-pointer flex items-start space-x-3 select-none">
+          <div id="focusCard-warmMeals" onclick="toggleDailyFocusItem('warmMeals')" class="check-card p-3.5 rounded-2xl border border-brand-border bg-brand-cream/60 hover:bg-white transition-all cursor-pointer flex items-start space-x-3 select-none">
             <div class="check-box w-5 h-5 rounded-lg border-2 border-slate-300 flex items-center justify-center shrink-0 mt-0.5 transition-all">
               <i data-lucide="check" class="w-3 h-3 text-white hidden check-icon"></i>
             </div>
@@ -375,7 +375,7 @@
           </div>
 
           <!-- Item 3 -->
-          <div onclick="toggleCheckItem(this)" class="check-card p-3.5 rounded-2xl border border-brand-border bg-brand-cream/60 hover:bg-white transition-all cursor-pointer flex items-start space-x-3 select-none">
+          <div id="focusCard-diaphragmRelease" onclick="toggleDailyFocusItem('diaphragmRelease')" class="check-card p-3.5 rounded-2xl border border-brand-border bg-brand-cream/60 hover:bg-white transition-all cursor-pointer flex items-start space-x-3 select-none">
             <div class="check-box w-5 h-5 rounded-lg border-2 border-slate-300 flex items-center justify-center shrink-0 mt-0.5 transition-all">
               <i data-lucide="check" class="w-3 h-3 text-white hidden check-icon"></i>
             </div>
@@ -2972,7 +2972,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260907-v18"></script>
+  <script src="app.js?v=20260907-v19"></script>
   <script>
     // Safeguard: Guarantee Lucide icons and logos render on first paint
     (function() {

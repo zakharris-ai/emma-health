@@ -83,6 +83,9 @@ body {
 }
 
 /* ADHD Interactive Check-Card Checked State */
+.check-card:active {
+  transform: scale(0.98);
+}
 .check-card.checked {
   background-color: #E8EFEA !important;
   border-color: #52796F !important;
