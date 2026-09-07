@@ -16,6 +16,7 @@ import tempfile
 import signal
 import urllib.request
 import urllib.error
+import urllib.parse
 
 PORT = int(os.environ.get('PORT', 8000))
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
@@ -27,6 +28,10 @@ KEY_FILE = os.path.join(DATA_DIR, ".gemini_key")
 DB_FILE = os.path.join(DATA_DIR, "emma_health.db")
 BACKUP_FILE = os.path.join(DATA_DIR, "emma_backup.json")
 AUDIT_FILE = os.path.join(DATA_DIR, "checkins_audit.log.jsonl")
+
+# Oura Ring OAuth2 Credentials (Gen 3)
+OURA_CLIENT_ID = os.environ.get('OURA_CLIENT_ID', '0b1da539-b6c9-4bbf-b9b0-bb6eb09b857e')
+OURA_CLIENT_SECRET = os.environ.get('OURA_CLIENT_SECRET', 'Rtb5la3Qz8Zbg7P64-0twbYggUV4EA_lolH1h58j6zM')
 
 # Remote persistent database support (e.g. Render PostgreSQL or external URL)
 DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -441,6 +446,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.handle_load_data()
         elif self.path == '/api/export-backup':
             self.handle_export_backup()
+        elif self.path.startswith('/api/oura/daily-data'):
+            self.handle_oura_proxy_data()
         else:
             super().do_GET()
 
@@ -451,6 +458,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.handle_delete_checkin()
         elif self.path == '/api/sync-data':
             self.handle_sync_data()
+        elif self.path == '/api/oura/exchange-token':
+            self.handle_oura_exchange_token()
         elif self.path == '/api/restore-backup':
             self.handle_restore_backup()
         elif self.path == '/api/gemini-audit':
@@ -773,6 +782,204 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             self._send_json(500, {"ok": False, "error": str(e)})
 
+    def handle_oura_exchange_token(self):
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            raw_body = self.rfile.read(content_length).decode('utf-8')
+            payload = json.loads(raw_body) if raw_body else {}
+            code = payload.get('code')
+            redirect_uri = payload.get('redirect_uri') or 'https://emma-health.onrender.com/'
+
+            if not code:
+                self._send_json(400, {"ok": False, "error": "Missing authorization code from Oura"})
+                return
+
+            post_params = {
+                'grant_type': 'authorization_code',
+                'code': code,
+                'redirect_uri': redirect_uri,
+                'client_id': OURA_CLIENT_ID,
+                'client_secret': OURA_CLIENT_SECRET
+            }
+            encoded_data = urllib.parse.urlencode(post_params).encode('utf-8')
+
+            req = urllib.request.Request(
+                'https://api.ouraring.com/oauth/token',
+                data=encoded_data,
+                headers={
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'User-Agent': 'EmmaHealthTracker/1.0'
+                }
+            )
+
+            try:
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    res_body = resp.read().decode('utf-8')
+                    token_data = json.loads(res_body)
+            except urllib.error.HTTPError as he:
+                err_content = he.read().decode('utf-8', errors='ignore')
+                print(f"⚠️ Oura token exchange HTTP error {he.code}: {err_content}")
+                self._send_json(he.code, {"ok": False, "error": f"Oura token exchange failed: {err_content}"})
+                return
+
+            access_token = token_data.get('access_token')
+            if not access_token:
+                self._send_json(500, {"ok": False, "error": "No access_token returned in Oura response", "details": token_data})
+                return
+
+            # Save in database
+            conn = get_db_connection()
+            is_pg = hasattr(conn, 'status')
+            ph = "%s" if is_pg else "?"
+            cur = conn.cursor()
+            cur.execute(f"""
+                INSERT INTO app_state (key, value, updated_at)
+                VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
+                ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+            """, ('oura_token', json.dumps(access_token)))
+            cur.execute(f"""
+                INSERT INTO app_state (key, value, updated_at)
+                VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
+                ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+            """, ('oura_oauth_data', json.dumps(token_data)))
+            conn.commit()
+            conn.close()
+
+            self._update_disk_snapshots()
+
+            self._send_json(200, {
+                "ok": True,
+                "access_token": access_token,
+                "token_type": token_data.get('token_type', 'bearer'),
+                "expires_in": token_data.get('expires_in'),
+                "message": "Oura Ring successfully connected and authorized!"
+            })
+        except Exception as e:
+            print(f"⚠️ Oura token exchange error: {e}")
+            self._send_json(500, {"ok": False, "error": str(e)})
+
+    def handle_oura_proxy_data(self):
+        try:
+            # 1. Resolve Oura token (from Header, query param, or database)
+            token = None
+            auth_header = self.headers.get('Authorization', '')
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(' ', 1)[1].strip()
+
+            parsed_url = urllib.parse.urlparse(self.path)
+            q_params = urllib.parse.parse_qs(parsed_url.query)
+            if not token and 'token' in q_params:
+                token = q_params['token'][0].strip()
+
+            if not token:
+                try:
+                    conn = get_db_connection()
+                    cur = conn.cursor()
+                    cur.execute("SELECT value FROM app_state WHERE key = 'oura_token'")
+                    row = cur.fetchone()
+                    conn.close()
+                    if row and row[0]:
+                        raw_val = row[0]
+                        try:
+                            token = json.loads(raw_val)
+                        except Exception:
+                            token = raw_val
+                except Exception as db_err:
+                    print(f"⚠️ DB token lookup warning: {db_err}")
+
+            if not token:
+                self._send_json(401, {"ok": False, "error": "No Oura token found. Please connect your Oura Ring first."})
+                return
+
+            if isinstance(token, str):
+                token = token.strip().strip('"').strip("'")
+
+            # 2. Date range calculation (default: last 30 days)
+            today = datetime.date.today()
+            default_start = (today - datetime.timedelta(days=30)).isoformat()
+            default_end = (today + datetime.timedelta(days=1)).isoformat()
+
+            start_date = q_params.get('start_date', [default_start])[0]
+            end_date = q_params.get('end_date', [default_end])[0]
+
+            def fetch_oura_collection(collection_name):
+                url = f"https://api.ouraring.com/v2/usercollection/{collection_name}?start_date={start_date}&end_date={end_date}"
+                req = urllib.request.Request(
+                    url,
+                    headers={
+                        'Authorization': f'Bearer {token}',
+                        'User-Agent': 'EmmaHealthTracker/1.0'
+                    }
+                )
+                try:
+                    with urllib.request.urlopen(req, timeout=15) as resp:
+                        res_json = json.loads(resp.read().decode('utf-8'))
+                        return res_json.get('data', [])
+                except urllib.error.HTTPError as he:
+                    print(f"⚠️ Oura API collection '{collection_name}' returned HTTP {he.code}")
+                    return []
+                except Exception as ex:
+                    print(f"⚠️ Oura API collection '{collection_name}' error: {ex}")
+                    return []
+
+            daily_sleep = fetch_oura_collection('daily_sleep')
+            daily_readiness = fetch_oura_collection('daily_readiness')
+            sleep_sessions = fetch_oura_collection('sleep')
+            daily_activity = fetch_oura_collection('daily_activity')
+
+            # Aggregate by day
+            days = {}
+            for item in daily_sleep:
+                d = item.get('day')
+                if d:
+                    if d not in days:
+                        days[d] = {"date": d}
+                    days[d]["sleep_score"] = item.get('score')
+                    days[d]["sleep_contributors"] = item.get('contributors', {})
+
+            for item in daily_readiness:
+                d = item.get('day')
+                if d:
+                    if d not in days:
+                        days[d] = {"date": d}
+                    days[d]["readiness_score"] = item.get('score')
+                    days[d]["temperature_deviation"] = item.get('temperature_deviation')
+                    days[d]["temperature_trend_deviation"] = item.get('temperature_trend_deviation')
+                    days[d]["readiness_contributors"] = item.get('contributors', {})
+
+            for item in sleep_sessions:
+                d = item.get('day')
+                if d:
+                    if d not in days:
+                        days[d] = {"date": d}
+                    # Prefer the primary/longest sleep session
+                    if item.get('type') == 'long_sleep' or 'rhr' not in days[d]:
+                        days[d]["rhr"] = item.get('lowest_heart_rate') or item.get('average_heart_rate')
+                        days[d]["hrv"] = item.get('average_hrv')
+                        days[d]["bedtime_start"] = item.get('bedtime_start')
+                        days[d]["bedtime_end"] = item.get('bedtime_end')
+
+            for item in daily_activity:
+                d = item.get('day')
+                if d:
+                    if d not in days:
+                        days[d] = {"date": d}
+                    days[d]["steps"] = item.get('steps')
+                    days[d]["active_calories"] = item.get('active_calories')
+
+            self._send_json(200, {
+                "ok": True,
+                "count": len(days),
+                "start_date": start_date,
+                "end_date": end_date,
+                "days": days,
+                "daily_sleep": daily_sleep,
+                "daily_readiness": daily_readiness,
+                "sleep_sessions": sleep_sessions
+            })
+        except Exception as e:
+            print(f"⚠️ Oura proxy error: {e}")
+            self._send_json(500, {"ok": False, "error": str(e)})
 
     def handle_get_status(self):
         stored_key = get_stored_gemini_key()
