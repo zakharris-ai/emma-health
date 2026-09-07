@@ -624,6 +624,46 @@ async function loadLogsFromIndexedDB() {
   }
 }
 
+async function deleteLogFromIndexedDB(date) {
+  try {
+    const db = await openPermanentIDB();
+    if (!db) return;
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    const store = tx.objectStore(IDB_STORE);
+    store.delete(date);
+  } catch (err) {
+    console.warn('IndexedDB delete notice:', err);
+  }
+}
+
+function getDeletedDates() {
+  try {
+    const raw = localStorage.getItem('emma_deleted_dates');
+    if (raw) return new Set(JSON.parse(raw));
+  } catch (e) {}
+  return new Set();
+}
+
+function recordDeletedDate(date) {
+  if (!date) return;
+  const set = getDeletedDates();
+  set.add(date);
+  try {
+    localStorage.setItem('emma_deleted_dates', JSON.stringify(Array.from(set)));
+  } catch (e) {}
+}
+
+function unmarkDeletedDate(date) {
+  if (!date) return;
+  const set = getDeletedDates();
+  if (set.has(date)) {
+    set.delete(date);
+    try {
+      localStorage.setItem('emma_deleted_dates', JSON.stringify(Array.from(set)));
+    } catch (e) {}
+  }
+}
+
 /**
  * Intelligent Cumulative Union Merge:
  * Combines two log lists so that NO DATE IS EVER DROPPED OR OVERWRITTEN WITH STALE DATA.
@@ -792,7 +832,10 @@ function loadLogs() {
   } catch (e) {}
 
   // Union merge with DEFAULT_LOGS so no historical cycle record is ever missing
-  logs = mergeLogs(parsed, DEFAULT_LOGS);
+  const deletedSet = getDeletedDates();
+  parsed = parsed.filter(p => !deletedSet.has(p.date));
+  const activeDefaults = DEFAULT_LOGS.filter(d => !deletedSet.has(d.date));
+  logs = mergeLogs(parsed, activeDefaults).filter(l => !deletedSet.has(l.date));
   localStorage.setItem('emma_health_logs', JSON.stringify(logs));
 
   // Also ensure every entry is saved to its own isolated date key
@@ -807,7 +850,8 @@ function loadLogs() {
   // Asynchronous recovery from IndexedDB (in case LocalStorage was cleared)
   loadLogsFromIndexedDB().then(idbLogs => {
     if (idbLogs && idbLogs.length > 0) {
-      const mergedWithIDB = mergeLogs(logs, idbLogs);
+      const activeIdb = idbLogs.filter(item => !deletedSet.has(item.date));
+      const mergedWithIDB = mergeLogs(logs, activeIdb).filter(item => !deletedSet.has(item.date));
       if (mergedWithIDB.length !== logs.length) {
         logs = mergedWithIDB;
         localStorage.setItem('emma_health_logs', JSON.stringify(logs));
@@ -950,8 +994,9 @@ function fetchServerDataOnLoad() {
         let needsReRender = false;
         if (data.logs && data.logs.length > 0) {
           // Cumulative union merge: combine local and remote, dropping nothing
-          const cleanServerLogs = data.logs.filter(item => !isSyntheticTestEntry(item));
-          const combined = mergeLogs(logs, cleanServerLogs).filter(item => !isSyntheticTestEntry(item));
+          const deletedSet = getDeletedDates();
+          const cleanServerLogs = data.logs.filter(item => !deletedSet.has(item.date) && !isSyntheticTestEntry(item));
+          const combined = mergeLogs(logs, cleanServerLogs).filter(item => !deletedSet.has(item.date) && !isSyntheticTestEntry(item));
           
           if (combined.length !== logs.length || JSON.stringify(combined) !== JSON.stringify(logs)) {
             logs = combined;
@@ -3475,9 +3520,10 @@ function renderCalendarDaysList() {
   }
 }
 
-// Close calendar modal on Escape key
+// Close calendar or delete modal on Escape key
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
+    closeDeleteConfirmModal();
     closeCalendarPickerModal();
   }
 });
@@ -3853,6 +3899,12 @@ function renderHistoryLogs() {
                 ${item.temp}°C
               </span>
             ` : ''}
+            <button type="button" onclick="event.stopPropagation(); editDiaryEntry('${item.date}')" title="Edit diary entry" class="w-7 h-7 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 flex items-center justify-center transition-all active:scale-95 shadow-2xs">
+              <i data-lucide="edit-3" class="w-3.5 h-3.5 text-purple-700"></i>
+            </button>
+            <button type="button" onclick="event.stopPropagation(); promptDeleteDiaryEntry('${item.date}')" title="Delete diary entry" class="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 flex items-center justify-center transition-all active:scale-95 shadow-2xs">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-600"></i>
+            </button>
             <i data-lucide="chevron-down" id="${cardId}-icon" class="w-4 h-4 text-brand-textMuted transition-transform ${isOpenInitially ? 'rotate-180' : ''}"></i>
           </div>
         </div>
@@ -3957,6 +4009,21 @@ function renderHistoryLogs() {
               ` : ''}
             </div>
           ` : ''}
+
+          <!-- Card Action Footer: Edit & Delete -->
+          <div class="flex items-center justify-between pt-2.5 border-t border-brand-border/60">
+            <span class="text-[10px] text-brand-textMuted font-mono">Date: ${item.date}</span>
+            <div class="flex items-center space-x-2">
+              <button type="button" onclick="event.stopPropagation(); editDiaryEntry('${item.date}')" class="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 shadow-2xs">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5 text-purple-700"></i>
+                <span>Edit Entry</span>
+              </button>
+              <button type="button" onclick="event.stopPropagation(); promptDeleteDiaryEntry('${item.date}')" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 shadow-2xs">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-600"></i>
+                <span>Delete Entry</span>
+              </button>
+            </div>
+          </div>
 
         </div>
 
@@ -4218,12 +4285,12 @@ function resetQuickLogModalToBlank() {
   }
 }
 
-function openQuickLogModal() {
+function openQuickLogModal(dateOverride) {
   const modal = document.getElementById('quickLogModal');
   if (!modal) return;
   modal.classList.remove('hidden');
 
-  const targetDate = activeDateStr || getTodayISOString();
+  const targetDate = (typeof dateOverride === 'string' && dateOverride) ? dateOverride : (activeDateStr || getTodayISOString());
   const dateInput = document.getElementById('logDate');
   if (dateInput) dateInput.value = targetDate;
 
@@ -4238,11 +4305,17 @@ function openQuickLogModal() {
       existingBanner.innerHTML = `
         <div class="flex items-center gap-1.5 pr-2">
           <span>✨</span>
-          <span class="text-[11px] font-bold text-purple-950">Loaded your saved check-in for this date. Add or update anything, then tap Save.</span>
+          <span class="text-[11px] font-bold text-purple-950">Editing entry for ${entry.displayDate || targetDate}. Add or update anything, then tap Save.</span>
         </div>
-        <button type="button" onclick="resetQuickLogModalToBlank()" class="shrink-0 px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 font-bold border border-slate-300 rounded-xl text-[10px] active:scale-95 transition-all shadow-2xs">
-          Clear All
-        </button>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button type="button" onclick="promptDeleteDiaryEntry('${targetDate}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold border border-rose-200 rounded-xl text-[10px] active:scale-95 transition-all shadow-2xs flex items-center gap-1">
+            <i data-lucide="trash-2" class="w-3 h-3 text-rose-600"></i>
+            <span>Delete</span>
+          </button>
+          <button type="button" onclick="resetQuickLogModalToBlank()" class="px-2 py-1 bg-white hover:bg-slate-100 text-slate-700 font-bold border border-slate-300 rounded-xl text-[10px] active:scale-95 transition-all shadow-2xs">
+            Clear
+          </button>
+        </div>
       `;
       existingBanner.classList.remove('hidden');
     }
@@ -4392,6 +4465,91 @@ function closeQuickLogModal() {
   stopVoiceDictation();
   const modal = document.getElementById('quickLogModal');
   if (modal) modal.classList.add('hidden');
+}
+
+// ============================================================================
+// DIARY ENTRY EDIT & DELETE CONTROLLER
+// ============================================================================
+var pendingDeleteDate = null;
+
+function editDiaryEntry(targetDate) {
+  if (!targetDate) return;
+  openQuickLogModal(targetDate);
+}
+
+function promptDeleteDiaryEntry(targetDate) {
+  if (!targetDate) return;
+  pendingDeleteDate = targetDate;
+  const entry = logs.find(l => l.date === targetDate);
+  const dateLabel = entry ? (entry.displayDate || targetDate) : targetDate;
+
+  const textEl = document.getElementById('deleteConfirmDateText');
+  if (textEl) textEl.innerText = dateLabel;
+
+  const modal = document.getElementById('deleteConfirmModal');
+  if (modal) modal.classList.remove('hidden');
+
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    lucide.createIcons();
+  }
+}
+
+function closeDeleteConfirmModal() {
+  pendingDeleteDate = null;
+  const modal = document.getElementById('deleteConfirmModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function confirmDeleteDiaryEntry() {
+  const dateToDelete = pendingDeleteDate;
+  if (!dateToDelete) return;
+
+  const entry = logs.find(l => l.date === dateToDelete);
+  const dateLabel = entry ? (entry.displayDate || dateToDelete) : dateToDelete;
+
+  // 1. Record in deleted ledger so it is permanently excluded
+  recordDeletedDate(dateToDelete);
+
+  // 2. Filter from in-memory logs
+  logs = logs.filter(l => l.date !== dateToDelete);
+
+  // 3. Remove isolated single-entry key from localStorage
+  try {
+    localStorage.removeItem('emma_entry_' + dateToDelete);
+  } catch (err) {}
+
+  // 4. Update localStorage and IndexedDB
+  saveLogs(true);
+  deleteLogFromIndexedDB(dateToDelete);
+
+  // 5. Send delete command to backend database & disk snapshots
+  fetch('/api/delete-checkin', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ date: dateToDelete })
+  }).then(r => r.json()).then(res => {
+    console.log('🌸 Server check-in delete confirmed:', res);
+  }).catch(err => {
+    console.warn('Server delete error:', err);
+  });
+
+  // 6. Close modals
+  closeDeleteConfirmModal();
+  const currentModalDate = document.getElementById('logDate')?.value;
+  if (currentModalDate === dateToDelete) {
+    closeQuickLogModal();
+  }
+
+  // 7. Refresh all UI views
+  renderHistoryLogs();
+  renderDashboardTrends();
+  renderOuraChart();
+
+  const currentDayLog = logs.find(l => l.date === activeDateStr);
+  renderDashboardHeadspaceCard(currentDayLog);
+  updateDashboardStats(currentDayLog || {});
+
+  showDynamicToast("🗑️ Diary entry for " + dateLabel + " has been deleted.");
 }
 
 // ============================================================================
@@ -7541,6 +7699,7 @@ function handleQuickLogSubmit(e) {
   e.preventDefault();
   
   const dateVal = document.getElementById('logDate').value;
+  unmarkDeletedDate(dateVal);
   const tempVal = parseFloat(document.getElementById('logTemp').value) || null;
   const ouraSleepVal = parseInt(document.getElementById('logOuraSleep')?.value, 10) || null;
   const ouraRhrVal = parseInt(document.getElementById('logOuraRhr')?.value, 10) || null;

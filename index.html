@@ -2875,7 +2875,48 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260907-v10"></script>
+  <!-- ================================================================= -->
+  <!-- DELETE DIARY ENTRY CONFIRMATION MODAL -->
+  <!-- ================================================================= -->
+  <div id="deleteConfirmModal" onclick="if(event.target===this)closeDeleteConfirmModal()" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden transition-opacity">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 border border-rose-200 shadow-2xl space-y-4 animate-scaleUp">
+      
+      <div class="flex items-start space-x-3.5">
+        <div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0 shadow-2xs">
+          <i data-lucide="trash-2" class="w-5 h-5 text-rose-600"></i>
+        </div>
+        <div class="space-y-1">
+          <h3 class="font-black text-base text-brand-textDark leading-tight">Are you sure?</h3>
+          <p class="text-xs text-brand-textMuted leading-relaxed">
+            Delete diary entry for <strong id="deleteConfirmDateText" class="text-brand-textDark font-bold">this date</strong>?
+          </p>
+        </div>
+      </div>
+
+      <div class="p-3 bg-rose-50/70 rounded-2xl border border-rose-200/80 text-xs text-rose-950 space-y-1">
+        <div class="flex items-center gap-1.5 font-bold text-rose-800 text-[11px]">
+          <span>⚠️</span>
+          <span>Permanent Deletion</span>
+        </div>
+        <p class="text-[11px] text-rose-900/90 leading-relaxed">
+          This will remove the check-in, symptoms, motility, and notes for this day from your diary.
+        </p>
+      </div>
+
+      <div class="flex items-center justify-end space-x-2 pt-1">
+        <button type="button" onclick="closeDeleteConfirmModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all active:scale-95">
+          Cancel
+        </button>
+        <button type="button" id="confirmDeleteBtn" onclick="confirmDeleteDiaryEntry()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-all active:scale-95 shadow-2xs flex items-center gap-1.5">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          <span>Yes, Delete Entry</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js?v=20260907-v11"></script>
   <script>
     // Safeguard: Guarantee Lucide icons and logos render on first paint
     (function() {

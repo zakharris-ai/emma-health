@@ -447,6 +447,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         if self.path == '/api/save-checkin':
             self.handle_save_checkin()
+        elif self.path == '/api/delete-checkin':
+            self.handle_delete_checkin()
         elif self.path == '/api/sync-data':
             self.handle_sync_data()
         elif self.path == '/api/restore-backup':
@@ -491,6 +493,42 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 "message": f"Check-in for {d} permanently recorded",
                 "date": d,
                 "timestamp": now_iso
+            })
+        except Exception as e:
+            self._send_json(500, {"ok": False, "error": str(e)})
+
+    def handle_delete_checkin(self):
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            raw_body = self.rfile.read(content_length).decode('utf-8')
+            payload = json.loads(raw_body) if raw_body else {}
+            d = payload.get('date')
+            if not d:
+                self._send_json(400, {"ok": False, "error": "Missing date parameter"})
+                return
+
+            conn = get_db_connection()
+            is_pg = hasattr(conn, 'status')
+            cur = conn.cursor()
+            ph = "%s" if is_pg else "?"
+            cur.execute(f"DELETE FROM checkins WHERE date = {ph}", (d,))
+            conn.commit()
+            conn.close()
+
+            # Record in append-only audit ledger
+            append_to_audit_ledger({
+                "action": "DELETE",
+                "date": d,
+                "timestamp": datetime.datetime.now().isoformat()
+            })
+
+            # Update snapshots so emma_backup.json and seed_data.json stay synchronized
+            self._update_disk_snapshots()
+
+            self._send_json(200, {
+                "ok": True,
+                "message": f"Check-in for {d} permanently deleted",
+                "date": d
             })
         except Exception as e:
             self._send_json(500, {"ok": False, "error": str(e)})
