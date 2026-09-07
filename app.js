@@ -648,6 +648,17 @@ function mergeLogs(listA = [], listB = []) {
   return merged;
 }
 
+function isSyntheticTestEntry(e) {
+  if (!e) return false;
+  if (e.date === '2026-09-07' && (
+    (e.notes && e.notes.toLowerCase().includes('testing')) ||
+    (e.symptoms && e.symptoms.toLowerCase().includes('testing'))
+  )) {
+    return true;
+  }
+  return false;
+}
+
 // Load Logs with Multi-Tier Redundancy (LocalStorage + IndexedDB + Defaults)
 function loadLogs() {
   const saved = localStorage.getItem('emma_health_logs');
@@ -655,21 +666,31 @@ function loadLogs() {
   if (saved) {
     try {
       parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        parsed = parsed.filter(item => !isSyntheticTestEntry(item));
+      }
     } catch (e) {
       parsed = [];
     }
   }
+
+  try {
+    localStorage.removeItem('emma_entry_2026-09-07');
+  } catch (e) {}
+
   // Union merge with DEFAULT_LOGS so no historical cycle record is ever missing
-  logs = mergeLogs(parsed, DEFAULT_LOGS);
+  logs = mergeLogs(parsed, DEFAULT_LOGS).filter(item => !isSyntheticTestEntry(item));
   localStorage.setItem('emma_health_logs', JSON.stringify(logs));
 
   // Asynchronous recovery from IndexedDB (in case LocalStorage was cleared)
   loadLogsFromIndexedDB().then(idbLogs => {
     if (idbLogs && idbLogs.length > 0) {
-      const mergedWithIDB = mergeLogs(logs, idbLogs);
+      const cleanIdb = idbLogs.filter(item => !isSyntheticTestEntry(item));
+      const mergedWithIDB = mergeLogs(logs, cleanIdb).filter(item => !isSyntheticTestEntry(item));
       if (mergedWithIDB.length !== logs.length) {
         logs = mergedWithIDB;
         localStorage.setItem('emma_health_logs', JSON.stringify(logs));
+        persistLogsToIndexedDB(logs);
         renderDashboardTrends();
         renderHistoryLogs();
       }
@@ -804,7 +825,8 @@ function fetchServerDataOnLoad() {
         let needsReRender = false;
         if (data.logs && data.logs.length > 0) {
           // Cumulative union merge: combine local and remote, dropping nothing
-          const combined = mergeLogs(logs, data.logs);
+          const cleanServerLogs = data.logs.filter(item => !isSyntheticTestEntry(item));
+          const combined = mergeLogs(logs, cleanServerLogs).filter(item => !isSyntheticTestEntry(item));
           
           if (combined.length !== logs.length || JSON.stringify(combined) !== JSON.stringify(logs)) {
             logs = combined;
@@ -3977,84 +3999,173 @@ function openQuickLogModal() {
   const dateInput = document.getElementById('logDate');
   if (dateInput) dateInput.value = targetDate;
 
-  // Find existing log entry for targetDate
-  const entry = logs.find(l => l.date === targetDate);
-  const cycleInfo = getCycleInfoForDate(targetDate);
+  // Find if a previously saved user entry exists for targetDate
+  const entry = logs.find(l => l.date === targetDate && !isSyntheticTestEntry(l));
 
-  // Reset active selection trackers to null so opening modal never triggers tap-to-toggle
-  selectedFastingVal = null;
-  selectedBristolVal = null;
-  selectedAlcoholVal = null;
-  selectedMoodVal = null;
-  selectedSexDriveVal = null;
+  // Notice banner: all fields open 100% BLANK by default; gives optional 1-tap reload if previously saved
+  const existingBanner = document.getElementById('quickLogExistingBanner');
+  if (existingBanner) {
+    if (entry && (entry.fastingAdherence || entry.movement || entry.notes || entry.bristol || entry.temp || (entry.puffiness && entry.puffiness.length > 0))) {
+      existingBanner.classList.remove('hidden');
+    } else {
+      existingBanner.classList.add('hidden');
+    }
+  }
+
+  // Reset active selection trackers to blank so opening modal starts 100% BLANK
+  selectedFastingVal = '';
+  selectedBristolVal = '';
+  selectedAlcoholVal = '';
+  selectedMoodVal = '';
+  selectedSexDriveVal = '';
   selectedSennaTeaVal = null;
+
+  // 1. Vitals & Temperature - BLANK
+  const tempInput = document.getElementById('logTemp');
+  if (tempInput) tempInput.value = '';
+
+  const ouraSleep = document.getElementById('logOuraSleep');
+  if (ouraSleep) ouraSleep.value = '';
+  const ouraRhr = document.getElementById('logOuraRhr');
+  if (ouraRhr) ouraRhr.value = '';
+  const ouraHrv = document.getElementById('logOuraHrv');
+  if (ouraHrv) ouraHrv.value = '';
+
+  // 2. Morning Fasting Routine - BLANK (none selected)
+  selectFasting('');
+
+  const warmTrigger = document.getElementById('logWarmTrigger');
+  if (warmTrigger) warmTrigger.checked = false;
+
+  const electrolytes = document.getElementById('logElectrolytesTaken');
+  if (electrolytes) electrolytes.checked = false;
+
+  const eaas = document.getElementById('logEaasTaken');
+  if (eaas) eaas.checked = false;
+
+  // Senna Tea (Rescue Laxative Support) - NEUTRAL / BLANK ("Tap to choose")
+  const sennaChk = document.getElementById('logSennaTea');
+  if (sennaChk) sennaChk.checked = false;
+  setSennaTeaQuick(null);
+
+  // 3. Bowel Evacuation & Nuance - BLANK (none selected)
+  selectBristol('');
+  const nuanceContainer = document.getElementById('stoolNuanceContainer');
+  if (nuanceContainer) nuanceContainer.classList.add('hidden');
+  const nuanceInput = document.getElementById('logStoolNuance');
+  if (nuanceInput) nuanceInput.value = '';
+
+  // 4. Diaphragm & APD Status - RESET (0 / 10)
+  const diaphragmReset = document.getElementById('logDiaphragmResetDone');
+  if (diaphragmReset) diaphragmReset.checked = false;
+
+  const diaphragmSlider = document.getElementById('logDiaphragm');
+  if (diaphragmSlider) {
+    diaphragmSlider.value = 0;
+    updateDiaphragmSliderDisplay(0);
+  }
+
+  // 5. Symptoms, Bloating, Gassiness & Puffiness Tags - ALL UNSELECTED / BLANK
+  selectedTags.clear();
+  document.querySelectorAll('#quickLogModal .tag-btn').forEach(btn => {
+    btn.classList.remove('selected', 'bg-brand-coral', 'text-white', 'border-brand-coral', 'bg-amber-600', 'border-amber-600', 'bg-sky-600', 'border-sky-600', 'shadow-xs');
+    const text = btn.innerText.trim();
+    const isBloatTag = text.includes('Upper Tummy Bloating') || text.includes('Lower Tummy Bloating');
+    const isGasTag = text.includes('Gassiness') || text.includes('Burpiness') || text.includes('Trapped Wind') || text.includes('Can\'t Burp');
+
+    if (isBloatTag || isGasTag) {
+      btn.classList.add('bg-white', 'text-brand-textDark', 'border-brand-border');
+    } else {
+      btn.classList.add('bg-white', 'text-brand-textMuted');
+    }
+  });
+
+  // 6. Drinks, Mood, Sex Drive & Notes - BLANK (none selected)
+  selectAlcohol('');
+  selectMood('');
+  selectSexDrive('');
+
+  const exerciseInput = document.getElementById('logExercise');
+  if (exerciseInput) exerciseInput.value = '';
+
+  const noteInput = document.getElementById('logNote');
+  if (noteInput) {
+    noteInput.value = '';
+    handleVoiceNoteInput();
+  }
+
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    lucide.createIcons();
+  }
+}
+
+function loadSavedCheckInIntoModal(customDate) {
+  const targetDate = customDate || document.getElementById('logDate')?.value || activeDateStr || getTodayISOString();
+  const entry = logs.find(l => l.date === targetDate && !isSyntheticTestEntry(l));
+  if (!entry) {
+    showDynamicToast("No previous check-in found for this date.");
+    return;
+  }
 
   // 1. Vitals & Temperature
   const tempInput = document.getElementById('logTemp');
-  if (tempInput) {
-    tempInput.value = (entry && entry.temp) ? entry.temp : '';
-  }
+  if (tempInput) tempInput.value = entry.temp || '';
 
-  // Oura Ring inputs
   const ouraSleep = document.getElementById('logOuraSleep');
-  if (ouraSleep) ouraSleep.value = entry?.ouraSleep || entry?.sleepScore || '';
+  if (ouraSleep) ouraSleep.value = entry.ouraSleep || entry.sleepScore || '';
   const ouraRhr = document.getElementById('logOuraRhr');
-  if (ouraRhr) ouraRhr.value = entry?.ouraRhr || entry?.rhr || '';
+  if (ouraRhr) ouraRhr.value = entry.ouraRhr || entry.rhr || '';
   const ouraHrv = document.getElementById('logOuraHrv');
-  if (ouraHrv) ouraHrv.value = entry?.ouraHrv || entry?.hrv || '';
+  if (ouraHrv) ouraHrv.value = entry.ouraHrv || entry.hrv || '';
 
   // 2. Morning Fasting Routine
-  const fastingAdherence = entry?.fastingAdherence || '';
-  selectFasting(fastingAdherence);
+  selectFasting(entry.fastingAdherence || '');
 
   const warmTrigger = document.getElementById('logWarmTrigger');
-  if (warmTrigger) warmTrigger.checked = !!entry?.warmTrigger;
+  if (warmTrigger) warmTrigger.checked = !!entry.warmTrigger;
 
   const electrolytes = document.getElementById('logElectrolytesTaken');
   if (electrolytes) {
     electrolytes.checked = !!(
-      entry?.electrolytesTaken ?? 
-      entry?.electrolyteBuffered ?? 
-      (entry?.puffiness && (entry.puffiness.includes('⚡ Electrolytes Taken') || entry.puffiness.includes('⚡ Electrolyte & EAAs Taken')))
+      entry.electrolytesTaken ?? 
+      entry.electrolyteBuffered ?? 
+      (entry.puffiness && (entry.puffiness.includes('⚡ Electrolytes Taken') || entry.puffiness.includes('⚡ Electrolyte & EAAs Taken')))
     );
   }
 
   const eaas = document.getElementById('logEaasTaken');
   if (eaas) {
     eaas.checked = !!(
-      entry?.eaasTaken ?? 
-      (entry?.puffiness && (entry.puffiness.includes('🧬 EAAs Taken') || entry.puffiness.includes('⚡ Electrolyte & EAAs Taken')))
+      entry.eaasTaken ?? 
+      (entry.puffiness && (entry.puffiness.includes('🧬 EAAs Taken') || entry.puffiness.includes('⚡ Electrolyte & EAAs Taken')))
     );
   }
 
-  // Senna Tea (Rescue Laxative Support)
+  // Senna Tea
   let sennaVal = null;
-  if (entry) {
-    if (entry.sennaTea !== undefined && entry.sennaTea !== null) {
-      sennaVal = !!entry.sennaTea;
-    } else if (
-      (entry.puffiness && entry.puffiness.some(p => p.toLowerCase().includes('senna'))) ||
-      (entry.medNotes && entry.medNotes.toLowerCase().includes('senna'))
-    ) {
-      sennaVal = true;
-    }
+  if (entry.sennaTea !== undefined && entry.sennaTea !== null) {
+    sennaVal = !!entry.sennaTea;
+  } else if (
+    (entry.puffiness && entry.puffiness.some(p => p.toLowerCase().includes('senna'))) ||
+    (entry.medNotes && entry.medNotes.toLowerCase().includes('senna'))
+  ) {
+    sennaVal = true;
   }
   setSennaTeaQuick(sennaVal);
 
   // 3. Bowel Evacuation & Nuance
-  const bristolVal = entry?.bristol || '';
-  selectBristol(bristolVal);
-  if (entry?.stoolNuance) {
+  selectBristol(entry.bristol || '');
+  if (entry.stoolNuance) {
     selectStoolNuance(entry.stoolNuance);
   }
 
   // 4. Diaphragm & APD Status
   const diaphragmReset = document.getElementById('logDiaphragmResetDone');
-  if (diaphragmReset) diaphragmReset.checked = !!entry?.diaphragmResetDone;
+  if (diaphragmReset) diaphragmReset.checked = !!entry.diaphragmResetDone;
 
   const diaphragmSlider = document.getElementById('logDiaphragm');
   if (diaphragmSlider) {
-    const dVal = (entry && entry.diaphragmBloat !== undefined) ? entry.diaphragmBloat : 0;
+    const dVal = (entry.diaphragmBloat !== undefined) ? entry.diaphragmBloat : 0;
     diaphragmSlider.value = dVal;
     updateDiaphragmSliderDisplay(dVal);
   }
@@ -4073,7 +4184,7 @@ function openQuickLogModal() {
       btn.classList.add('bg-white', 'text-brand-textMuted');
     }
 
-    const hasTag = entry && (
+    const hasTag = (
       (entry.puffiness && entry.puffiness.includes(text)) ||
       (text.includes('Upper Tummy Bloating') && (entry.upperTummyBloat || entry.puffiness?.includes('🎈 Upper Tummy Bloating') || entry.puffiness?.includes('Upper Tummy Bloating') || entry.symptoms?.toLowerCase().includes('upper bloating'))) ||
       (text.includes('Lower Tummy Bloating') && (entry.lowerTummyBloat || entry.puffiness?.includes('🫧 Lower Tummy Bloating') || entry.puffiness?.includes('Lower Tummy Bloating') || entry.symptoms?.toLowerCase().includes('lower tummy'))) ||
@@ -4100,24 +4211,23 @@ function openQuickLogModal() {
   });
 
   // 6. Drinks, Mood, Sex Drive & Notes
-  selectAlcohol(entry?.alcohol || '');
-  selectMood(entry?.mood || '');
-  selectSexDrive(entry?.sexDrive || '');
+  selectAlcohol(entry.alcohol || '');
+  selectMood(entry.mood || '');
+  selectSexDrive(entry.sexDrive || '');
 
   const exerciseInput = document.getElementById('logExercise');
-  if (exerciseInput) {
-    exerciseInput.value = entry?.exercise || '';
-  }
+  if (exerciseInput) exerciseInput.value = entry.exercise || '';
 
   const noteInput = document.getElementById('logNote');
   if (noteInput) {
-    noteInput.value = (entry && entry.symptoms && entry.symptoms !== 'Logged via Quick-Check') ? entry.symptoms : (entry?.notes || '');
+    noteInput.value = (entry.symptoms && entry.symptoms !== 'Logged via Quick-Check') ? entry.symptoms : (entry.notes || '');
     handleVoiceNoteInput();
   }
 
-  if (typeof lucide !== 'undefined' && lucide.createIcons) {
-    lucide.createIcons();
-  }
+  const existingBanner = document.getElementById('quickLogExistingBanner');
+  if (existingBanner) existingBanner.classList.add('hidden');
+
+  showDynamicToast("Loaded previously saved check-in ✨");
 }
 
 function closeQuickLogModal() {

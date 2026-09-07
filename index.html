@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260907-v5">
   <script>
     tailwind.config = {
       theme: {
@@ -1493,6 +1493,17 @@
         </button>
       </div>
 
+      <!-- Notice banner: all fields open blank by default; gives 1-tap option to load previous if saved earlier -->
+      <div id="quickLogExistingBanner" class="hidden p-2.5 rounded-2xl bg-purple-50/90 border border-purple-200 text-xs flex items-center justify-between text-purple-900 animate-fadeIn">
+        <div class="flex items-center gap-1.5 pr-2">
+          <span>💡</span>
+          <span class="text-[11px] font-medium text-purple-950">Starting fresh & blank. Previously saved an entry for this day?</span>
+        </div>
+        <button type="button" onclick="loadSavedCheckInIntoModal()" class="shrink-0 px-2.5 py-1 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-xl text-[10px] active:scale-95 transition-all shadow-2xs">
+          Load Previous ↗
+        </button>
+      </div>
+
       <form id="quickLogForm" onsubmit="handleQuickLogSubmit(event)" class="space-y-4 text-left">
         
         <!-- 1. DATE & MORNING TEMPERATURE -->
@@ -2728,7 +2739,7 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=20260907-v5"></script>
   <script>
     // Safeguard: Guarantee Lucide icons and logos render on first paint
     (function() {

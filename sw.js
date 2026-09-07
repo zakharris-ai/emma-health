@@ -1,5 +1,5 @@
 // Emma's Health & Gut Rhythm - Service Worker (Offline & Fast Load Support)
-const CACHE_NAME = 'emma-health-v4';
+const CACHE_NAME = 'emma-health-v5';
 const STATIC_ASSETS = [
   './',
   'index.html',
@@ -41,21 +41,47 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Stale-while-revalidate for local static assets and external CDN scripts
+  // Network-First for core navigation and app scripts so fixes are immediately live,
+  // falling back to Cache when offline
+  const isCoreAppFile = event.request.mode === 'navigate' || 
+                        url.pathname.endsWith('.html') || 
+                        url.pathname.endsWith('.js') || 
+                        url.pathname.endsWith('.css') ||
+                        url.pathname === '/' ||
+                        url.search.includes('v=');
+
+  if (isCoreAppFile) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          return caches.match(event.request).then((cachedResponse) => {
+            if (cachedResponse) return cachedResponse;
+            if (event.request.mode === 'navigate') return caches.match('index.html');
+          });
+        })
+    );
+    return;
+  }
+
+  // Stale-while-revalidate for images, icons, and fonts
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request)
         .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
           }
           return networkResponse;
         })
         .catch(() => {
-          // If offline and not in cache, fallback to root index.html if navigating
           if (event.request.mode === 'navigate') {
             return caches.match('index.html');
           }
