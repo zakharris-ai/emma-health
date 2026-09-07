@@ -1875,7 +1875,8 @@ function updateChronoTrialDayHighlight(dayOfWeek) {
   };
   const activeDayKey = dayMap[dayOfWeek];
 
-  ALL_DAYS.forEach(d => {
+  const allDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  allDays.forEach(d => {
     const card = document.getElementById(`trialCard-${d}`);
     const badge = document.getElementById(`todayBadge-${d}`);
     if (badge) badge.classList.add('hidden');
@@ -4001,8 +4002,8 @@ function openQuickLogModal() {
   // Senna Tea (Rescue Laxative Support)
   const sennaVal = !!(
     entry?.sennaTea ??
-    (entry?.puffiness && entry.puffiness.some(p => p.toLowerCase().includes('senna'))) ||
-    (entry?.medNotes && entry.medNotes.toLowerCase().includes('senna'))
+    ((entry?.puffiness && entry.puffiness.some(p => p.toLowerCase().includes('senna'))) ||
+     (entry?.medNotes && entry.medNotes.toLowerCase().includes('senna')))
   );
   setSennaTeaQuick(sennaVal);
 
