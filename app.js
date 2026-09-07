@@ -7618,6 +7618,103 @@ function toggleOuraMode() {
 }
 
 // ============================================================================
+// OURA RING PERIOD START DATE HELPER
+// ============================================================================
+function getLatestPeriodStartDate(targetDateStr) {
+  const dateStr = targetDateStr || activeDateStr || getTodayISOString();
+  const info = (typeof getCycleInfoForDate === 'function') 
+    ? getCycleInfoForDate(dateStr) 
+    : { cycleDay: 20, phase: 'luteal', phaseLabel: 'Mid-Luteal' };
+  const cycleDay = info.cycleDay || 20;
+  
+  // Calculate start of cycle (Day 1)
+  const d = new Date(`${dateStr}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - (cycleDay - 1));
+  
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const iso = `${year}-${month}-${day}`;
+  
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const dayNum = d.getUTCDate();
+  const suffix = (dayNum % 10 === 1 && dayNum !== 11) ? 'st' : ((dayNum % 10 === 2 && dayNum !== 12) ? 'nd' : ((dayNum % 10 === 3 && dayNum !== 13) ? 'rd' : 'th'));
+  const formatted = `${dayNum}${suffix} ${monthNames[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  const dayOfWeek = dayNames[d.getUTCDay()];
+  
+  // Next cycle start (approx Day 28/Day 1)
+  const daysUntilNext = 28 - cycleDay + 1;
+  const dNext = new Date(`${dateStr}T12:00:00Z`);
+  dNext.setUTCDate(dNext.getUTCDate() + daysUntilNext);
+  const nextDayNum = dNext.getUTCDate();
+  const nextSuffix = (nextDayNum % 10 === 1 && nextDayNum !== 11) ? 'st' : ((nextDayNum % 10 === 2 && nextDayNum !== 12) ? 'nd' : ((nextDayNum % 10 === 3 && nextDayNum !== 13) ? 'rd' : 'th'));
+  const nextFormatted = `${nextDayNum}${nextSuffix} ${monthNames[dNext.getUTCMonth()]}`;
+
+  return {
+    iso,
+    formatted,
+    plainDate: `${dayNum} ${monthNames[d.getUTCMonth()]} ${d.getUTCFullYear()}`,
+    dayOfWeek,
+    cycleDay,
+    nextFormatted,
+    phase: info.phase,
+    phaseLabel: info.phaseLabel
+  };
+}
+
+function openOuraPeriodModal() {
+  const periodInfo = getLatestPeriodStartDate(activeDateStr || getTodayISOString());
+  
+  const dateEl = document.getElementById('ouraPeriodDateDisplay');
+  if (dateEl) dateEl.innerText = periodInfo.formatted;
+  
+  const dayOfWeekEl = document.getElementById('ouraPeriodDayOfWeek');
+  if (dayOfWeekEl) dayOfWeekEl.innerText = `${periodInfo.dayOfWeek}, ${periodInfo.formatted}`;
+  
+  const cycleDayEl = document.getElementById('ouraCycleDayDisplay');
+  if (cycleDayEl) cycleDayEl.innerText = `Day ${periodInfo.cycleDay}`;
+  
+  const nextPeriodEl = document.getElementById('ouraNextPeriodDisplay');
+  if (nextPeriodEl) nextPeriodEl.innerText = periodInfo.nextFormatted;
+
+  const m = document.getElementById('ouraPeriodModal');
+  if (m) {
+    m.classList.remove('hidden');
+    if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+  }
+}
+
+function closeOuraPeriodModal() {
+  const m = document.getElementById('ouraPeriodModal');
+  if (m) m.classList.add('hidden');
+}
+
+function copyOuraPeriodDate() {
+  const periodInfo = getLatestPeriodStartDate(activeDateStr || getTodayISOString());
+  const textToCopy = periodInfo.plainDate || "19 August 2026";
+  
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      const btn = document.getElementById('copyOuraPeriodBtn');
+      if (btn) {
+        btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-300"></i><span>Copied! ✨</span>`;
+        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+        setTimeout(() => {
+          btn.innerHTML = `<i data-lucide="copy" class="w-3.5 h-3.5"></i><span>Copy Date</span>`;
+          if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+        }, 2500);
+      }
+      showDynamicToast(`📋 Copied "${textToCopy}" to clipboard!`);
+    }).catch(() => {
+      showDynamicToast(`19 August 2026`);
+    });
+  } else {
+    showDynamicToast(`19 August 2026`);
+  }
+}
+
+// ============================================================================
 // 10. RESCUE TOOLKIT GUIDES
 // ============================================================================
 function openRescueModal() {
