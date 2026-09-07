@@ -830,18 +830,19 @@
             <span>💍</span>
             <span>Last Period Date: <strong>19 Aug 2026</strong></span>
           </button>
-          <button onclick="openOuraConfigModal()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-brand-textDark text-white hover:bg-black transition-all shadow-2xs">
-            Connect Cloud Token
+          <button onclick="openOuraConfigModal()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-brand-textDark text-white hover:bg-black transition-all shadow-2xs flex items-center gap-1.5">
+            <span id="btnConnectOuraIcon">⚡</span>
+            <span id="btnConnectOuraLabel">Connect Cloud Token</span>
           </button>
         </div>
       </div>
 
-      <!-- Quick 3-Step Setup Roadmap for Tomorrow -->
+      <!-- Quick 3-Step Setup Roadmap for Tonight -->
       <div class="bg-gradient-to-r from-purple-50 via-slate-50 to-brand-cream border border-purple-200/80 rounded-3xl p-5 shadow-xs space-y-3">
         <div class="flex items-center justify-between">
           <span class="text-xs font-extrabold text-purple-900 flex items-center gap-1.5">
             <span>✨</span>
-            <span>Tomorrow's Night 1 Ring Setup Protocol (Effortless for ADHD)</span>
+            <span>Tonight's Night 1 Ring Setup Protocol (Effortless for ADHD)</span>
           </span>
           <span class="text-[10px] font-bold text-brand-textMuted">Zero stress • No morning thermometer alarms</span>
         </div>
@@ -849,17 +850,17 @@
           <div class="bg-white/90 p-3 rounded-2xl border border-purple-100 space-y-1">
             <span class="text-[10px] font-extrabold text-purple-700 uppercase">Step 1: Fit</span>
             <div class="font-bold text-xs text-brand-textDark">Index or Middle Finger</div>
-            <p class="text-[10px] text-brand-textMuted leading-relaxed">Place ring on non-dominant hand. Sensor bumps sit flat on the underside of your finger.</p>
+            <p class="text-[10px] text-brand-textMuted leading-relaxed">Place ring on non-dominant hand. Sensor bumps sit flat on the underside (palm-side) of your finger.</p>
           </div>
           <div class="bg-white/90 p-3 rounded-2xl border border-purple-100 space-y-1">
             <span class="text-[10px] font-extrabold text-purple-700 uppercase">Step 2: Sleep</span>
-            <div class="font-bold text-xs text-brand-textDark">Wear Overnight (Sept 7)</div>
+            <div class="font-bold text-xs text-brand-textDark">Wear Overnight Tonight (Sept 7)</div>
             <p class="text-[10px] text-brand-textMuted leading-relaxed">Sleep normally. Oura collects continuous nocturnal temp, resting HR, and HRV without any effort.</p>
           </div>
           <div class="bg-white/90 p-3 rounded-2xl border border-purple-100 space-y-1">
             <span class="text-[10px] font-extrabold text-purple-700 uppercase">Step 3: Sync</span>
             <div class="font-bold text-xs text-brand-textDark">Morning Auto-Sync</div>
-            <p class="text-[10px] text-brand-textMuted leading-relaxed">Open Oura iOS app Monday morning. Connect your token to automatically stream biometrics here!</p>
+            <p class="text-[10px] text-brand-textMuted leading-relaxed">Open Oura iOS app tomorrow morning to upload data, then tap Sync here to stream biometrics!</p>
           </div>
         </div>
       </div>
@@ -2278,19 +2279,59 @@
   </div>
 
   <!-- MODAL: OURA API -->
-  <div id="ouraConfigModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 space-y-3 shadow-2xl border border-brand-border">
-      <div class="flex items-center justify-between border-b border-brand-border pb-2">
-        <h3 class="font-bold text-sm text-brand-textDark">Oura Ring Cloud Token</h3>
-        <button onclick="closeOuraConfigModal()" class="w-7 h-7 rounded-full bg-brand-cream flex items-center justify-center">
-          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+  <div id="ouraConfigModal" onclick="if(event.target === this) closeOuraConfigModal()" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden animate-fadeIn">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl border border-brand-border">
+      <div class="flex items-center justify-between border-b border-brand-border pb-3">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-2xl bg-purple-100 text-purple-900 border border-purple-200 flex items-center justify-center text-lg shadow-2xs">
+            💍
+          </div>
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-brand-textDark">Connect Oura Ring</h3>
+            <p class="text-[11px] text-brand-textMuted">Sync nocturnal temp, resting HR & HRV</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeOuraConfigModal()" class="w-8 h-8 rounded-full bg-brand-cream hover:bg-brand-border text-brand-textMuted flex items-center justify-center transition-all active:scale-95">
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
-      <p class="text-xs text-brand-textMuted">When Emma's Oura Ring arrives, paste her Personal Access Token from cloud.ouraring.com to sync her sleep biometrics automatically.</p>
-      <input type="password" id="ouraTokenInput" placeholder="eyJhbGciOiJSUz..." class="w-full text-xs p-2.5 bg-brand-cream border border-brand-border rounded-xl font-mono">
-      <button onclick="saveOuraToken()" class="w-full py-2.5 bg-brand-textDark text-white font-bold rounded-xl text-xs hover:bg-black">
-        Save & Sync
-      </button>
+
+      <!-- Quick 3-step instructions -->
+      <div class="bg-purple-50/70 border border-purple-100 rounded-2xl p-3.5 space-y-2 text-xs">
+        <div class="font-bold text-purple-900 flex items-center gap-1.5">
+          <span>✨</span>
+          <span>How to get Emma's Token (takes 30 seconds):</span>
+        </div>
+        <ol class="list-decimal list-inside space-y-1 text-[11px] text-purple-950/90 leading-relaxed font-medium">
+          <li>Log in at <a href="https://cloud.ouraring.com/personal-access-tokens" target="_blank" rel="noopener noreferrer" class="underline font-bold text-purple-700 hover:text-purple-900">cloud.ouraring.com</a></li>
+          <li>Tap <strong>"Create New Personal Access Token"</strong></li>
+          <li>Copy the token string and paste it below:</li>
+        </ol>
+        <a href="https://cloud.ouraring.com/personal-access-tokens" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-[11px] font-bold text-purple-700 hover:text-purple-900 bg-white px-2.5 py-1.5 rounded-xl border border-purple-200 shadow-2xs active:scale-95 transition-all">
+          <span>🔗 Open Oura Cloud Token Page</span>
+          <i data-lucide="external-link" class="w-3 h-3"></i>
+        </a>
+      </div>
+
+      <!-- Input box & Status -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between text-xs">
+          <label for="ouraTokenInput" class="font-bold text-brand-textDark">Personal Access Token</label>
+          <span id="ouraTokenStatusBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">Not Connected</span>
+        </div>
+        <input type="password" id="ouraTokenInput" placeholder="eyJhbGciOiJSUz..." class="w-full text-xs p-3 bg-brand-cream/80 border border-brand-border rounded-xl font-mono focus:outline-none focus:ring-2 focus:ring-purple-400">
+      </div>
+
+      <!-- Actions -->
+      <div class="space-y-2 pt-1">
+        <button type="button" onclick="saveOuraToken()" class="w-full py-2.5 bg-brand-textDark text-white font-bold rounded-xl text-xs hover:bg-black transition-all shadow-xs active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
+          <span>💍</span>
+          <span>Save & Sync Ring Data</span>
+        </button>
+        <button type="button" onclick="disconnectOuraToken()" id="btnDisconnectOura" class="w-full py-2 bg-rose-50 text-rose-700 font-semibold rounded-xl text-[11px] hover:bg-rose-100 transition-all hidden cursor-pointer">
+          Disconnect Token
+        </button>
+      </div>
     </div>
   </div>
 
@@ -2905,7 +2946,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260907-v13"></script>
+  <script src="app.js?v=20260907-v14"></script>
   <script>
     // Safeguard: Guarantee Lucide icons and logos render on first paint
     (function() {

@@ -552,6 +552,7 @@ function initApp() {
     renderMovementAndSpa();
     loadLutealDoubleSetting();
     renderCycleExercisePrescription();
+    if (typeof updateOuraConnectionUI === 'function') updateOuraConnectionUI();
   }
   triggerLucideIcons();
 }
@@ -1244,6 +1245,7 @@ function switchTab(tabId) {
   if (tabId === 'dashboard') {
     setTimeout(renderDashboardTrends, 50);
   } else if (tabId === 'oura') {
+    if (typeof updateOuraConnectionUI === 'function') updateOuraConnectionUI();
     setTimeout(renderOuraChart, 50);
   } else if (tabId === 'history') {
     renderHistoryLogs();
@@ -8389,24 +8391,117 @@ function copyDoctorReport() {
 // ============================================================================
 // 9. OURA RING CONFIG & SIMULATOR
 // ============================================================================
+function updateOuraConnectionUI() {
+  const savedToken = localStorage.getItem('emma_oura_token');
+  const btnLabel = document.getElementById('btnConnectOuraLabel');
+  const btnIcon = document.getElementById('btnConnectOuraIcon');
+  if (btnLabel && btnIcon) {
+    if (savedToken) {
+      btnLabel.innerText = "Oura Connected";
+      btnIcon.innerText = "🟢";
+    } else {
+      btnLabel.innerText = "Connect Cloud Token";
+      btnIcon.innerText = "⚡";
+    }
+  }
+}
+
 function openOuraConfigModal() {
-  document.getElementById('ouraConfigModal').classList.remove('hidden');
+  const modal = document.getElementById('ouraConfigModal');
+  const input = document.getElementById('ouraTokenInput');
+  const statusBadge = document.getElementById('ouraTokenStatusBadge');
+  const disconnectBtn = document.getElementById('btnDisconnectOura');
+  const savedToken = localStorage.getItem('emma_oura_token');
+
+  if (input) {
+    input.value = savedToken || '';
+  }
+
+  if (savedToken) {
+    if (statusBadge) {
+      statusBadge.innerText = '🟢 Connected';
+      statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200';
+    }
+    if (disconnectBtn) {
+      disconnectBtn.classList.remove('hidden');
+    }
+  } else {
+    if (statusBadge) {
+      statusBadge.innerText = 'Not Connected';
+      statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700';
+    }
+    if (disconnectBtn) {
+      disconnectBtn.classList.add('hidden');
+    }
+  }
+
+  if (modal) {
+    modal.classList.remove('hidden');
+    if (window.lucide && typeof lucide.createIcons === 'function') {
+      lucide.createIcons();
+    }
+  }
 }
 
 function closeOuraConfigModal() {
-  document.getElementById('ouraConfigModal').classList.add('hidden');
+  const modal = document.getElementById('ouraConfigModal');
+  if (modal) modal.classList.add('hidden');
 }
 
 function saveOuraToken() {
-  const token = document.getElementById('ouraTokenInput').value;
-  if (token) {
-    localStorage.setItem('emma_oura_token', token);
-    document.getElementById('ouraSyncBadge').innerHTML = `<i data-lucide="check-circle" class="w-3.5 h-3.5 mr-1 text-emerald-400"></i> Oura: Live Cloud Connected`;
-    alert("Oura Ring Token securely saved! Automatic biometrics sync active.");
-    closeOuraConfigModal();
+  const input = document.getElementById('ouraTokenInput');
+  const token = input ? input.value.trim() : '';
+  if (!token) {
+    alert("Please paste your Oura Personal Access Token before saving.");
+    return;
+  }
+  localStorage.setItem('emma_oura_token', token);
+  
+  const badge = document.getElementById('ouraSyncBadge');
+  if (badge) {
+    badge.innerHTML = `<i data-lucide="check-circle" class="w-3.5 h-3.5 mr-1 text-emerald-400"></i> Oura: Live Cloud Connected`;
+  }
+  
+  updateOuraConnectionUI();
+  
+  if (typeof syncStateWithDatabase === 'function') {
+    syncStateWithDatabase();
+  }
+  
+  showDynamicToast("💍 Oura Ring Token Connected & Synced!");
+  closeOuraConfigModal();
+  
+  if (window.lucide && typeof lucide.createIcons === 'function') {
     lucide.createIcons();
   }
 }
+
+function disconnectOuraToken() {
+  if (confirm("Disconnect Oura Ring token from this app?")) {
+    localStorage.removeItem('emma_oura_token');
+    const input = document.getElementById('ouraTokenInput');
+    if (input) input.value = '';
+    
+    const statusBadge = document.getElementById('ouraTokenStatusBadge');
+    if (statusBadge) {
+      statusBadge.innerText = 'Not Connected';
+      statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700';
+    }
+    
+    const disconnectBtn = document.getElementById('btnDisconnectOura');
+    if (disconnectBtn) disconnectBtn.classList.add('hidden');
+    
+    updateOuraConnectionUI();
+    
+    if (typeof syncStateWithDatabase === 'function') {
+      syncStateWithDatabase();
+    }
+    
+    showDynamicToast("Oura Token Disconnected");
+  }
+}
+window.disconnectOuraToken = disconnectOuraToken;
+window.updateOuraConnectionUI = updateOuraConnectionUI;
 
 function toggleOuraMode() {
   ouraSimulatedMode = !ouraSimulatedMode;
@@ -8414,7 +8509,7 @@ function toggleOuraMode() {
   if (label) {
     label.innerText = ouraSimulatedMode ? "Mode: Simulated Real Biometrics" : "Mode: Live Cloud API";
   }
-  alert(`Oura mode toggled to: ${ouraSimulatedMode ? "Simulated High-Resolution Data" : "Live API Standby"}`);
+  showDynamicToast(`Oura mode: ${ouraSimulatedMode ? "Simulated Data" : "Live Cloud API"}`);
 }
 
 // ============================================================================
