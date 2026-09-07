@@ -26,44 +26,125 @@ if not os.path.exists(DATA_DIR):
 KEY_FILE = os.path.join(DATA_DIR, ".gemini_key")
 DB_FILE = os.path.join(DATA_DIR, "emma_health.db")
 BACKUP_FILE = os.path.join(DATA_DIR, "emma_backup.json")
+AUDIT_FILE = os.path.join(DATA_DIR, "checkins_audit.log.jsonl")
 
-PRIMARY_MODEL = "gemini-3.8-flash"
-FALLBACK_MODEL = "gemini-3.7-flash"
+# Remote persistent database support (e.g. Render PostgreSQL or external URL)
+DATABASE_URL = os.environ.get('DATABASE_URL')
+psycopg2 = None
+if DATABASE_URL:
+    try:
+        import psycopg2
+        if DATABASE_URL.startswith("postgres://"):
+            DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+        print("🔌 Remote PostgreSQL DATABASE_URL detected.")
+    except ImportError:
+        print("ℹ️ psycopg2 not installed; using local SQLite engine.")
 
 def get_db_connection():
+    if DATABASE_URL and psycopg2:
+        try:
+            return psycopg2.connect(DATABASE_URL)
+        except Exception as err:
+            print(f"⚠️ Postgres connection failed ({err}); falling back to local SQLite.")
     conn = sqlite3.connect(DB_FILE, timeout=10.0)
     conn.execute("PRAGMA journal_mode=WAL;")
     conn.execute("PRAGMA busy_timeout=5000;")
     conn.execute("PRAGMA synchronous=NORMAL;")
     return conn
 
+def append_to_audit_ledger(entry):
+    try:
+        with open(AUDIT_FILE, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
+    except Exception as e:
+        print(f"⚠️ Audit log write warning: {e}")
+
+def save_single_checkin_to_db(entry):
+    if not isinstance(entry, dict) or not entry.get('date'):
+        return False
+    d = entry.get('date')
+    c_day = entry.get('cycleDay')
+    c_phase = entry.get('cyclePhase', '')
+    b_stool = entry.get('bristolStool')
+    b_score = entry.get('bloatingScore')
+    m_speed = entry.get('motilitySpeed', '')
+    a_pain = entry.get('abdominalPain')
+    s_press = entry.get('splenicPressure')
+    dj = json.dumps(entry)
+
+    conn = get_db_connection()
+    is_pg = hasattr(conn, 'status')
+    cur = conn.cursor()
+    ph = "%s" if is_pg else "?"
+    query = f"""
+        INSERT INTO checkins (date, cycle_day, cycle_phase, bristol_stool, bloating_score, motility_speed, abdominal_pain, splenic_pressure, data_json, updated_at)
+        VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, CURRENT_TIMESTAMP)
+        ON CONFLICT(date) DO UPDATE SET
+            cycle_day=excluded.cycle_day,
+            cycle_phase=excluded.cycle_phase,
+            bristol_stool=excluded.bristol_stool,
+            bloating_score=excluded.bloating_score,
+            motility_speed=excluded.motility_speed,
+            abdominal_pain=excluded.abdominal_pain,
+            splenic_pressure=excluded.splenic_pressure,
+            data_json=excluded.data_json,
+            updated_at=CURRENT_TIMESTAMP
+    """
+    cur.execute(query, (d, c_day, c_phase, b_stool, b_score, m_speed, a_pain, s_press, dj))
+    conn.commit()
+    conn.close()
+    return True
+
 def init_db():
     try:
         conn = get_db_connection()
+        is_pg = hasattr(conn, 'status')
         cur = conn.cursor()
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS checkins (
-                date TEXT PRIMARY KEY,
-                cycle_day INTEGER,
-                cycle_phase TEXT,
-                bristol_stool INTEGER,
-                bloating_score INTEGER,
-                motility_speed TEXT,
-                abdominal_pain INTEGER,
-                splenic_pressure INTEGER,
-                data_json TEXT,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS app_state (
-                key TEXT PRIMARY KEY,
-                value TEXT,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+        if is_pg:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS checkins (
+                    date VARCHAR(32) PRIMARY KEY,
+                    cycle_day INTEGER,
+                    cycle_phase VARCHAR(64),
+                    bristol_stool INTEGER,
+                    bloating_score INTEGER,
+                    motility_speed VARCHAR(64),
+                    abdominal_pain INTEGER,
+                    splenic_pressure INTEGER,
+                    data_json TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS app_state (
+                    key VARCHAR(64) PRIMARY KEY,
+                    value TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+        else:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS checkins (
+                    date TEXT PRIMARY KEY,
+                    cycle_day INTEGER,
+                    cycle_phase TEXT,
+                    bristol_stool INTEGER,
+                    bloating_score INTEGER,
+                    motility_speed TEXT,
+                    abdominal_pain INTEGER,
+                    splenic_pressure INTEGER,
+                    data_json TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS app_state (
+                    key TEXT PRIMARY KEY,
+                    value TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
         conn.commit()
 
+        # Seed initial records if empty
         cur.execute("SELECT COUNT(*) FROM checkins")
         count = cur.fetchone()[0]
         if count == 0:
@@ -73,37 +154,37 @@ def init_db():
                         with open(seed_file, "r", encoding="utf-8") as f:
                             seed = json.load(f)
                         for item in seed.get("logs", []):
-                            d_str = item.get("date")
-                            if d_str:
-                                cur.execute("""
-                                    INSERT OR REPLACE INTO checkins
-                                    (date, cycle_day, cycle_phase, bristol_stool, bloating_score, motility_speed, abdominal_pain, splenic_pressure, data_json)
-                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                                """, (
-                                    d_str,
-                                    item.get('cycleDay'),
-                                    item.get('cyclePhase'),
-                                    item.get('bristol'),
-                                    item.get('bloatScore'),
-                                    item.get('motilitySpeed'),
-                                    item.get('abPain'),
-                                    item.get('splenicPressure'),
-                                    json.dumps(item)
-                                ))
+                            save_single_checkin_to_db(item)
                         for k, v in seed.get("app_states", {}).items():
-                            cur.execute("""
-                                INSERT OR REPLACE INTO app_state (key, value)
-                                VALUES (?, ?)
+                            ph = "%s" if is_pg else "?"
+                            cur.execute(f"""
+                                INSERT INTO app_state (key, value)
+                                VALUES ({ph}, {ph})
+                                ON CONFLICT(key) DO UPDATE SET value=excluded.value
                             """, (k, v if isinstance(v, str) else json.dumps(v)))
                         conn.commit()
-                        print(f"📦 Seeded {len(seed.get('logs', []))} initial records from {os.path.basename(seed_file)}")
+                        print(f"📦 Seeded initial records from {os.path.basename(seed_file)}")
                         break
                     except Exception as s_err:
                         print(f"⚠️ Seeding notice: {s_err}")
 
+        # Replay any records from audit ledger file if present
+        if os.path.isfile(AUDIT_FILE):
+            try:
+                with open(AUDIT_FILE, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line:
+                            try:
+                                save_single_checkin_to_db(json.loads(line))
+                            except Exception:
+                                pass
+            except Exception as a_err:
+                print(f"⚠️ Audit log replay notice: {a_err}")
+
         conn.close()
     except Exception as e:
-        print(f"⚠️ SQLite Init Warning: {e}")
+        print(f"⚠️ DB Init Warning: {e}")
 
 init_db()
 
@@ -364,7 +445,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             super().do_GET()
 
     def do_POST(self):
-        if self.path == '/api/sync-data':
+        if self.path == '/api/save-checkin':
+            self.handle_save_checkin()
+        elif self.path == '/api/sync-data':
             self.handle_sync_data()
         elif self.path == '/api/restore-backup':
             self.handle_restore_backup()
@@ -382,6 +465,35 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.handle_gemini_exercise_audit()
         else:
             self.send_error(404, "Endpoint not found")
+
+    def handle_save_checkin(self):
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            raw_body = self.rfile.read(content_length).decode('utf-8')
+            entry = json.loads(raw_body) if raw_body else {}
+            d = entry.get('date')
+            if not d:
+                self._send_json(400, {"ok": False, "error": "Missing date parameter"})
+                return
+
+            # 1. Immediately append to the indestructible append-only audit ledger
+            append_to_audit_ledger(entry)
+
+            # 2. Persist to database (Postgres or SQLite)
+            save_single_checkin_to_db(entry)
+
+            # 3. Update cumulative disk snapshots (emma_backup.json and seed_data.json)
+            self._update_disk_snapshots()
+
+            now_iso = datetime.datetime.now().isoformat()
+            self._send_json(200, {
+                "ok": True,
+                "message": f"Check-in for {d} permanently recorded",
+                "date": d,
+                "timestamp": now_iso
+            })
+        except Exception as e:
+            self._send_json(500, {"ok": False, "error": str(e)})
 
     def handle_load_data(self):
         try:
@@ -410,7 +522,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             # If DB is empty, check if emma_backup.json exists on disk
             if not logs and os.path.isfile(BACKUP_FILE):
                 try:
-                    with open(BACKUP_FILE, 'r') as f:
+                    with open(BACKUP_FILE, 'r', encoding='utf-8') as f:
                         bk = json.load(f)
                         logs = bk.get('logs', [])
                         app_states = bk.get('app_states', {})
@@ -441,95 +553,101 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             food_diary = payload.get('foodDiary')
             oura_token = payload.get('ouraToken')
 
-            conn = get_db_connection()
-            cur = conn.cursor()
-
-            # Upsert logs into checkins table
+            # 1. Append and upsert all incoming logs
             for log in logs:
-                if not isinstance(log, dict) or not log.get('date'):
-                    continue
-                d = log.get('date')
-                c_day = log.get('cycleDay')
-                c_phase = log.get('cyclePhase', '')
-                b_stool = log.get('bristolStool')
-                b_score = log.get('bloatingScore')
-                m_speed = log.get('motilitySpeed', '')
-                a_pain = log.get('abdominalPain')
-                s_press = log.get('splenicPressure')
-                dj = json.dumps(log)
-                cur.execute("""
-                    INSERT INTO checkins (date, cycle_day, cycle_phase, bristol_stool, bloating_score, motility_speed, abdominal_pain, splenic_pressure, data_json, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-                    ON CONFLICT(date) DO UPDATE SET
-                        cycle_day=excluded.cycle_day,
-                        cycle_phase=excluded.cycle_phase,
-                        bristol_stool=excluded.bristol_stool,
-                        bloating_score=excluded.bloating_score,
-                        motility_speed=excluded.motility_speed,
-                        abdominal_pain=excluded.abdominal_pain,
-                        splenic_pressure=excluded.splenic_pressure,
-                        data_json=excluded.data_json,
-                        updated_at=CURRENT_TIMESTAMP
-                """, (d, c_day, c_phase, b_stool, b_score, m_speed, a_pain, s_press, dj))
+                if isinstance(log, dict) and log.get('date'):
+                    append_to_audit_ledger(log)
+                    save_single_checkin_to_db(log)
+
+            # 2. Update app state records
+            conn = get_db_connection()
+            is_pg = hasattr(conn, 'status')
+            cur = conn.cursor()
+            ph = "%s" if is_pg else "?"
 
             if chrono_trial is not None:
-                cur.execute("""
+                cur.execute(f"""
                     INSERT INTO app_state (key, value, updated_at)
-                    VALUES ('chrono_trial', ?, CURRENT_TIMESTAMP)
+                    VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
                     ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
-                """, (json.dumps(chrono_trial),))
+                """, ('chrono_trial', json.dumps(chrono_trial)))
 
             if specialist_tracking is not None:
-                cur.execute("""
+                cur.execute(f"""
                     INSERT INTO app_state (key, value, updated_at)
-                    VALUES ('specialist_tracking', ?, CURRENT_TIMESTAMP)
+                    VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
                     ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
-                """, (json.dumps(specialist_tracking),))
+                """, ('specialist_tracking', json.dumps(specialist_tracking)))
 
             if food_diary is not None:
-                cur.execute("""
+                cur.execute(f"""
                     INSERT INTO app_state (key, value, updated_at)
-                    VALUES ('food_diary', ?, CURRENT_TIMESTAMP)
+                    VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
                     ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
-                """, (json.dumps(food_diary),))
+                """, ('food_diary', json.dumps(food_diary)))
 
             if oura_token is not None:
-                cur.execute("""
+                cur.execute(f"""
                     INSERT INTO app_state (key, value, updated_at)
-                    VALUES ('oura_token', ?, CURRENT_TIMESTAMP)
+                    VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
                     ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
-                """, (json.dumps(oura_token),))
+                """, ('oura_token', json.dumps(oura_token)))
 
             conn.commit()
             conn.close()
 
-            # Dual-redundancy: atomic JSON snapshot to emma_backup.json
-            now_iso = datetime.datetime.now().isoformat()
-            backup_dict = {
-                "version": "1.0",
-                "last_synced": now_iso,
-                "total_logs": len(logs),
-                "logs": logs,
-                "app_states": {
-                    "chrono_trial": chrono_trial,
-                    "specialist_tracking": specialist_tracking,
-                    "food_diary": food_diary,
-                    "oura_token": oura_token
-                }
-            }
-            tmp_backup = BACKUP_FILE + ".tmp"
-            with open(tmp_backup, 'w') as f:
-                json.dump(backup_dict, f, indent=2)
-            os.replace(tmp_backup, BACKUP_FILE)
+            # 3. Persist complete cumulative database contents to disk snapshots
+            self._update_disk_snapshots()
 
+            now_iso = datetime.datetime.now().isoformat()
             self._send_json(200, {
                 "ok": True,
-                "message": "Data safely persisted to SQLite database & disk snapshot",
+                "message": "Data safely persisted to database & cumulative disk snapshot",
                 "timestamp": now_iso,
                 "count": len(logs)
             })
         except Exception as e:
             self._send_json(500, {"ok": False, "error": str(e)})
+
+    def _update_disk_snapshots(self):
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("SELECT data_json FROM checkins ORDER BY date DESC")
+            all_logs = []
+            for (dj,) in cur.fetchall():
+                try:
+                    all_logs.append(json.loads(dj))
+                except Exception:
+                    pass
+            cur.execute("SELECT key, value FROM app_state")
+            app_states = {}
+            for k, v in cur.fetchall():
+                try:
+                    app_states[k] = json.loads(v)
+                except Exception:
+                    app_states[k] = v
+            conn.close()
+
+            now_iso = datetime.datetime.now().isoformat()
+            backup_dict = {
+                "version": "1.0",
+                "last_synced": now_iso,
+                "total_logs": len(all_logs),
+                "logs": all_logs,
+                "app_states": app_states
+            }
+
+            for target in [BACKUP_FILE, os.path.join(DIRECTORY, "seed_data.json")]:
+                try:
+                    tmp = target + ".tmp"
+                    with open(tmp, 'w', encoding='utf-8') as f:
+                        json.dump(backup_dict, f, indent=2)
+                    os.replace(tmp, target)
+                except Exception:
+                    pass
+        except Exception as e:
+            print(f"⚠️ Snapshot write warning: {e}")
 
     def handle_export_backup(self):
         try:

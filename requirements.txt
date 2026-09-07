@@ -1,3 +1,5 @@
 # Emma's Health & Gut Rhythm Web Service
-# Built entirely with standard library modules (sqlite3, http.server, json, urllib)
-# Zero external packages required for fast, fail-safe cloud deployment.
+# Standard library modules (sqlite3, http.server, json, urllib)
+# Optional pre-compiled driver for Render PostgreSQL cloud persistence:
+psycopg2-binary>=2.9.9
+

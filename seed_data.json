@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_synced": "2026-09-06T19:00:13.977002",
+  "last_synced": "2026-09-07T11:49:09.050257",
   "total_logs": 22,
   "logs": [
     {
@@ -136,9 +136,9 @@
       ],
       "emotions": "Okay",
       "mood": "flat",
-      "medNotes": "Took linaclotide first thing empty stomach upon waking as advised!",
+      "medNotes": "Took linaclotide first thing empty stomach at 7am as advised!",
       "exercise": "1x dynamic Pilates, 30m strength, 16,000 steps",
-      "notes": "Taking Linaclotide properly on waking produced much better morning tolerability."
+      "notes": "Taking Linaclotide properly at 7am produced much better morning tolerability."
     },
     {
       "id": "2026-08-31",
@@ -283,10 +283,10 @@
       "temp": 36.07,
       "movement": "Barely anything, felt very uncomfortable in morning",
       "bristol": "none",
-      "symptoms": "Really sore lower and upper tummy. Felt horrific all day, trousers/bottoms not fitting",
+      "symptoms": "Really sore lower and upper tummy. Felt horrific all day, jeans not fitting",
       "diaphragmBloat": 9,
       "puffiness": [
-        "All Trousers/Bottoms Feeling Tight",
+        "Jeans Tight",
         "Diaphragm Bloat",
         "Inflamed"
       ],
@@ -312,7 +312,7 @@
       "puffiness": [
         "Puffy Arms",
         "Chest Tight",
-        "All Trousers/Bottoms Feeling Tight",
+        "Jeans Tight",
         "Inflamed Everywhere"
       ],
       "emotions": "Tearful in morning, adrenaline shakes, anxious for hen party",
@@ -500,7 +500,74 @@
       "eveningRest": "Light dinner (6-7:30 PM) to protect splenic flexure"
     },
     "specialist_tracking": {
-      "byDate": {},
+      "byDate": {
+        "2026-09-06": {
+          "electrolyteBuffered": true,
+          "waterMl": 0,
+          "stoolType": "formed",
+          "diaphragmDone": true
+        },
+        "2026-09-07": {
+          "electrolyteBuffered": false,
+          "waterMl": 0,
+          "stoolType": null,
+          "diaphragmDone": false
+        },
+        "2026-09-08": {
+          "electrolyteBuffered": false,
+          "waterMl": 0,
+          "stoolType": null,
+          "diaphragmDone": false
+        },
+        "2026-09-09": {
+          "electrolyteBuffered": false,
+          "waterMl": 0,
+          "stoolType": null,
+          "diaphragmDone": false
+        },
+        "2026-09-10": {
+          "electrolyteBuffered": false,
+          "waterMl": 0,
+          "stoolType": null,
+          "diaphragmDone": false
+        },
+        "2026-09-11": {
+          "electrolyteBuffered": false,
+          "waterMl": 0,
+          "stoolType": null,
+          "diaphragmDone": false
+        },
+        "2026-09-12": {
+          "electrolyteBuffered": false,
+          "waterMl": 0,
+          "stoolType": null,
+          "diaphragmDone": false
+        },
+        "2026-09-13": {
+          "electrolyteBuffered": false,
+          "waterMl": 0,
+          "stoolType": null,
+          "diaphragmDone": false
+        },
+        "2026-09-14": {
+          "electrolyteBuffered": false,
+          "waterMl": 0,
+          "stoolType": null,
+          "diaphragmDone": false
+        },
+        "2026-09-15": {
+          "electrolyteBuffered": false,
+          "waterMl": 0,
+          "stoolType": null,
+          "diaphragmDone": false
+        },
+        "2026-09-16": {
+          "electrolyteBuffered": true,
+          "waterMl": 0,
+          "stoolType": "formed",
+          "diaphragmDone": true
+        }
+      },
       "ouraChecklist": {
         "step1": false,
         "step2": false,
@@ -512,6 +579,7 @@
         "endTime": null
       }
     },
+    "oura_token": "",
     "food_diary": {
       "2026-09-06": [
         {
@@ -520,30 +588,16 @@
           "name": "Emma's Blueberry Form Protein Shake",
           "time": "08:30",
           "theme": "purple",
-          "badge": "Cycle-Safe ✓",
+          "badge": "Cycle-Safe \u2713",
           "title": "Ideal Luteal Morning Fuel",
           "summary": "100% plant-based (pea, rice, hemp) with wild blueberries. Empties stomach in under 30 minutes, preventing post-meal APD diaphragm descent.",
-          "topTip": "Sip slowly 40–60 mins after waking Linaclotide dose.",
+          "topTip": "Sip slowly 40\u201360 mins after waking Linaclotide dose.",
           "isSafe": true,
           "cycleDay": 22,
-          "cyclePhase": "luteal"
-        },
-        {
-          "id": "meal-1725625000000",
-          "slot": "lunch",
-          "name": "Prawn Poke Bowl (Basmati rice, courgette, prawns, pickled cucumber, tamari)",
-          "time": "13:15",
-          "theme": "green",
-          "badge": "Cycle-Safe ✓",
-          "title": "Safe Nanny Shift Fuel",
-          "summary": "Clean, room-temperature basmati rice and prawns digest rapidly with zero garlic or onion. Low-FODMAP and easy on sluggish luteal transit.",
-          "topTip": "Take out of lunchbox 20 mins before eating so it warms to room temperature.",
-          "isSafe": true,
-          "cycleDay": 22,
-          "cyclePhase": "luteal"
+          "cyclePhase": "luteal",
+          "source": "gemini-3.8-flash"
         }
       ]
-    },
-    "oura_token": ""
+    }
   }
 }
