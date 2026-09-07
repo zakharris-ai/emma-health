@@ -1489,16 +1489,16 @@ function applyActiveDate(targetDateStr) {
   const headerCycleDay = document.getElementById('headerCycleDay');
   const headerPhaseBadge = document.getElementById('headerPhaseBadge');
   if (headerCycleLogo) headerCycleLogo.innerText = activePhaseLogo;
-  if (headerCycleDay) headerCycleDay.innerHTML = `<span class="hidden sm:inline">Cycle </span>Day ${info.cycleDay}`;
+  if (headerCycleDay) headerCycleDay.innerText = `Day ${info.cycleDay}`;
   if (headerPhaseBadge) {
     headerPhaseBadge.innerText = cleanPhase;
     headerPhaseBadge.title = info.phaseLabel || cleanPhase;
     if (info.phase === 'luteal') {
-      headerPhaseBadge.className = "text-brand-coral font-bold truncate";
+      headerPhaseBadge.className = "text-brand-coral font-bold";
     } else if (info.phase === 'follicular') {
-      headerPhaseBadge.className = "text-brand-sage font-bold truncate";
+      headerPhaseBadge.className = "text-brand-sage font-bold";
     } else {
-      headerPhaseBadge.className = "text-brand-amber font-bold truncate";
+      headerPhaseBadge.className = "text-brand-amber font-bold";
     }
   }
 
