@@ -1447,6 +1447,9 @@ function applyActiveDate(targetDateStr) {
   else if (info.phase === 'ovulation') activePhaseLogo = '✨';
   else if (info.cycleDay <= 3) activePhaseLogo = '💧';
 
+  // Clean short phase label for headers & compact UI (strips parentheticals like "(Progesterone Peak Window)")
+  const cleanPhase = (info.phaseLabel || '').replace(/\s*\([^)]*\)/g, '').trim() || (info.phase ? (info.phase.charAt(0).toUpperCase() + info.phase.slice(1)) : 'Luteal');
+
   // 1. Update Top Date Controller Display
   const dateDisplay = document.getElementById('activeDateDisplay');
   const dayBadge = document.getElementById('activeDayOfWeekBadge');
@@ -1454,47 +1457,48 @@ function applyActiveDate(targetDateStr) {
 
   if (dateDisplay) dateDisplay.innerText = info.displayDate;
   if (subtitle) {
-    subtitle.innerHTML = `<span class="inline-flex items-center gap-1 font-bold text-brand-textDark"><span class="text-xs">${activePhaseLogo}</span> <span>Cycle Day ${info.cycleDay}</span></span> <span class="text-brand-textMuted">• ${info.phaseLabel}</span>`;
+    subtitle.innerHTML = `<span class="inline-flex items-center gap-1 font-bold text-brand-textDark"><span class="text-xs">${activePhaseLogo}</span> <span>Cycle Day ${info.cycleDay}</span></span> <span class="text-brand-textMuted">• ${cleanPhase}</span>`;
   }
 
   if (dayBadge) {
     if (activeDateStr === todayStr) {
       dayBadge.innerText = "TODAY";
-      dayBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-brand-coralLight text-brand-coral";
+      dayBadge.className = "text-[9px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-brand-coralLight text-brand-coral shrink-0";
     } else {
       const anchorDate = new Date(`${todayStr}T12:00:00Z`);
       const targetDate = new Date(`${activeDateStr}T12:00:00Z`);
       const diff = Math.round((targetDate - anchorDate) / (1000 * 60 * 60 * 24));
       if (diff === 1) {
         dayBadge.innerText = "TOMORROW (+1)";
-        dayBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-brand-amberLight text-brand-amber";
+        dayBadge.className = "text-[9px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-brand-amberLight text-brand-amber shrink-0";
       } else if (diff === -1) {
         dayBadge.innerText = "YESTERDAY";
-        dayBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700";
+        dayBadge.className = "text-[9px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 shrink-0";
       } else if (diff > 1) {
         dayBadge.innerText = `IN +${diff} DAYS`;
-        dayBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700";
+        dayBadge.className = "text-[9px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 shrink-0";
       } else {
         dayBadge.innerText = `${Math.abs(diff)} DAYS AGO`;
-        dayBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700";
+        dayBadge.className = "text-[9px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 shrink-0";
       }
     }
   }
 
-  // 2. Update Header Cycle Info
+  // 2. Update Header Cycle Info (Clean, non-wrapping)
   const headerCycleLogo = document.getElementById('headerCycleLogo');
   const headerCycleDay = document.getElementById('headerCycleDay');
   const headerPhaseBadge = document.getElementById('headerPhaseBadge');
   if (headerCycleLogo) headerCycleLogo.innerText = activePhaseLogo;
-  if (headerCycleDay) headerCycleDay.innerText = `Cycle Day ${info.cycleDay}`;
+  if (headerCycleDay) headerCycleDay.innerHTML = `<span class="hidden sm:inline">Cycle </span>Day ${info.cycleDay}`;
   if (headerPhaseBadge) {
-    headerPhaseBadge.innerText = info.phaseLabel;
+    headerPhaseBadge.innerText = cleanPhase;
+    headerPhaseBadge.title = info.phaseLabel || cleanPhase;
     if (info.phase === 'luteal') {
-      headerPhaseBadge.className = "text-brand-coral font-bold";
+      headerPhaseBadge.className = "text-brand-coral font-bold truncate";
     } else if (info.phase === 'follicular') {
-      headerPhaseBadge.className = "text-brand-sage font-bold";
+      headerPhaseBadge.className = "text-brand-sage font-bold truncate";
     } else {
-      headerPhaseBadge.className = "text-brand-amber font-bold";
+      headerPhaseBadge.className = "text-brand-amber font-bold truncate";
     }
   }
 
