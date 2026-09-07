@@ -3706,6 +3706,21 @@ function renderHistoryLogs() {
               <span>🫧</span><span>Lower Bloat</span>
             </span>
           ` : ''}
+          ${(item.gassiness || (item.puffiness && (item.puffiness.includes('🫧 Gassiness') || item.puffiness.includes('Gassiness') || item.puffiness.includes('Trapped Gas') || item.puffiness.includes('💨 Trapped Wind')))) ? `
+            <span class="px-2 py-0.5 rounded-md bg-sky-100/90 text-sky-900 border border-sky-300 font-bold text-[10px] inline-flex items-center gap-1">
+              <span>🫧</span><span>Gassy</span>
+            </span>
+          ` : ''}
+          ${(item.burpiness || (item.puffiness && (item.puffiness.includes('🗣️ Burpiness') || item.puffiness.includes('Burpiness') || item.puffiness.includes('Can\'t Burp') || item.puffiness.includes('🔄 Can\'t Burp (Stuck Gas)')))) ? `
+            <span class="px-2 py-0.5 rounded-md bg-indigo-100/90 text-indigo-900 border border-indigo-300 font-bold text-[10px] inline-flex items-center gap-1">
+              <span>🗣️</span><span>Burpy</span>
+            </span>
+          ` : ''}
+          ${(item.sennaTea || (item.puffiness && item.puffiness.includes('🍵 Senna Tea Taken'))) ? `
+            <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-[10px] inline-flex items-center gap-1">
+              <span>🍵</span><span>Senna Tea</span>
+            </span>
+          ` : ''}
           ${item.sexDrive ? `
             <span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 font-semibold text-[10px]">
               ❤️ Libido: ${item.sexDrive === 'high' ? 'High' : (item.sexDrive === 'mild' ? 'Mild' : (item.sexDrive === 'low' ? 'Low' : 'Normal'))}
@@ -3740,7 +3755,15 @@ function renderHistoryLogs() {
             <div class="flex flex-wrap gap-1">
               ${item.puffiness.map(p => {
                 const isBloat = p.includes('Upper Tummy') || p.includes('Lower Tummy');
-                const badgeClass = isBloat ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-brand-coralLight text-brand-coral';
+                const isGas = p.includes('Gass') || p.includes('Burp') || p.includes('Wind') || p.includes('Gas');
+                const isSenna = p.includes('Senna');
+                const badgeClass = isBloat 
+                  ? 'bg-amber-100 text-amber-900 border border-amber-300' 
+                  : (isGas 
+                      ? 'bg-sky-100 text-sky-900 border border-sky-300' 
+                      : (isSenna 
+                          ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' 
+                          : 'bg-brand-coralLight text-brand-coral'));
                 return `<span class="px-2 py-0.5 rounded-md ${badgeClass} text-[10px] font-semibold">${p}</span>`;
               }).join('')}
               ${item.exercise ? `<span class="px-2 py-0.5 rounded-md bg-brand-sageLight text-brand-sage text-[10px] font-semibold">🏃 ${item.exercise}</span>` : ''}
@@ -3824,6 +3847,105 @@ var selectedAlcoholVal = 'none';
 var selectedSexDriveVal = 'normal';
 var selectedFastingVal = 'kept_40';
 var selectedTags = new Set();
+var selectedSennaTeaVal = false;
+
+function setSennaTeaQuick(had) {
+  selectedSennaTeaVal = !!had;
+  const chk = document.getElementById('logSennaTea');
+  if (chk) chk.checked = !!had;
+  updateSennaTeaCard(had);
+}
+
+function updateSennaTeaCard(had) {
+  const badge = document.getElementById('sennaTeaBadge');
+  const btnNone = document.getElementById('sennaBtn-none');
+  const btnHad = document.getElementById('sennaBtn-had');
+
+  if (had) {
+    if (badge) {
+      badge.innerText = "Had Today 🍵";
+      badge.className = "text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs";
+    }
+    if (btnHad) {
+      btnHad.className = "senna-choice-btn p-2 rounded-xl border border-emerald-600 text-xs font-extrabold bg-emerald-600 text-white shadow-xs transition-all flex items-center justify-center gap-1.5";
+    }
+    if (btnNone) {
+      btnNone.className = "senna-choice-btn p-2 rounded-xl border border-brand-border text-xs font-semibold bg-white text-brand-textMuted hover:border-slate-400 transition-all flex items-center justify-center gap-1.5";
+    }
+  } else {
+    if (badge) {
+      badge.innerText = "None Reported";
+      badge.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200";
+    }
+    if (btnHad) {
+      btnHad.className = "senna-choice-btn p-2 rounded-xl border border-emerald-200 text-xs font-semibold bg-white text-emerald-900 hover:bg-emerald-50 transition-all flex items-center justify-center gap-1.5";
+    }
+    if (btnNone) {
+      btnNone.className = "senna-choice-btn p-2 rounded-xl border border-slate-600 text-xs font-extrabold bg-slate-700 text-white shadow-xs transition-all flex items-center justify-center gap-1.5";
+    }
+  }
+}
+
+function toggleSennaTeaQuick() {
+  const dState = getOrCreateDateSpecialistState(activeDateStr);
+  dState.sennaTea = !dState.sennaTea;
+  saveSpecialistTracking();
+  renderSpecialistTrackingUI();
+
+  let logEntry = logs.find(l => l.date === activeDateStr);
+  if (!logEntry) {
+    const cycleInfo = getCycleInfoForDate(activeDateStr);
+    logEntry = {
+      date: activeDateStr,
+      displayDate: cycleInfo.displayDate,
+      cycleDay: cycleInfo.cycleDay,
+      phase: cycleInfo.phase,
+      phaseLabel: cycleInfo.phaseLabel,
+      temp: cycleInfo.temp,
+      fastingAdherence: 'kept_40',
+      warmTrigger: false,
+      electrolytesTaken: false,
+      eaasTaken: false,
+      sennaTea: false,
+      bristol: 'none',
+      diaphragm: 4,
+      alcohol: 'none',
+      mood: 'flat',
+      sexDrive: 'normal',
+      movement: 'Pending morning movement',
+      puffiness: [],
+      notes: ''
+    };
+    logs.push(logEntry);
+  }
+
+  logEntry.sennaTea = dState.sennaTea;
+  if (!logEntry.puffiness) logEntry.puffiness = [];
+  if (dState.sennaTea) {
+    if (!logEntry.puffiness.includes('🍵 Senna Tea Taken')) logEntry.puffiness.push('🍵 Senna Tea Taken');
+  } else {
+    logEntry.puffiness = logEntry.puffiness.filter(t => t !== '🍵 Senna Tea Taken' && !t.toLowerCase().includes('senna'));
+  }
+  saveLogs();
+  renderHistoryLogs();
+  renderDashboardTrends();
+  updateDashboardCheckInBadge(logEntry);
+
+  const chk = document.getElementById('logSennaTea');
+  if (chk) {
+    chk.checked = dState.sennaTea;
+    updateSennaTeaCard(dState.sennaTea);
+  }
+
+  if (dState.sennaTea) {
+    if (typeof confetti === 'function') {
+      confetti({ particleCount: 35, spread: 60, origin: { y: 0.7 } });
+    }
+    showDynamicToast("🍵 Senna Tea Logged! Rescue laxative support recorded.");
+  } else {
+    showDynamicToast("Senna Tea status set to None.");
+  }
+}
 
 function openQuickLogModal() {
   const modal = document.getElementById('quickLogModal');
@@ -3876,6 +3998,14 @@ function openQuickLogModal() {
     );
   }
 
+  // Senna Tea (Rescue Laxative Support)
+  const sennaVal = !!(
+    entry?.sennaTea ??
+    (entry?.puffiness && entry.puffiness.some(p => p.toLowerCase().includes('senna'))) ||
+    (entry?.medNotes && entry.medNotes.toLowerCase().includes('senna'))
+  );
+  setSennaTeaQuick(sennaVal);
+
   // 3. Bowel Evacuation & Nuance
   const bristolVal = entry?.bristol || 'none';
   selectBristol(bristolVal);
@@ -3894,14 +4024,15 @@ function openQuickLogModal() {
     updateDiaphragmSliderDisplay(dVal);
   }
 
-  // 5. Symptoms, Bloating & Puffiness Tags
+  // 5. Symptoms, Bloating, Gassiness & Puffiness Tags
   selectedTags.clear();
   document.querySelectorAll('#quickLogModal .tag-btn').forEach(btn => {
-    btn.classList.remove('selected', 'bg-brand-coral', 'text-white', 'border-brand-coral', 'bg-amber-600', 'border-amber-600');
+    btn.classList.remove('selected', 'bg-brand-coral', 'text-white', 'border-brand-coral', 'bg-amber-600', 'border-amber-600', 'bg-sky-600', 'border-sky-600');
     const text = btn.innerText.trim();
     const isBloatTag = text.includes('Upper Tummy Bloating') || text.includes('Lower Tummy Bloating');
+    const isGasTag = text.includes('Gassiness') || text.includes('Burpiness') || text.includes('Trapped Wind') || text.includes('Can\'t Burp');
 
-    if (isBloatTag) {
+    if (isBloatTag || isGasTag) {
       btn.classList.add('bg-white', 'text-brand-textDark', 'border-brand-border');
     } else {
       btn.classList.add('bg-white', 'text-brand-textMuted');
@@ -3911,6 +4042,9 @@ function openQuickLogModal() {
       (entry.puffiness && entry.puffiness.includes(text)) ||
       (text.includes('Upper Tummy Bloating') && (entry.upperTummyBloat || entry.puffiness?.includes('🎈 Upper Tummy Bloating') || entry.puffiness?.includes('Upper Tummy Bloating') || entry.symptoms?.toLowerCase().includes('upper bloating'))) ||
       (text.includes('Lower Tummy Bloating') && (entry.lowerTummyBloat || entry.puffiness?.includes('🫧 Lower Tummy Bloating') || entry.puffiness?.includes('Lower Tummy Bloating') || entry.symptoms?.toLowerCase().includes('lower tummy'))) ||
+      (text.includes('Gassiness') && (entry.gassiness || entry.puffiness?.some(p => p.toLowerCase().includes('gass') || p.toLowerCase().includes('trapped gas')) || entry.symptoms?.toLowerCase().includes('gass'))) ||
+      (text.includes('Burpiness') && (entry.burpiness || entry.puffiness?.some(p => p.toLowerCase().includes('burp')) || entry.symptoms?.toLowerCase().includes('burp'))) ||
+      (text.includes('Trapped Wind') && entry.puffiness?.some(p => p.toLowerCase().includes('trapped gas') || p.toLowerCase().includes('trapped wind'))) ||
       (text === "All Trousers/Bottoms Feeling Tight" && entry.puffiness && entry.puffiness.includes("Jeans Tight"))
     );
 
@@ -3918,6 +4052,9 @@ function openQuickLogModal() {
       btn.classList.add('selected');
       if (isBloatTag) {
         btn.classList.add('bg-amber-600', 'text-white', 'border-amber-600', 'shadow-xs');
+        btn.classList.remove('bg-white', 'text-brand-textDark', 'border-brand-border');
+      } else if (isGasTag) {
+        btn.classList.add('bg-sky-600', 'text-white', 'border-sky-600', 'shadow-xs');
         btn.classList.remove('bg-white', 'text-brand-textDark', 'border-brand-border');
       } else {
         btn.classList.add('bg-brand-coral', 'text-white', 'border-brand-coral');
@@ -3974,13 +4111,16 @@ function correctClinicalVoiceNote(text) {
   s = s.replace(/\b(pru\s*calopride|pro\s*calopride|frucalopride|prucalop)\b/gi, 'Prucalopride');
   s = s.replace(/\b(movi\s*col|mobicall|mobicol|movi\s*call)\b/gi, 'Movicol');
   s = s.replace(/\b(you\s*d\s*c\s*a|u\s*d\s*c\s*a|urso|ursodiol)\b/gi, 'UDCA');
-  s = s.replace(/\b(senna\s*tea|senna)\b/gi, 'Senna');
+  s = s.replace(/\b(senna\s*tea|senna)\b/gi, 'Senna tea');
   s = s.replace(/\b(myrena|mirena|marina\s*coil)\b/gi, 'Mirena');
 
   // 2. Clinical Motility & APD Terminology
   s = s.replace(/\b(abdomino\s*phrenic\s*dyssynergia|abdominophrenic\s*dyssynergia|abdomino\s*phrenic|a\s*p\s*d)\b/gi, 'APD');
   s = s.replace(/\b(splenic\s*fracture|splenic\s*flex|splenic\s*fixture|splenic\s*flecture|splenic\s*flexure)\b/gi, 'splenic flexure');
   s = s.replace(/\b(diaphram|die\s*a\s*fram|diafram)\b/gi, 'diaphragm');
+  s = s.replace(/\b(gassy|gassiness|gasiness)\b/gi, 'gassiness');
+  s = s.replace(/\b(burpy|burpiness|belching)\b/gi, 'burpiness');
+  s = s.replace(/\b(trapped\s*gas|trapped\s*wind)\b/gi, 'trapped wind');
   s = s.replace(/\b(water\s*bypass|watery\s*by\s*pass)\b/gi, 'watery bypass');
   s = s.replace(/\b(gastro\s*colic(?:\s*reflex)?)\b/gi, 'gastrocolic reflex');
   s = s.replace(/\b(visceral\s*hypersensitivity|visceral\s*sensitivity)\b/gi, 'visceral hypersensitivity');
@@ -4366,11 +4506,15 @@ function toggleTag(btn) {
   btn.classList.toggle('selected');
   const tagText = btn.innerText.trim();
   const isBloatTag = tagText.includes('Upper Tummy Bloating') || tagText.includes('Lower Tummy Bloating');
+  const isGasTag = tagText.includes('Gassiness') || tagText.includes('Burpiness') || tagText.includes('Trapped Wind') || tagText.includes('Can\'t Burp');
 
   if (selectedTags.has(tagText)) {
     selectedTags.delete(tagText);
     if (isBloatTag) {
       btn.classList.remove('bg-amber-600', 'text-white', 'border-amber-600', 'shadow-xs');
+      btn.classList.add('bg-white', 'text-brand-textDark', 'border-brand-border');
+    } else if (isGasTag) {
+      btn.classList.remove('bg-sky-600', 'text-white', 'border-sky-600', 'shadow-xs');
       btn.classList.add('bg-white', 'text-brand-textDark', 'border-brand-border');
     } else {
       btn.classList.remove('bg-brand-coral', 'text-white', 'border-brand-coral');
@@ -4380,6 +4524,9 @@ function toggleTag(btn) {
     selectedTags.add(tagText);
     if (isBloatTag) {
       btn.classList.add('bg-amber-600', 'text-white', 'border-amber-600', 'shadow-xs');
+      btn.classList.remove('bg-white', 'text-brand-textDark', 'border-brand-border');
+    } else if (isGasTag) {
+      btn.classList.add('bg-sky-600', 'text-white', 'border-sky-600', 'shadow-xs');
       btn.classList.remove('bg-white', 'text-brand-textDark', 'border-brand-border');
     } else {
       btn.classList.add('bg-brand-coral', 'text-white', 'border-brand-coral');
@@ -4395,6 +4542,7 @@ function updateDashboardCheckInBadge(entry) {
   const fStatus = document.getElementById('dashStatusFasting');
   const sStatus = document.getElementById('dashStatusSalt');
   const eaasStatus = document.getElementById('dashStatusEaas');
+  const senStatus = document.getElementById('dashStatusSenna');
   const stStatus = document.getElementById('dashStatusStool');
   const dStatus = document.getElementById('dashStatusDiaphragm');
 
@@ -4443,6 +4591,17 @@ function updateDashboardCheckInBadge(entry) {
       }
     }
 
+    if (senStatus) {
+      const hasSenna = !!(entry.sennaTea ?? (entry.puffiness && entry.puffiness.includes('🍵 Senna Tea Taken')));
+      if (hasSenna) {
+        senStatus.innerText = "Had 🍵";
+        senStatus.className = "font-extrabold text-emerald-700";
+      } else {
+        senStatus.innerText = "None";
+        senStatus.className = "font-extrabold text-slate-400";
+      }
+    }
+
     if (stStatus) {
       if (entry.stoolNuance === 'formed') {
         stStatus.innerText = "Bristol 4 ✨";
@@ -4483,6 +4642,7 @@ function updateDashboardCheckInBadge(entry) {
     if (fStatus) { fStatus.innerText = "Pending"; fStatus.className = "font-extrabold text-brand-textDark"; }
     if (sStatus) { sStatus.innerText = "Pending"; sStatus.className = "font-extrabold text-brand-textDark"; }
     if (eaasStatus) { eaasStatus.innerText = "Pending"; eaasStatus.className = "font-extrabold text-brand-textDark"; }
+    if (senStatus) { senStatus.innerText = "None"; senStatus.className = "font-extrabold text-brand-textDark"; }
     if (stStatus) { stStatus.innerText = "Pending"; stStatus.className = "font-extrabold text-brand-textDark"; }
     if (dStatus) { dStatus.innerText = "Pending"; dStatus.className = "font-extrabold text-brand-textDark"; }
   }
@@ -7008,6 +7168,7 @@ function handleQuickLogSubmit(e) {
   const warmTriggerVal = document.getElementById('logWarmTrigger')?.checked || false;
   const electrolytesTaken = document.getElementById('logElectrolytesTaken')?.checked || false;
   const eaasTaken = document.getElementById('logEaasTaken')?.checked || false;
+  const sennaTeaTaken = document.getElementById('logSennaTea')?.checked || false;
   const diaphragmResetDone = document.getElementById('logDiaphragmResetDone')?.checked || false;
   const diaphragmVal = parseInt(document.getElementById('logDiaphragm')?.value || '4', 10);
   const stoolNuance = document.getElementById('logStoolNuance')?.value || '';
@@ -7020,6 +7181,8 @@ function handleQuickLogSubmit(e) {
   let puffinessArr = Array.from(selectedTags);
   const upperTummyBloat = selectedTags.has('🎈 Upper Tummy Bloating') || selectedTags.has('Upper Tummy Bloating');
   const lowerTummyBloat = selectedTags.has('🫧 Lower Tummy Bloating') || selectedTags.has('Lower Tummy Bloating');
+  const hasGassiness = selectedTags.has('🫧 Gassiness') || selectedTags.has('Gassiness') || selectedTags.has('💨 Trapped Wind') || selectedTags.has('Trapped Wind') || selectedTags.has('Trapped Gas');
+  const hasBurpiness = selectedTags.has('🗣️ Burpiness') || selectedTags.has('Burpiness') || selectedTags.has('🔄 Can\'t Burp (Stuck Gas)') || selectedTags.has('Can\'t Burp');
 
   if (alcoholVal === '1-2_wine') puffinessArr.push('🍷 1-2 Wine');
   if (alcoholVal === '3+_wine') puffinessArr.push('🥂 3+ Wine/Bubbles');
@@ -7029,6 +7192,7 @@ function handleQuickLogSubmit(e) {
   else if (sexDriveVal === 'low') puffinessArr.push('🤍 Low/No Libido');
   if (electrolytesTaken) puffinessArr.push('⚡ Electrolytes Taken');
   if (eaasTaken) puffinessArr.push('🧬 EAAs Taken');
+  if (sennaTeaTaken) puffinessArr.push('🍵 Senna Tea Taken');
   if (fastingVal === 'kept_40') puffinessArr.push('⏱️ 40m Fast Kept');
   if (warmTriggerVal) puffinessArr.push('☕ Warm Gastrocolic Trigger');
   if (diaphragmResetDone) puffinessArr.push('🫁 Diaphragm Reset Done');
@@ -7081,6 +7245,7 @@ function handleQuickLogSubmit(e) {
     electrolyteBuffered: electrolytesTaken,
     electrolytesTaken: electrolytesTaken,
     eaasTaken: eaasTaken,
+    sennaTea: sennaTeaTaken,
     diaphragmResetDone: diaphragmResetDone,
     movement: movementText,
     bristol: selectedBristolVal,
@@ -7088,6 +7253,8 @@ function handleQuickLogSubmit(e) {
     diaphragmBloat: diaphragmVal,
     upperTummyBloat: upperTummyBloat,
     lowerTummyBloat: lowerTummyBloat,
+    gassiness: hasGassiness,
+    burpiness: hasBurpiness,
     puffiness: puffinessArr,
     emotions: emotionText,
     mood: moodVal,
@@ -7110,6 +7277,7 @@ function handleQuickLogSubmit(e) {
   const dState = getOrCreateDateSpecialistState(dateVal);
   dState.electrolyteBuffered = electrolytesTaken;
   dState.eaasTaken = eaasTaken;
+  dState.sennaTea = sennaTeaTaken;
   dState.diaphragmDone = diaphragmResetDone;
   if (stoolNuance === 'bypass') dState.stoolType = 'bypass';
   else if (stoolNuance === 'formed') dState.stoolType = 'formed';

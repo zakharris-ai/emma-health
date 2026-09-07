@@ -1,8 +1,26 @@
 {
   "version": "1.0",
-  "last_synced": "2026-09-07T11:49:09.050257",
-  "total_logs": 22,
+  "last_synced": "2026-09-07T14:59:55.232744",
+  "total_logs": 23,
   "logs": [
+    {
+      "date": "2026-09-07",
+      "temp": 36.65,
+      "fastingAdherence": "kept_40",
+      "sennaTea": true,
+      "gassiness": true,
+      "burpiness": true,
+      "puffiness": [
+        "\ud83c\udf88 Upper Tummy Bloating",
+        "\ud83e\udee7 Gassiness",
+        "\ud83d\udde3\ufe0f Burpiness",
+        "\ud83c\udf75 Senna Tea Taken"
+      ],
+      "movement": "Watery bypass",
+      "bristol": "liquid",
+      "stoolNuance": "bypass",
+      "notes": "Testing Senna tea and gassiness/burpiness tracking"
+    },
     {
       "id": "2026-09-06",
       "date": "2026-09-06",
