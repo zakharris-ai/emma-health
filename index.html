@@ -2671,6 +2671,9 @@
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('./sw.js').then(function(reg) {
           console.log('🌸 Emma PWA Service Worker active:', reg.scope);
+          if (typeof reg.update === 'function') {
+            reg.update();
+          }
         }).catch(function(err) {
           console.warn('SW registration skipped:', err);
         });
