@@ -1,8 +1,63 @@
 {
   "version": "1.0",
-  "last_synced": "2026-09-07T14:59:55.232744",
-  "total_logs": 22,
+  "last_synced": "2026-09-07T19:35:00.000000",
+  "total_logs": 23,
   "logs": [
+    {
+      "id": "2026-09-07",
+      "date": "2026-09-07",
+      "displayDate": "7th September 2026",
+      "month": "september",
+      "cycleDay": 20,
+      "phase": "luteal",
+      "phaseLabel": "Mid-Luteal (Progesterone Peak Window)",
+      "temp": 36.09,
+      "ouraSleep": null,
+      "sleepScore": null,
+      "ouraRhr": null,
+      "rhr": null,
+      "ouraHrv": null,
+      "hrv": null,
+      "fastingAdherence": "kept_40",
+      "warmTrigger": true,
+      "electrolyteBuffered": false,
+      "electrolytesTaken": false,
+      "eaasTaken": true,
+      "sennaTea": true,
+      "diaphragmResetDone": false,
+      "movement": "Watery bypass (liquid around solid plug)",
+      "bristol": "liquid",
+      "stoolNuance": "bypass",
+      "diaphragmBloat": 0,
+      "upperTummyBloat": false,
+      "lowerTummyBloat": true,
+      "gassiness": false,
+      "burpiness": false,
+      "puffiness": [
+        "🫧 Lower Tummy Bloating",
+        "Puffy Arms",
+        "Heavy Legs",
+        "Muscle Twitches",
+        "Brain Fog",
+        "Headache",
+        "🤍 Low/No Libido",
+        "🧬 EAAs Taken",
+        "🍵 Senna Tea Taken",
+        "⏱️ 40m Fast Kept",
+        "☕ Warm Gastrocolic Trigger",
+        "Reformer Pilates Dynamic"
+      ],
+      "emotions": "🌪️ Anxious / Nervous",
+      "mood": "anxious",
+      "sexDrive": "low",
+      "alcohol": "none",
+      "symptoms": "Mind racing and overthinking today. Big WhatsApp messages feel overwhelming today. Sorting GP / prescription admin feels like too much today. Literally only have energy to go nannying today. Social battery completely at zero, need quiet",
+      "medNotes": "Morning Linaclotide taken with 40-min fast",
+      "exercise": "Reformer Pilates Dynamic",
+      "notes": "Mind racing and overthinking today. Big WhatsApp messages feel overwhelming today. Sorting GP / prescription admin feels like too much today. Literally only have energy to go nannying today. Social battery completely at zero, need quiet",
+      "headspaceNotes": "Mind racing and overthinking today. Big WhatsApp messages feel overwhelming today. Sorting GP / prescription admin feels like too much today. Literally only have energy to go nannying today. Social battery completely at zero, need quiet",
+      "updatedAt": "2026-09-07T18:32:01.469Z"
+    },
     {
       "id": "2026-09-06",
       "date": "2026-09-06",
@@ -25,7 +80,7 @@
       "mood": "flat",
       "medNotes": "Took meds 7:11am (Standardized morning)",
       "exercise": "Rest day / gentle walking",
-      "notes": "Cycle Day 19 (Post-Ovulation Day 4). Bayesian model: 84.2% Day 19 confidence, 98.8% Luteal. Progesterone is actively ramping; true peak is on Days 21\u201323 (Sep 8\u201310). Watery movement is paradoxical bypass around delayed colonic stool."
+      "notes": "Cycle Day 19 (Post-Ovulation Day 4). Bayesian model: 84.2% Day 19 confidence, 98.8% Luteal. Progesterone is actively ramping; true peak is on Days 21–23 (Sep 8–10). Watery movement is paradoxical bypass around delayed colonic stool."
     },
     {
       "id": "2026-09-05",
@@ -70,7 +125,7 @@
       "mood": "great",
       "medNotes": "Took linaclotide around 4:30/5:00am",
       "exercise": "Pilates",
-      "notes": "Ovulation confirmed! Sharp thermal jump from 36.38\u00b0C to 36.85\u00b0C marks Day 2 of active luteal phase."
+      "notes": "Ovulation confirmed! Sharp thermal jump from 36.38°C to 36.85°C marks Day 2 of active luteal phase."
     },
     {
       "id": "2026-09-03",
@@ -268,9 +323,9 @@
       "puffiness": [],
       "emotions": "Better, 98% back to me! Wobbled in evening after alcohol & argument with Zak",
       "mood": "great",
-      "medNotes": "Temp 35.86\u00b0C taken early 4:18am",
+      "medNotes": "Temp 35.86°C taken early 4:18am",
       "exercise": "Gentle",
-      "notes": "Temp crashed to 35.86\u00b0C! Clear hormonal reset marker. Inflammation completely lifted."
+      "notes": "Temp crashed to 35.86°C! Clear hormonal reset marker. Inflammation completely lifted."
     },
     {
       "id": "2026-08-19",
@@ -332,7 +387,7 @@
       "temp": 36.53,
       "movement": "A bit in morning / gas",
       "bristol": "hard",
-      "symptoms": "Really bad cramping, bad diaphragm and tummy bloat. No d\u00e9colletage on chest, felt swollen everywhere",
+      "symptoms": "Really bad cramping, bad diaphragm and tummy bloat. No décolletage on chest, felt swollen everywhere",
       "diaphragmBloat": 9,
       "puffiness": [
         "Chest Tight",
@@ -343,7 +398,7 @@
       "mood": "flat",
       "medNotes": "Usual meds",
       "exercise": "Rest",
-      "notes": "Peak aldosterone fluid retention causing loss of chest d\u00e9colletage definition."
+      "notes": "Peak aldosterone fluid retention causing loss of chest décolletage definition."
     },
     {
       "id": "2026-07-26",
@@ -430,7 +485,7 @@
       "mood": "edgy",
       "medNotes": "Higher temp confirms ovulation complete",
       "exercise": "Walking",
-      "notes": "Classic thermal shift confirming release of ovum (37.04\u00b0C)."
+      "notes": "Classic thermal shift confirming release of ovum (37.04°C)."
     },
     {
       "id": "2026-06-03",
@@ -463,14 +518,14 @@
       "temp": 35.97,
       "movement": "Rock hard / bloody in morning. Taking strong meds",
       "bristol": "hard",
-      "symptoms": "A bit bloated but not as bad. Temperature dropped sharply to 35.97\u00b0C!",
+      "symptoms": "A bit bloated but not as bad. Temperature dropped sharply to 35.97°C!",
       "diaphragmBloat": 5,
       "puffiness": [],
       "emotions": "Fine! Happy re run, Zak back, good energy / spring in step",
       "mood": "great",
       "medNotes": "Back on normal dosages",
       "exercise": "Run",
-      "notes": "Thermal crash from 36.49\u00b0C down to 35.97\u00b0C marks end of May cycle and start of new follicular wave."
+      "notes": "Thermal crash from 36.49°C down to 35.97°C marks end of May cycle and start of new follicular wave."
     },
     {
       "id": "2026-05-15",
@@ -488,7 +543,7 @@
       "puffiness": [],
       "emotions": "Fine / clear minded",
       "mood": "great",
-      "medNotes": "Egg released, temp increased to 36.81\u00b0C",
+      "medNotes": "Egg released, temp increased to 36.81°C",
       "exercise": "Reformer",
       "notes": "Peak estrogen and LH surge released egg with great clarity of thought."
     }
@@ -588,10 +643,10 @@
           "name": "Emma's Blueberry Form Protein Shake",
           "time": "08:30",
           "theme": "purple",
-          "badge": "Cycle-Safe \u2713",
+          "badge": "Cycle-Safe ✓",
           "title": "Ideal Luteal Morning Fuel",
           "summary": "100% plant-based (pea, rice, hemp) with wild blueberries. Empties stomach in under 30 minutes, preventing post-meal APD diaphragm descent.",
-          "topTip": "Sip slowly 40\u201360 mins after waking Linaclotide dose.",
+          "topTip": "Sip slowly 40–60 mins after waking Linaclotide dose.",
           "isSafe": true,
           "cycleDay": 22,
           "cyclePhase": "luteal",

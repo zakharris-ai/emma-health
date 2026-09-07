@@ -182,13 +182,6 @@ def init_db():
             except Exception as a_err:
                 print(f"⚠️ Audit log replay notice: {a_err}")
 
-        # Ensure any synthetic test entries are cleanly purged from persistent database
-        try:
-            cur.execute("DELETE FROM checkins WHERE date = '2026-09-07' AND (data_json LIKE '%Testing%' OR data_json LIKE '%testing%')")
-            conn.commit()
-        except Exception as cleanup_err:
-            pass
-
         conn.close()
     except Exception as e:
         print(f"⚠️ DB Init Warning: {e}")

@@ -9,6 +9,61 @@
 const DEFAULT_LOGS = [
   // --- SEPTEMBER 2026 (Current Cycle) ---
   {
+    id: "2026-09-07",
+    date: "2026-09-07",
+    displayDate: "7th September 2026",
+    month: "september",
+    cycleDay: 20,
+    phase: "luteal",
+    phaseLabel: "Mid-Luteal (Progesterone Peak Window)",
+    temp: 36.09,
+    ouraSleep: null,
+    sleepScore: null,
+    ouraRhr: null,
+    rhr: null,
+    ouraHrv: null,
+    hrv: null,
+    fastingAdherence: "kept_40",
+    warmTrigger: true,
+    electrolyteBuffered: false,
+    electrolytesTaken: false,
+    eaasTaken: true,
+    sennaTea: true,
+    diaphragmResetDone: false,
+    movement: "Watery bypass (liquid around solid plug)",
+    bristol: "liquid",
+    stoolNuance: "bypass",
+    diaphragmBloat: 0,
+    upperTummyBloat: false,
+    lowerTummyBloat: true,
+    gassiness: false,
+    burpiness: false,
+    puffiness: [
+      "🫧 Lower Tummy Bloating",
+      "Puffy Arms",
+      "Heavy Legs",
+      "Muscle Twitches",
+      "Brain Fog",
+      "Headache",
+      "🤍 Low/No Libido",
+      "🧬 EAAs Taken",
+      "🍵 Senna Tea Taken",
+      "⏱️ 40m Fast Kept",
+      "☕ Warm Gastrocolic Trigger",
+      "Reformer Pilates Dynamic"
+    ],
+    emotions: "🌪️ Anxious / Nervous",
+    mood: "anxious",
+    sexDrive: "low",
+    alcohol: "none",
+    symptoms: "Mind racing and overthinking today. Big WhatsApp messages feel overwhelming today. Sorting GP / prescription admin feels like too much today. Literally only have energy to go nannying today. Social battery completely at zero, need quiet",
+    medNotes: "Morning Linaclotide taken with 40-min fast",
+    exercise: "Reformer Pilates Dynamic",
+    notes: "Mind racing and overthinking today. Big WhatsApp messages feel overwhelming today. Sorting GP / prescription admin feels like too much today. Literally only have energy to go nannying today. Social battery completely at zero, need quiet",
+    headspaceNotes: "Mind racing and overthinking today. Big WhatsApp messages feel overwhelming today. Sorting GP / prescription admin feels like too much today. Literally only have energy to go nannying today. Social battery completely at zero, need quiet",
+    updatedAt: "2026-09-07T18:32:01.469Z"
+  },
+  {
     id: "2026-09-06",
     date: "2026-09-06",
     displayDate: "6th September 2026",
@@ -616,14 +671,56 @@ function mergeLogs(listA = [], listB = []) {
       }
     }
 
-    // Union puffiness tags
+    // Helper: is note just empty or generic default placeholder text?
+    const isGenericNote = (str) => !str || typeof str !== 'string' || str.trim() === '' || str.includes("Saved via Emma's Unified Daily Check-In") || str === "Daily check-in logged";
+
+    // 1. Never replace real headspace notes or symptoms with generic placeholders
+    if (isGenericNote(base.notes) && donor.notes && !isGenericNote(donor.notes)) {
+      base.notes = donor.notes;
+    }
+    if (isGenericNote(base.symptoms) && donor.symptoms && !isGenericNote(donor.symptoms)) {
+      base.symptoms = donor.symptoms;
+    }
+    if ((!base.headspaceNotes || base.headspaceNotes.trim() === '') && donor.headspaceNotes && donor.headspaceNotes.trim() !== '') {
+      base.headspaceNotes = donor.headspaceNotes;
+    } else if (donor.headspaceNotes && base.headspaceNotes && donor.headspaceNotes.length > base.headspaceNotes.length) {
+      base.headspaceNotes = donor.headspaceNotes;
+    }
+
+    // 2. Preserve bloating score if base is 0/falsy and donor had recorded bloat
+    if ((base.diaphragmBloat === 0 || base.diaphragmBloat === null || base.diaphragmBloat === undefined) && donor.diaphragmBloat > 0) {
+      base.diaphragmBloat = donor.diaphragmBloat;
+    }
+
+    // 3. Preserve boolean flags (union behavior)
+    if (!base.upperTummyBloat && donor.upperTummyBloat) base.upperTummyBloat = true;
+    if (!base.lowerTummyBloat && donor.lowerTummyBloat) base.lowerTummyBloat = true;
+    if (!base.gassiness && donor.gassiness) base.gassiness = true;
+    if (!base.burpiness && donor.burpiness) base.burpiness = true;
+    if (base.sennaTea === null && donor.sennaTea !== null && donor.sennaTea !== undefined) base.sennaTea = donor.sennaTea;
+    if (!base.eaasTaken && donor.eaasTaken) base.eaasTaken = true;
+    if (!base.electrolytesTaken && donor.electrolytesTaken) base.electrolytesTaken = true;
+    if (!base.warmTrigger && donor.warmTrigger) base.warmTrigger = true;
+    if (!base.diaphragmResetDone && donor.diaphragmResetDone) base.diaphragmResetDone = true;
+
+    // 4. Union puffiness tags (deduplicated)
     const tagsA = Array.isArray(a.puffiness) ? a.puffiness : [];
     const tagsB = Array.isArray(b.puffiness) ? b.puffiness : [];
     base.puffiness = Array.from(new Set([...tagsA, ...tagsB]));
 
-    // Preserve headspace notes if donor has them
-    if (donor.headspaceNotes && (!base.headspaceNotes || donor.headspaceNotes.length > base.headspaceNotes.length)) {
-      base.headspaceNotes = donor.headspaceNotes;
+    // 5. Preserve vitals/temp if missing in base
+    if ((base.temp === null || base.temp === undefined) && donor.temp !== null && donor.temp !== undefined) {
+      base.temp = donor.temp;
+    }
+    if (!base.ouraSleep && donor.ouraSleep) base.ouraSleep = donor.ouraSleep;
+    if (!base.ouraRhr && donor.ouraRhr) base.ouraRhr = donor.ouraRhr;
+    if (!base.ouraHrv && donor.ouraHrv) base.ouraHrv = donor.ouraHrv;
+
+    // 6. Preserve bowel movement / nuance if base has none
+    if ((!base.movement || base.movement === 'None') && donor.movement && donor.movement !== 'None') {
+      base.movement = donor.movement;
+      if (!base.bristol || base.bristol === 'none') base.bristol = donor.bristol;
+      if (!base.stoolNuance) base.stoolNuance = donor.stoolNuance;
     }
 
     return base;
@@ -649,44 +746,56 @@ function mergeLogs(listA = [], listB = []) {
 }
 
 function isSyntheticTestEntry(e) {
-  if (!e) return false;
-  if (e.date === '2026-09-07' && (
-    (e.notes && e.notes.toLowerCase().includes('testing')) ||
-    (e.symptoms && e.symptoms.toLowerCase().includes('testing'))
-  )) {
-    return true;
-  }
   return false;
 }
 
-// Load Logs with Multi-Tier Redundancy (LocalStorage + IndexedDB + Defaults)
+// Load Logs with Multi-Tier Redundancy (LocalStorage + Isolated Date Keys + IndexedDB + Defaults)
 function loadLogs() {
   const saved = localStorage.getItem('emma_health_logs');
   let parsed = [];
   if (saved) {
     try {
-      parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
-        parsed = parsed.filter(item => !isSyntheticTestEntry(item));
-      }
+      const p = JSON.parse(saved);
+      if (Array.isArray(p)) parsed = p;
     } catch (e) {
       parsed = [];
     }
   }
 
+  // Recover any isolated date entries saved under emma_entry_* (guarantees zero data loss even if emma_health_logs was cleared)
   try {
-    localStorage.removeItem('emma_entry_2026-09-07');
+    if (typeof localStorage !== 'undefined') {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('emma_entry_')) {
+          try {
+            const item = JSON.parse(localStorage.getItem(key));
+            if (item && item.date) {
+              parsed.push(item);
+            }
+          } catch (err) {}
+        }
+      }
+    }
   } catch (e) {}
 
   // Union merge with DEFAULT_LOGS so no historical cycle record is ever missing
-  logs = mergeLogs(parsed, DEFAULT_LOGS).filter(item => !isSyntheticTestEntry(item));
+  logs = mergeLogs(parsed, DEFAULT_LOGS);
   localStorage.setItem('emma_health_logs', JSON.stringify(logs));
+
+  // Also ensure every entry is saved to its own isolated date key
+  for (const entry of logs) {
+    if (entry && entry.date) {
+      try {
+        localStorage.setItem(`emma_entry_${entry.date}`, JSON.stringify(entry));
+      } catch (e) {}
+    }
+  }
 
   // Asynchronous recovery from IndexedDB (in case LocalStorage was cleared)
   loadLogsFromIndexedDB().then(idbLogs => {
     if (idbLogs && idbLogs.length > 0) {
-      const cleanIdb = idbLogs.filter(item => !isSyntheticTestEntry(item));
-      const mergedWithIDB = mergeLogs(logs, cleanIdb).filter(item => !isSyntheticTestEntry(item));
+      const mergedWithIDB = mergeLogs(logs, idbLogs);
       if (mergedWithIDB.length !== logs.length) {
         logs = mergedWithIDB;
         localStorage.setItem('emma_health_logs', JSON.stringify(logs));
@@ -703,9 +812,13 @@ function saveLogs(immediate = false) {
   logs = mergeLogs(logs, []);
   localStorage.setItem('emma_health_logs', JSON.stringify(logs));
 
-  // Also backup latest entry under its own immutable date key in LocalStorage
-  if (logs.length > 0 && logs[0] && logs[0].date) {
-    localStorage.setItem(`emma_entry_${logs[0].date}`, JSON.stringify(logs[0]));
+  // Backup EVERY entry under its own immutable date key in LocalStorage
+  for (const entry of logs) {
+    if (entry && entry.date) {
+      try {
+        localStorage.setItem(`emma_entry_${entry.date}`, JSON.stringify(entry));
+      } catch (e) {}
+    }
   }
 
   // Persist to IndexedDB
@@ -1420,10 +1533,7 @@ function applyActiveDate(targetDateStr) {
   if (dateInput) {
     dateInput.value = activeDateStr;
   }
-  const logTemp = document.getElementById('logTemp');
-  if (logTemp && !info.isLogged) {
-    logTemp.value = info.temp;
-  }
+  // Keep check-in modal inputs blank unless actively logged by Emma
   const activeLogEntry = logs.find(l => l.date === activeDateStr);
   updateDashboardCheckInBadge(activeLogEntry);
 
@@ -3355,10 +3465,12 @@ window.addEventListener('keydown', (e) => {
 });
 
 function initializeUI() {
-  // Pre-select Bristol, Mood & Sex Drive buttons
-  selectBristol('liquid');
-  selectMood('flat');
-  selectSexDrive('normal');
+  // Clear any default active selections so check-in is 100% clean by default
+  selectedBristolVal = '';
+  selectedMoodVal = '';
+  selectedSexDriveVal = '';
+  selectedFastingVal = '';
+  selectedSennaTeaVal = null;
 
   // Load Mon-Thu Chrono-Nutrition Trial state
   loadTrialState();
@@ -3990,29 +4102,7 @@ function toggleSennaTeaQuick() {
   }
 }
 
-function openQuickLogModal() {
-  const modal = document.getElementById('quickLogModal');
-  if (!modal) return;
-  modal.classList.remove('hidden');
-
-  const targetDate = activeDateStr || getTodayISOString();
-  const dateInput = document.getElementById('logDate');
-  if (dateInput) dateInput.value = targetDate;
-
-  // Find if a previously saved user entry exists for targetDate
-  const entry = logs.find(l => l.date === targetDate && !isSyntheticTestEntry(l));
-
-  // Notice banner: all fields open 100% BLANK by default; gives optional 1-tap reload if previously saved
-  const existingBanner = document.getElementById('quickLogExistingBanner');
-  if (existingBanner) {
-    if (entry && (entry.fastingAdherence || entry.movement || entry.notes || entry.bristol || entry.temp || (entry.puffiness && entry.puffiness.length > 0))) {
-      existingBanner.classList.remove('hidden');
-    } else {
-      existingBanner.classList.add('hidden');
-    }
-  }
-
-  // Reset active selection trackers to blank so opening modal starts 100% BLANK
+function resetQuickLogModalToBlank() {
   selectedFastingVal = '';
   selectedBristolVal = '';
   selectedAlcoholVal = '';
@@ -4043,7 +4133,7 @@ function openQuickLogModal() {
   const eaas = document.getElementById('logEaasTaken');
   if (eaas) eaas.checked = false;
 
-  // Senna Tea (Rescue Laxative Support) - NEUTRAL / BLANK ("Tap to choose")
+  // Senna Tea (Rescue Laxative Support) - NEUTRAL / BLANK
   const sennaChk = document.getElementById('logSennaTea');
   if (sennaChk) sennaChk.checked = false;
   setSennaTeaQuick(null);
@@ -4092,6 +4182,41 @@ function openQuickLogModal() {
   if (noteInput) {
     noteInput.value = '';
     handleVoiceNoteInput();
+  }
+}
+
+function openQuickLogModal() {
+  const modal = document.getElementById('quickLogModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+
+  const targetDate = activeDateStr || getTodayISOString();
+  const dateInput = document.getElementById('logDate');
+  if (dateInput) dateInput.value = targetDate;
+
+  // Find if a previously saved user entry exists for targetDate
+  const entry = logs.find(l => l.date === targetDate);
+  const existingBanner = document.getElementById('quickLogExistingBanner');
+
+  if (entry && (entry.notes || entry.headspaceNotes || entry.temp || entry.movement || (entry.puffiness && entry.puffiness.length > 0) || entry.sennaTea !== null || entry.fastingAdherence)) {
+    // If Emma already logged for this date, load her entry so she never sees a blank screen that feels like data loss!
+    loadSavedCheckInIntoModal(targetDate);
+    if (existingBanner) {
+      existingBanner.innerHTML = `
+        <div class="flex items-center gap-1.5 pr-2">
+          <span>✨</span>
+          <span class="text-[11px] font-bold text-purple-950">Loaded your saved check-in for this date. Add or update anything, then tap Save.</span>
+        </div>
+        <button type="button" onclick="resetQuickLogModalToBlank()" class="shrink-0 px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 font-bold border border-slate-300 rounded-xl text-[10px] active:scale-95 transition-all shadow-2xs">
+          Clear All
+        </button>
+      `;
+      existingBanner.classList.remove('hidden');
+    }
+  } else {
+    // Fresh unlogged date: open completely clean and blank
+    resetQuickLogModalToBlank();
+    if (existingBanner) existingBanner.classList.add('hidden');
   }
 
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
@@ -7415,6 +7540,8 @@ function handleQuickLogSubmit(e) {
     medNotesText = "Linaclotide skipped";
   }
 
+  const existing = logs.find(l => l.date === dateVal);
+
   const newEntry = {
     id: dateVal,
     date: dateVal,
@@ -7423,38 +7550,38 @@ function handleQuickLogSubmit(e) {
     cycleDay: cycleInfo.cycleDay,
     phase: cycleInfo.phase,
     phaseLabel: cycleInfo.phaseLabel,
-    temp: tempVal,
-    ouraSleep: ouraSleepVal,
-    sleepScore: ouraSleepVal,
-    ouraRhr: ouraRhrVal,
-    rhr: ouraRhrVal,
-    ouraHrv: ouraHrvVal,
-    hrv: ouraHrvVal,
-    fastingAdherence: fastingVal,
-    warmTrigger: warmTriggerVal,
-    electrolyteBuffered: electrolytesTaken,
-    electrolytesTaken: electrolytesTaken,
-    eaasTaken: eaasTaken,
-    sennaTea: selectedSennaTeaVal === true ? true : (selectedSennaTeaVal === false ? false : null),
-    diaphragmResetDone: diaphragmResetDone,
-    movement: movementText,
-    bristol: selectedBristolVal,
-    stoolNuance: stoolNuance,
-    diaphragmBloat: diaphragmVal,
-    upperTummyBloat: upperTummyBloat,
-    lowerTummyBloat: lowerTummyBloat,
-    gassiness: hasGassiness,
-    burpiness: hasBurpiness,
-    puffiness: puffinessArr,
-    emotions: emotionText,
-    mood: moodVal,
-    sexDrive: sexDriveVal,
-    alcohol: alcoholVal,
-    symptoms: noteVal || (movementText ? movementText : "Daily check-in logged"),
-    medNotes: medNotesText,
-    exercise: exerciseVal || 'Gentle',
-    notes: noteVal || "Saved via Emma's Unified Daily Check-In.",
-    headspaceNotes: noteVal
+    temp: (tempVal !== null) ? tempVal : (existing?.temp ?? null),
+    ouraSleep: (ouraSleepVal !== null) ? ouraSleepVal : (existing?.ouraSleep ?? null),
+    sleepScore: (ouraSleepVal !== null) ? ouraSleepVal : (existing?.sleepScore ?? null),
+    ouraRhr: (ouraRhrVal !== null) ? ouraRhrVal : (existing?.ouraRhr ?? null),
+    rhr: (ouraRhrVal !== null) ? ouraRhrVal : (existing?.rhr ?? null),
+    ouraHrv: (ouraHrvVal !== null) ? ouraHrvVal : (existing?.ouraHrv ?? null),
+    hrv: (ouraHrvVal !== null) ? ouraHrvVal : (existing?.hrv ?? null),
+    fastingAdherence: fastingVal || existing?.fastingAdherence || '',
+    warmTrigger: warmTriggerVal || existing?.warmTrigger || false,
+    electrolyteBuffered: electrolytesTaken || existing?.electrolyteBuffered || false,
+    electrolytesTaken: electrolytesTaken || existing?.electrolytesTaken || false,
+    eaasTaken: eaasTaken || existing?.eaasTaken || false,
+    sennaTea: selectedSennaTeaVal === true ? true : (selectedSennaTeaVal === false ? false : (existing?.sennaTea ?? null)),
+    diaphragmResetDone: diaphragmResetDone || existing?.diaphragmResetDone || false,
+    movement: movementText || existing?.movement || '',
+    bristol: selectedBristolVal || existing?.bristol || '',
+    stoolNuance: stoolNuance || existing?.stoolNuance || '',
+    diaphragmBloat: (diaphragmVal > 0) ? diaphragmVal : (existing?.diaphragmBloat ?? 0),
+    upperTummyBloat: upperTummyBloat || existing?.upperTummyBloat || false,
+    lowerTummyBloat: lowerTummyBloat || existing?.lowerTummyBloat || false,
+    gassiness: hasGassiness || existing?.gassiness || false,
+    burpiness: hasBurpiness || existing?.burpiness || false,
+    puffiness: Array.from(new Set([...(existing?.puffiness || []), ...puffinessArr])),
+    emotions: emotionText || existing?.emotions || '',
+    mood: moodVal || existing?.mood || '',
+    sexDrive: sexDriveVal || existing?.sexDrive || '',
+    alcohol: alcoholVal || existing?.alcohol || '',
+    symptoms: noteVal || existing?.symptoms || (movementText ? movementText : "Daily check-in logged"),
+    medNotes: medNotesText || existing?.medNotes || '',
+    exercise: exerciseVal || existing?.exercise || 'Gentle',
+    notes: noteVal || existing?.notes || "Saved via Emma's Unified Daily Check-In.",
+    headspaceNotes: noteVal || existing?.headspaceNotes || ''
   };
 
   newEntry.updatedAt = new Date().toISOString();
