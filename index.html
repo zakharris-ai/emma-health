@@ -2316,6 +2316,15 @@
         </a>
       </div>
 
+      <!-- Test Connection & Readiness Diagnostic Button -->
+      <div class="space-y-2">
+        <button type="button" id="btnTestOuraConnection" onclick="testOuraConnection()" class="w-full py-2.5 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-xl text-xs transition-all shadow-xs active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
+          <span>🔍</span>
+          <span>Test Ring Connection & Cloud API</span>
+        </button>
+        <div id="ouraTestStatusDetail" class="hidden"></div>
+      </div>
+
       <!-- Sync Now Action Button (Visible when connected) -->
       <button type="button" id="btnSyncOuraNow" onclick="fetchOuraBiometrics()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all shadow-xs active:scale-95 flex items-center justify-center gap-1.5 hidden cursor-pointer">
         <span>🔄</span>
@@ -2972,7 +2981,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260907-v19"></script>
+  <script src="app.js?v=20260907-v20"></script>
   <script>
     // Safeguard: Guarantee Lucide icons and logos render on first paint
     (function() {

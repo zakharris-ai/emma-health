@@ -555,7 +555,21 @@ function initApp() {
     if (typeof updateOuraConnectionUI === 'function') updateOuraConnectionUI();
     if (typeof checkOuraOAuthCallback === 'function') checkOuraOAuthCallback();
     if (localStorage.getItem('emma_oura_token') && typeof fetchOuraBiometrics === 'function') {
+      const savedT = localStorage.getItem('emma_oura_token');
+      if (savedT && savedT.length > 10) {
+        fetch('/api/oura/save-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: savedT })
+        }).catch(() => {});
+      }
       setTimeout(() => fetchOuraBiometrics(true), 2500);
+    } else {
+      setTimeout(() => {
+        if (localStorage.getItem('emma_oura_token') && typeof fetchOuraBiometrics === 'function') {
+          fetchOuraBiometrics(true);
+        }
+      }, 3500);
     }
   }
   triggerLucideIcons();
@@ -1053,6 +1067,18 @@ function fetchServerDataOnLoad() {
           foodDiaryState = { ...foodDiaryState, ...data.foodDiary };
           localStorage.setItem('emma_food_diary_v1', JSON.stringify(foodDiaryState));
           needsReRender = true;
+        }
+
+        if (data.ouraToken && typeof data.ouraToken === 'string' && data.ouraToken.trim() && data.ouraToken !== 'null' && data.ouraToken !== '""') {
+          const currentToken = localStorage.getItem('emma_oura_token');
+          if (!currentToken) {
+            console.log('💍 Restoring Oura Ring connection from cloud database');
+            localStorage.setItem('emma_oura_token', data.ouraToken.trim());
+            if (typeof updateOuraConnectionUI === 'function') updateOuraConnectionUI();
+            if (typeof fetchOuraBiometrics === 'function') {
+              setTimeout(() => fetchOuraBiometrics(true), 1500);
+            }
+          }
         }
 
         if (needsReRender) {
@@ -8809,14 +8835,7 @@ async function checkOuraOAuthCallback() {
 }
 
 async function fetchOuraBiometrics(silent = false) {
-  const savedToken = localStorage.getItem('emma_oura_token');
-  if (!savedToken) {
-    if (!silent) {
-      openOuraConfigModal();
-      showDynamicToast("Please connect your Oura Ring first!");
-    }
-    return;
-  }
+  let savedToken = localStorage.getItem('emma_oura_token');
 
   const syncBtn = document.getElementById('btnSyncOuraNow');
   const tabSyncBtn = document.getElementById('btnOuraTabSync');
@@ -8830,19 +8849,28 @@ async function fetchOuraBiometrics(silent = false) {
   }
 
   if (!silent) {
-    showDynamicToast("💍 Contacting Oura Cloud API for nightly data...", 3000);
+    showDynamicToast("💍 Contacting Oura Cloud API for nocturnal data...", 3000);
   }
 
   try {
-    const headers = { 'Authorization': `Bearer ${savedToken}` };
+    const headers = savedToken ? { 'Authorization': `Bearer ${savedToken}` } : {};
     const res = await fetch('/api/oura/daily-data', { headers });
     const data = await res.json();
 
     if (!data.ok) {
       if (!silent) {
+        if (data.error && data.error.includes("No Oura")) {
+          openOuraConfigModal();
+        }
         showDynamicToast(`⚠️ Oura sync: ${data.error || 'Unable to load biometrics'}`, 5000);
       }
       return;
+    }
+
+    if (data.token && !savedToken) {
+      savedToken = data.token;
+      localStorage.setItem('emma_oura_token', data.token);
+      updateOuraConnectionUI();
     }
 
     const days = data.days || {};
@@ -8856,23 +8884,34 @@ async function fetchOuraBiometrics(silent = false) {
     }
 
     let updatedCount = 0;
+    const modifiedEntries = [];
+
     dateKeys.forEach(dateStr => {
       const d = days[dateStr];
       let entry = logs.find(l => l.date === dateStr);
       if (!entry) {
-        const cycleInfo = typeof getCycleInfoForDate === 'function' ? getCycleInfoForDate(dateStr) : { cycleDay: 1, phase: 'follicular' };
+        const cycleInfo = typeof getCycleInfoForDate === 'function'
+          ? getCycleInfoForDate(dateStr)
+          : { cycleDay: 20, phase: 'luteal', phaseLabel: 'Mid-Luteal (Progesterone Peak Window)', temp: 36.35, displayDate: dateStr, dayOfWeek: 'Day' };
+
+        const dateParts = dateStr.split('-');
+        const dateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+        const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+        const monthName = monthNames[dateObj.getMonth()] || 'september';
+
         entry = {
           id: dateStr,
           date: dateStr,
-          displayDate: dateStr,
-          month: '',
+          displayDate: cycleInfo.displayDate || dateStr,
+          month: monthName,
           cycleDay: cycleInfo.cycleDay,
           phase: cycleInfo.phase,
-          temp: null,
+          phaseLabel: cycleInfo.phaseLabel,
+          temp: cycleInfo.temp || 36.35,
           ouraSleep: null,
           ouraRhr: null,
           ouraHrv: null,
-          diaphragmBloat: 5,
+          diaphragmBloat: 0,
           notes: 'Auto-created from Oura Ring daily sync.'
         };
         logs.push(entry);
@@ -8896,8 +8935,10 @@ async function fetchOuraBiometrics(silent = false) {
       }
       if (d.temperature_deviation !== undefined && d.temperature_deviation !== null) {
         entry.ouraTempDev = d.temperature_deviation;
-        if (entry.temp === null || entry.temp === undefined) {
-          entry.temp = parseFloat((36.4 + d.temperature_deviation).toFixed(2));
+        const cycleInfo = typeof getCycleInfoForDate === 'function' ? getCycleInfoForDate(dateStr) : null;
+        const baseTemp = (cycleInfo && cycleInfo.temp) ? cycleInfo.temp : 36.35;
+        if (entry.temp === null || entry.temp === undefined || entry.temp === 36.35) {
+          entry.temp = parseFloat((baseTemp + d.temperature_deviation).toFixed(2));
         }
         changed = true;
       }
@@ -8905,16 +8946,24 @@ async function fetchOuraBiometrics(silent = false) {
         entry.readinessScore = d.readiness_score;
         changed = true;
       }
-      if (changed) updatedCount++;
+      if (changed) {
+        updatedCount++;
+        modifiedEntries.push(entry);
+      }
     });
 
     if (updatedCount > 0) {
-      saveLogs();
+      saveLogs(true);
+      // Guarantee cloud persistence for each affected day
+      modifiedEntries.forEach(ent => {
+        saveSingleCheckinToServer(ent);
+      });
+      syncDataToServer(true);
       renderDashboardTrends();
       renderOuraChart();
       renderHistoryLogs();
-      if (typeof syncStateWithDatabase === 'function') {
-        syncStateWithDatabase();
+      if (typeof applyActiveDate === 'function' && typeof activeDateStr !== 'undefined') {
+        applyActiveDate(activeDateStr);
       }
       showDynamicToast(`✨ Successfully synced ${updatedCount} days from Oura Ring!`, 4000);
     } else if (!silent) {
@@ -8937,7 +8986,7 @@ async function fetchOuraBiometrics(silent = false) {
   }
 }
 
-function saveOuraToken() {
+async function saveOuraToken() {
   const input = document.getElementById('ouraTokenInput');
   const token = input ? input.value.trim() : '';
   if (!token) {
@@ -8947,16 +8996,23 @@ function saveOuraToken() {
   localStorage.setItem('emma_oura_token', token);
   updateOuraConnectionUI();
 
-  if (typeof syncStateWithDatabase === 'function') {
-    syncStateWithDatabase();
+  try {
+    await fetch('/api/oura/save-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: token })
+    });
+  } catch (e) {
+    console.warn("Could not save token to server endpoint directly:", e);
   }
 
+  syncDataToServer(true);
   showDynamicToast("💍 Oura Ring Token Saved! Syncing biometrics...", 4000);
   closeOuraConfigModal();
   fetchOuraBiometrics();
 }
 
-function disconnectOuraToken() {
+async function disconnectOuraToken() {
   if (confirm("Disconnect Oura Ring token from this app?")) {
     localStorage.removeItem('emma_oura_token');
     const input = document.getElementById('ouraTokenInput');
@@ -8964,11 +9020,108 @@ function disconnectOuraToken() {
 
     updateOuraConnectionUI();
 
-    if (typeof syncStateWithDatabase === 'function') {
-      syncStateWithDatabase();
-    }
+    try {
+      await fetch('/api/oura/save-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: '' })
+      });
+    } catch (e) {}
 
+    syncDataToServer(true);
     showDynamicToast("Oura Token Disconnected");
+  }
+}
+
+async function testOuraConnection() {
+  const btn = document.getElementById('btnTestOuraConnection');
+  const statusBadge = document.getElementById('ouraTokenStatusBadge');
+  const statusDetail = document.getElementById('ouraTestStatusDetail');
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span>⏳</span><span>Testing Ring Connection...</span>`;
+  }
+  if (statusDetail) {
+    statusDetail.classList.remove('hidden');
+    statusDetail.innerHTML = `<div class="p-3 bg-purple-50/80 border border-purple-200 rounded-xl text-xs text-purple-900 animate-pulse flex items-center gap-2"><span>🔄</span><span>Testing connection with Oura Cloud API...</span></div>`;
+  }
+
+  const input = document.getElementById('ouraTokenInput');
+  let token = (input ? input.value.trim() : '') || localStorage.getItem('emma_oura_token') || '';
+
+  try {
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+    const res = await fetch('/api/oura/test-connection', { headers });
+    const data = await res.json();
+
+    if (data.ok && data.connected) {
+      if (data.token) {
+        localStorage.setItem('emma_oura_token', data.token);
+        if (input) input.value = data.token;
+      }
+      updateOuraConnectionUI();
+      if (statusBadge) {
+        statusBadge.innerText = '🟢 Connected & Verified';
+        statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200';
+      }
+      if (statusDetail) {
+        statusDetail.classList.remove('hidden');
+        statusDetail.innerHTML = `
+          <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs space-y-1.5 text-emerald-950 shadow-2xs animate-fadeIn">
+            <div class="font-bold flex items-center gap-1.5 text-emerald-900">
+              <span class="text-base">✅</span> <span>Oura Ring Connection Live & Verified!</span>
+            </div>
+            <p class="text-[11px] text-emerald-800 leading-relaxed">
+              Account: <strong>${data.email || 'Emma Butler'}</strong> ${data.biological_sex ? `(${data.biological_sex})` : ''}
+            </p>
+            <p class="text-[11px] text-emerald-700 leading-relaxed font-medium">
+              ${data.message || "Ready for tonight's sleep tracking."} Nocturnal temperature deviation, sleep score, and HRV will stream into Emma's daily check-in automatically.
+            </p>
+          </div>
+        `;
+      }
+      showDynamicToast("🟢 Oura Ring verified! Connected and ready for tonight.", 4000);
+      setTimeout(() => fetchOuraBiometrics(true), 1200);
+    } else {
+      if (statusBadge) {
+        statusBadge.innerText = '⚠️ Connection Issue';
+        statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200';
+      }
+      if (statusDetail) {
+        statusDetail.classList.remove('hidden');
+        statusDetail.innerHTML = `
+          <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs space-y-1.5 text-rose-950 shadow-2xs animate-fadeIn">
+            <div class="font-bold flex items-center gap-1.5 text-rose-900">
+              <span class="text-base">❌</span> <span>Connection Test Failed</span>
+            </div>
+            <p class="text-[11px] text-rose-800 leading-relaxed">
+              ${data.error || 'Could not verify connection with Oura.'}
+            </p>
+            <p class="text-[11px] text-rose-700 leading-relaxed">
+              Tap the purple "1-Tap Authorize with Oura" button above or paste a fresh Personal Access Token.
+            </p>
+          </div>
+        `;
+      }
+      showDynamicToast(`⚠️ Oura Test: ${data.error || 'Connection failed'}`, 5000);
+    }
+  } catch (err) {
+    console.error("testOuraConnection error:", err);
+    if (statusDetail) {
+      statusDetail.classList.remove('hidden');
+      statusDetail.innerHTML = `
+        <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800">
+          Error testing connection: ${err.message}
+        </div>
+      `;
+    }
+    showDynamicToast(`⚠️ Oura test error: ${err.message}`, 4000);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<span>🔍</span><span>Test Ring Connection & Cloud API</span>`;
+    }
   }
 }
 
@@ -8978,6 +9131,7 @@ window.checkOuraOAuthCallback = checkOuraOAuthCallback;
 window.fetchOuraBiometrics = fetchOuraBiometrics;
 window.saveOuraToken = saveOuraToken;
 window.openOuraConfigModal = openOuraConfigModal;
+window.testOuraConnection = testOuraConnection;
 window.closeOuraConfigModal = closeOuraConfigModal;
 
 function toggleOuraMode() {

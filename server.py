@@ -448,6 +448,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.handle_export_backup()
         elif self.path.startswith('/api/oura/daily-data'):
             self.handle_oura_proxy_data()
+        elif self.path.startswith('/api/oura/test-connection'):
+            self.handle_oura_test_connection()
         else:
             super().do_GET()
 
@@ -460,6 +462,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.handle_sync_data()
         elif self.path == '/api/oura/exchange-token':
             self.handle_oura_exchange_token()
+        elif self.path == '/api/oura/save-token':
+            self.handle_oura_save_token()
         elif self.path == '/api/restore-backup':
             self.handle_restore_backup()
         elif self.path == '/api/gemini-audit':
@@ -576,13 +580,17 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 except Exception:
                     pass
 
+            oura_token = app_states.get('oura_token')
+            if (not oura_token or oura_token in ('""', "''", 'null', 'undefined')) and isinstance(app_states.get('oura_oauth_data'), dict):
+                oura_token = app_states.get('oura_oauth_data', {}).get('access_token')
+
             self._send_json(200, {
                 "ok": True,
                 "logs": logs,
                 "chronoTrial": app_states.get('chrono_trial'),
                 "specialistTracking": app_states.get('specialist_tracking'),
                 "foodDiary": app_states.get('food_diary'),
-                "ouraToken": app_states.get('oura_token'),
+                "ouraToken": oura_token or '',
                 "count": len(logs)
             })
         except Exception as e:
@@ -633,12 +641,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
                 """, ('food_diary', json.dumps(food_diary)))
 
-            if oura_token is not None:
+            # ONLY update oura_token if a genuine non-empty token string was sent (never overwrite with empty string)
+            if oura_token and isinstance(oura_token, str) and oura_token.strip() and oura_token.strip() not in ('""', "''", 'null', 'undefined'):
                 cur.execute(f"""
                     INSERT INTO app_state (key, value, updated_at)
                     VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
                     ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
-                """, ('oura_token', json.dumps(oura_token)))
+                """, ('oura_token', json.dumps(oura_token.strip())))
 
             conn.commit()
             conn.close()
@@ -858,6 +867,182 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             print(f"⚠️ Oura token exchange error: {e}")
             self._send_json(500, {"ok": False, "error": str(e)})
 
+    def _refresh_oura_token(self, refresh_token):
+        if not refresh_token:
+            return None
+        try:
+            post_params = {
+                'grant_type': 'refresh_token',
+                'refresh_token': refresh_token,
+                'client_id': OURA_CLIENT_ID,
+                'client_secret': OURA_CLIENT_SECRET
+            }
+            encoded_data = urllib.parse.urlencode(post_params).encode('utf-8')
+            req = urllib.request.Request(
+                'https://api.ouraring.com/oauth/token',
+                data=encoded_data,
+                headers={
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'User-Agent': 'EmmaHealthTracker/1.0'
+                }
+            )
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                token_data = json.loads(resp.read().decode('utf-8'))
+                new_access_token = token_data.get('access_token')
+                if new_access_token:
+                    conn = get_db_connection()
+                    is_pg = hasattr(conn, 'status')
+                    ph = "%s" if is_pg else "?"
+                    cur = conn.cursor()
+                    cur.execute(f"""
+                        INSERT INTO app_state (key, value, updated_at)
+                        VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
+                        ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+                    """, ('oura_token', json.dumps(new_access_token)))
+                    cur.execute(f"""
+                        INSERT INTO app_state (key, value, updated_at)
+                        VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
+                        ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+                    """, ('oura_oauth_data', json.dumps(token_data)))
+                    conn.commit()
+                    conn.close()
+                    self._update_disk_snapshots()
+                    return new_access_token
+        except Exception as e:
+            print(f"⚠️ Oura token auto-refresh error: {e}")
+        return None
+
+    def handle_oura_save_token(self):
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            raw_body = self.rfile.read(content_length).decode('utf-8')
+            payload = json.loads(raw_body) if raw_body else {}
+            token = payload.get('token')
+            if not token or not isinstance(token, str) or not token.strip():
+                self._send_json(400, {"ok": False, "error": "Missing token"})
+                return
+
+            clean_token = token.strip().strip('"').strip("'")
+            conn = get_db_connection()
+            is_pg = hasattr(conn, 'status')
+            ph = "%s" if is_pg else "?"
+            cur = conn.cursor()
+            cur.execute(f"""
+                INSERT INTO app_state (key, value, updated_at)
+                VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
+                ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+            """, ('oura_token', json.dumps(clean_token)))
+            conn.commit()
+            conn.close()
+
+            self._update_disk_snapshots()
+
+            self._send_json(200, {
+                "ok": True,
+                "message": "Oura token permanently backed up to cloud database"
+            })
+        except Exception as e:
+            self._send_json(500, {"ok": False, "error": str(e)})
+
+    def handle_oura_test_connection(self):
+        try:
+            # 1. Resolve token (from header, query param, or DB)
+            token = None
+            auth_header = self.headers.get('Authorization', '')
+            if auth_header.startswith('Bearer '):
+                token = auth_header.split(' ', 1)[1].strip()
+
+            parsed_url = urllib.parse.urlparse(self.path)
+            q_params = urllib.parse.parse_qs(parsed_url.query)
+            if not token and 'token' in q_params:
+                token = q_params['token'][0].strip()
+
+            refresh_token = None
+            if not token or token in ('null', 'undefined', '""', "''"):
+                token = None
+                try:
+                    conn = get_db_connection()
+                    cur = conn.cursor()
+                    cur.execute("SELECT key, value FROM app_state WHERE key IN ('oura_token', 'oura_oauth_data')")
+                    rows = cur.fetchall()
+                    conn.close()
+                    for k, raw_val in rows:
+                        if raw_val:
+                            try:
+                                parsed = json.loads(raw_val)
+                                if k == 'oura_token' and isinstance(parsed, str) and parsed.strip() and parsed not in ('""', "''", 'null'):
+                                    token = parsed.strip()
+                                elif k == 'oura_oauth_data' and isinstance(parsed, dict):
+                                    if not token and parsed.get('access_token'):
+                                        token = parsed['access_token'].strip()
+                                    if parsed.get('refresh_token'):
+                                        refresh_token = parsed['refresh_token'].strip()
+                            except Exception:
+                                if k == 'oura_token' and isinstance(raw_val, str) and raw_val.strip() and raw_val not in ('""', "''", 'null'):
+                                    token = raw_val.strip()
+                except Exception as db_err:
+                    print(f"⚠️ DB token lookup error: {db_err}")
+
+            if not token:
+                self._send_json(200, {
+                    "ok": False,
+                    "connected": False,
+                    "error": "No Oura token found. Please tap '1-Tap Authorize with Oura' to connect your ring."
+                })
+                return
+
+            if isinstance(token, str):
+                token = token.strip().strip('"').strip("'")
+
+            # Test connection by querying Oura API personal_info
+            url = "https://api.ouraring.com/v2/usercollection/personal_info"
+            req = urllib.request.Request(
+                url,
+                headers={
+                    'Authorization': f'Bearer {token}',
+                    'User-Agent': 'EmmaHealthTracker/1.0'
+                }
+            )
+
+            try:
+                with urllib.request.urlopen(req, timeout=12) as resp:
+                    data = json.loads(resp.read().decode('utf-8'))
+                    self._send_json(200, {
+                        "ok": True,
+                        "connected": True,
+                        "token": token,
+                        "email": data.get('email', ''),
+                        "age": data.get('age'),
+                        "biological_sex": data.get('biological_sex', 'female'),
+                        "message": "🟢 Oura Ring Cloud API connection verified! Ready for tonight's sleep tracking."
+                    })
+                    return
+            except urllib.error.HTTPError as he:
+                if he.code == 401 and refresh_token:
+                    new_token = self._refresh_oura_token(refresh_token)
+                    if new_token:
+                        self._send_json(200, {
+                            "ok": True,
+                            "connected": True,
+                            "token": new_token,
+                            "refreshed": True,
+                            "message": "🟢 Oura token refreshed and verified active! Ready for tonight."
+                        })
+                        return
+                self._send_json(200, {
+                    "ok": False,
+                    "connected": False,
+                    "error": f"Oura API returned error ({he.code}). Please re-authorize with 1-Tap."
+                })
+            except Exception as ex:
+                self._send_json(200, {
+                    "ok": False,
+                    "connected": False,
+                    "error": f"Oura test connection error: {str(ex)}"
+                })
+        except Exception as e:
+            self._send_json(500, {"ok": False, "error": str(e)})
+
     def handle_oura_proxy_data(self):
         try:
             # 1. Resolve Oura token (from Header, query param, or database)
@@ -871,19 +1056,29 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             if not token and 'token' in q_params:
                 token = q_params['token'][0].strip()
 
-            if not token:
+            refresh_token = None
+            if not token or token in ('null', 'undefined', '""', "''"):
+                token = None
                 try:
                     conn = get_db_connection()
                     cur = conn.cursor()
-                    cur.execute("SELECT value FROM app_state WHERE key = 'oura_token'")
-                    row = cur.fetchone()
+                    cur.execute("SELECT key, value FROM app_state WHERE key IN ('oura_token', 'oura_oauth_data')")
+                    rows = cur.fetchall()
                     conn.close()
-                    if row and row[0]:
-                        raw_val = row[0]
-                        try:
-                            token = json.loads(raw_val)
-                        except Exception:
-                            token = raw_val
+                    for k, raw_val in rows:
+                        if raw_val:
+                            try:
+                                parsed = json.loads(raw_val)
+                                if k == 'oura_token' and isinstance(parsed, str) and parsed.strip() and parsed not in ('""', "''", 'null'):
+                                    token = parsed.strip()
+                                elif k == 'oura_oauth_data' and isinstance(parsed, dict):
+                                    if not token and parsed.get('access_token'):
+                                        token = parsed['access_token'].strip()
+                                    if parsed.get('refresh_token'):
+                                        refresh_token = parsed['refresh_token'].strip()
+                            except Exception:
+                                if k == 'oura_token' and isinstance(raw_val, str) and raw_val.strip() and raw_val not in ('""', "''", 'null'):
+                                    token = raw_val.strip()
                 except Exception as db_err:
                     print(f"⚠️ DB token lookup warning: {db_err}")
 
@@ -916,6 +1111,22 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                         res_json = json.loads(resp.read().decode('utf-8'))
                         return res_json.get('data', [])
                 except urllib.error.HTTPError as he:
+                    if he.code == 401 and refresh_token:
+                        new_t = self._refresh_oura_token(refresh_token)
+                        if new_t:
+                            retry_req = urllib.request.Request(
+                                url,
+                                headers={
+                                    'Authorization': f'Bearer {new_t}',
+                                    'User-Agent': 'EmmaHealthTracker/1.0'
+                                }
+                            )
+                            try:
+                                with urllib.request.urlopen(retry_req, timeout=15) as retry_resp:
+                                    retry_json = json.loads(retry_resp.read().decode('utf-8'))
+                                    return retry_json.get('data', [])
+                            except Exception:
+                                pass
                     print(f"⚠️ Oura API collection '{collection_name}' returned HTTP {he.code}")
                     return []
                 except Exception as ex:
@@ -952,12 +1163,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 if d:
                     if d not in days:
                         days[d] = {"date": d}
-                    # Prefer the primary/longest sleep session
-                    if item.get('type') == 'long_sleep' or 'rhr' not in days[d]:
+                    duration = item.get('total_sleep_duration') or item.get('time_in_bed') or 0
+                    # Prefer the primary nocturnal sleep session over short daytime naps
+                    if 'total_duration' not in days[d] or duration > days[d].get('total_duration', 0) or item.get('type') == 'long_sleep':
                         days[d]["rhr"] = item.get('lowest_heart_rate') or item.get('average_heart_rate')
                         days[d]["hrv"] = item.get('average_hrv')
                         days[d]["bedtime_start"] = item.get('bedtime_start')
                         days[d]["bedtime_end"] = item.get('bedtime_end')
+                        days[d]["total_duration"] = duration
 
             for item in daily_activity:
                 d = item.get('day')
@@ -969,6 +1182,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
             self._send_json(200, {
                 "ok": True,
+                "token": token,
                 "count": len(days),
                 "start_date": start_date,
                 "end_date": end_date,
