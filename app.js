@@ -3842,18 +3842,26 @@ function searchHistoryLogs() {
 // ============================================================================
 // 7. UNIFIED COMPREHENSIVE DAILY CHECK-IN HANDLER
 // ============================================================================
-var selectedBristolVal = 'none';
-var selectedMoodVal = 'flat';
-var selectedAlcoholVal = 'none';
-var selectedSexDriveVal = 'normal';
-var selectedFastingVal = 'kept_40';
+var selectedBristolVal = '';
+var selectedMoodVal = '';
+var selectedAlcoholVal = '';
+var selectedSexDriveVal = '';
+var selectedFastingVal = '';
 var selectedTags = new Set();
-var selectedSennaTeaVal = false;
+var selectedSennaTeaVal = null;
 
 function setSennaTeaQuick(had) {
-  selectedSennaTeaVal = !!had;
+  // Allow tap-to-deselect: if clicking the currently active choice, reset to neutral null
+  if (selectedSennaTeaVal === had) {
+    selectedSennaTeaVal = null;
+    const chk = document.getElementById('logSennaTea');
+    if (chk) chk.checked = false;
+    updateSennaTeaCard(null);
+    return;
+  }
+  selectedSennaTeaVal = had;
   const chk = document.getElementById('logSennaTea');
-  if (chk) chk.checked = !!had;
+  if (chk) chk.checked = had === true;
   updateSennaTeaCard(had);
 }
 
@@ -3862,7 +3870,7 @@ function updateSennaTeaCard(had) {
   const btnNone = document.getElementById('sennaBtn-none');
   const btnHad = document.getElementById('sennaBtn-had');
 
-  if (had) {
+  if (had === true) {
     if (badge) {
       badge.innerText = "Had Today 🍵";
       badge.className = "text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs";
@@ -3873,16 +3881,28 @@ function updateSennaTeaCard(had) {
     if (btnNone) {
       btnNone.className = "senna-choice-btn p-2 rounded-xl border border-brand-border text-xs font-semibold bg-white text-brand-textMuted hover:border-slate-400 transition-all flex items-center justify-center gap-1.5";
     }
-  } else {
+  } else if (had === false) {
     if (badge) {
-      badge.innerText = "None Reported";
-      badge.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200";
+      badge.innerText = "No Senna Today 🚫";
+      badge.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300";
     }
     if (btnHad) {
       btnHad.className = "senna-choice-btn p-2 rounded-xl border border-emerald-200 text-xs font-semibold bg-white text-emerald-900 hover:bg-emerald-50 transition-all flex items-center justify-center gap-1.5";
     }
     if (btnNone) {
       btnNone.className = "senna-choice-btn p-2 rounded-xl border border-slate-600 text-xs font-extrabold bg-slate-700 text-white shadow-xs transition-all flex items-center justify-center gap-1.5";
+    }
+  } else {
+    // Completely unselected / clean state
+    if (badge) {
+      badge.innerText = "Tap to choose";
+      badge.className = "text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200";
+    }
+    if (btnHad) {
+      btnHad.className = "senna-choice-btn p-2 rounded-xl border border-emerald-200 text-xs font-semibold bg-white text-emerald-900 hover:bg-emerald-50 transition-all flex items-center justify-center gap-1.5";
+    }
+    if (btnNone) {
+      btnNone.className = "senna-choice-btn p-2 rounded-xl border border-brand-border text-xs font-semibold bg-white text-brand-textMuted hover:border-slate-400 transition-all flex items-center justify-center gap-1.5";
     }
   }
 }
@@ -3961,10 +3981,18 @@ function openQuickLogModal() {
   const entry = logs.find(l => l.date === targetDate);
   const cycleInfo = getCycleInfoForDate(targetDate);
 
+  // Reset active selection trackers to null so opening modal never triggers tap-to-toggle
+  selectedFastingVal = null;
+  selectedBristolVal = null;
+  selectedAlcoholVal = null;
+  selectedMoodVal = null;
+  selectedSexDriveVal = null;
+  selectedSennaTeaVal = null;
+
   // 1. Vitals & Temperature
   const tempInput = document.getElementById('logTemp');
   if (tempInput) {
-    tempInput.value = (entry && entry.temp) ? entry.temp : (cycleInfo.temp || '');
+    tempInput.value = (entry && entry.temp) ? entry.temp : '';
   }
 
   // Oura Ring inputs
@@ -3976,7 +4004,7 @@ function openQuickLogModal() {
   if (ouraHrv) ouraHrv.value = entry?.ouraHrv || entry?.hrv || '';
 
   // 2. Morning Fasting Routine
-  const fastingAdherence = entry?.fastingAdherence || 'kept_40';
+  const fastingAdherence = entry?.fastingAdherence || '';
   selectFasting(fastingAdherence);
 
   const warmTrigger = document.getElementById('logWarmTrigger');
@@ -4000,15 +4028,21 @@ function openQuickLogModal() {
   }
 
   // Senna Tea (Rescue Laxative Support)
-  const sennaVal = !!(
-    entry?.sennaTea ??
-    ((entry?.puffiness && entry.puffiness.some(p => p.toLowerCase().includes('senna'))) ||
-     (entry?.medNotes && entry.medNotes.toLowerCase().includes('senna')))
-  );
+  let sennaVal = null;
+  if (entry) {
+    if (entry.sennaTea !== undefined && entry.sennaTea !== null) {
+      sennaVal = !!entry.sennaTea;
+    } else if (
+      (entry.puffiness && entry.puffiness.some(p => p.toLowerCase().includes('senna'))) ||
+      (entry.medNotes && entry.medNotes.toLowerCase().includes('senna'))
+    ) {
+      sennaVal = true;
+    }
+  }
   setSennaTeaQuick(sennaVal);
 
   // 3. Bowel Evacuation & Nuance
-  const bristolVal = entry?.bristol || 'none';
+  const bristolVal = entry?.bristol || '';
   selectBristol(bristolVal);
   if (entry?.stoolNuance) {
     selectStoolNuance(entry.stoolNuance);
@@ -4020,7 +4054,7 @@ function openQuickLogModal() {
 
   const diaphragmSlider = document.getElementById('logDiaphragm');
   if (diaphragmSlider) {
-    const dVal = (entry && entry.diaphragmBloat !== undefined) ? entry.diaphragmBloat : 4;
+    const dVal = (entry && entry.diaphragmBloat !== undefined) ? entry.diaphragmBloat : 0;
     diaphragmSlider.value = dVal;
     updateDiaphragmSliderDisplay(dVal);
   }
@@ -4066,9 +4100,9 @@ function openQuickLogModal() {
   });
 
   // 6. Drinks, Mood, Sex Drive & Notes
-  selectAlcohol(entry?.alcohol || 'none');
-  selectMood(entry?.mood || 'overthinking');
-  selectSexDrive(entry?.sexDrive || 'normal');
+  selectAlcohol(entry?.alcohol || '');
+  selectMood(entry?.mood || '');
+  selectSexDrive(entry?.sexDrive || '');
 
   const exerciseInput = document.getElementById('logExercise');
   if (exerciseInput) {
@@ -4362,16 +4396,21 @@ async function polishVoiceNoteWithAi() {
 }
 
 function selectFasting(val) {
-  selectedFastingVal = val;
+  if (val && selectedFastingVal === val) {
+    val = '';
+  }
+  selectedFastingVal = val || '';
   const inputEl = document.getElementById('logFastingAdherence');
-  if (inputEl) inputEl.value = val;
+  if (inputEl) inputEl.value = selectedFastingVal;
 
   document.querySelectorAll('.fasting-btn').forEach(btn => {
     btn.classList.remove('ring-2', 'ring-purple-600', 'bg-purple-50', 'border-purple-500', 'shadow-xs');
   });
-  const activeBtn = document.getElementById(`fastBtn-${val}`);
-  if (activeBtn) {
-    activeBtn.classList.add('ring-2', 'ring-purple-600', 'bg-purple-50', 'border-purple-500', 'shadow-xs');
+  if (selectedFastingVal) {
+    const activeBtn = document.getElementById(`fastBtn-${selectedFastingVal}`);
+    if (activeBtn) {
+      activeBtn.classList.add('ring-2', 'ring-purple-600', 'bg-purple-50', 'border-purple-500', 'shadow-xs');
+    }
   }
 }
 
@@ -4379,23 +4418,29 @@ function updateDiaphragmSliderDisplay(val) {
   const el = document.getElementById('diaphragmVal');
   if (!el) return;
   const num = parseInt(val, 10);
-  let label = 'Flat & Free';
+  let label = 'Slide to rate tightness';
   if (num >= 8) label = 'Severe Gas Trap';
   else if (num >= 6) label = 'Left Rib Pressure';
   else if (num >= 4) label = 'Moderate Tightness';
   else if (num >= 1) label = 'Mild Fullness';
+  else if (num === 0) label = 'Relaxed & Flat (0/10)';
   el.innerText = `${num} / 10 (${label})`;
 }
 
 function selectBristol(val) {
-  selectedBristolVal = val;
+  if (val && selectedBristolVal === val) {
+    val = '';
+  }
+  selectedBristolVal = val || '';
   const inputEl = document.getElementById('logBristol');
-  if (inputEl) inputEl.value = val;
+  if (inputEl) inputEl.value = selectedBristolVal;
   document.querySelectorAll('.bristol-btn').forEach(btn => btn.classList.remove('selected', 'border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50'));
   
-  const activeBtn = Array.from(document.querySelectorAll('.bristol-btn')).find(b => b.getAttribute('onclick')?.includes(`'${val}'`));
-  if (activeBtn) {
-    activeBtn.classList.add('selected', 'border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50');
+  if (selectedBristolVal) {
+    const activeBtn = Array.from(document.querySelectorAll('.bristol-btn')).find(b => b.getAttribute('onclick')?.includes(`'${selectedBristolVal}'`));
+    if (activeBtn) {
+      activeBtn.classList.add('selected', 'border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50');
+    }
   }
 
   const nuanceContainer = document.getElementById('stoolNuanceContainer');
@@ -4403,7 +4448,7 @@ function selectBristol(val) {
   const nuanceInput = document.getElementById('logStoolNuance');
 
   if (nuanceContainer && nuanceButtons) {
-    if (val === 'liquid') {
+    if (selectedBristolVal === 'liquid') {
       nuanceContainer.classList.remove('hidden');
       nuanceButtons.innerHTML = `
         <button type="button" onclick="selectStoolNuance('bypass')" id="nuanceBtn-bypass" class="p-2 rounded-xl border border-purple-200 bg-white text-[11px] font-bold text-sky-900 hover:border-sky-400 text-left transition-all ring-2 ring-purple-600 bg-purple-100/70">
@@ -4416,7 +4461,7 @@ function selectBristol(val) {
         </button>
       `;
       selectStoolNuance('bypass');
-    } else if (val === 'normal') {
+    } else if (selectedBristolVal === 'normal') {
       nuanceContainer.classList.remove('hidden');
       nuanceButtons.innerHTML = `
         <button type="button" onclick="selectStoolNuance('formed')" id="nuanceBtn-formed" class="col-span-2 p-2 rounded-xl border-2 border-emerald-300 bg-emerald-50 text-[11px] font-bold text-emerald-900 text-center transition-all ring-2 ring-purple-600">
@@ -4425,7 +4470,7 @@ function selectBristol(val) {
         </button>
       `;
       selectStoolNuance('formed');
-    } else if (val === 'hard') {
+    } else if (selectedBristolVal === 'hard') {
       nuanceContainer.classList.remove('hidden');
       nuanceButtons.innerHTML = `
         <button type="button" onclick="selectStoolNuance('hard')" id="nuanceBtn-hard" class="col-span-2 p-2 rounded-xl border-2 border-amber-300 bg-amber-50 text-[11px] font-bold text-amber-900 text-center transition-all ring-2 ring-purple-600">
@@ -4454,21 +4499,26 @@ function selectStoolNuance(nuance) {
 }
 
 function selectMood(val) {
-  selectedMoodVal = val;
+  if (val && selectedMoodVal === val) {
+    val = '';
+  }
+  selectedMoodVal = val || '';
   const input = document.getElementById('logMood');
-  if (input) input.value = val;
+  if (input) input.value = selectedMoodVal;
   document.querySelectorAll('.mood-btn').forEach(btn => {
     btn.classList.remove('selected', 'border-purple-600', 'border-emerald-500', 'border-amber-500', 'border-rose-500', 'border-orange-500', 'border-indigo-500', 'ring-2', 'ring-purple-500', 'ring-emerald-500', 'ring-amber-500', 'ring-rose-500', 'ring-orange-500', 'ring-indigo-500', 'bg-purple-50', 'bg-emerald-50', 'bg-amber-50', 'bg-rose-50', 'bg-orange-50', 'bg-indigo-50');
   });
-  const activeBtn = Array.from(document.querySelectorAll('.mood-btn')).find(b => b.getAttribute('onclick')?.includes(`'${val}'`));
-  if (activeBtn) {
-    activeBtn.classList.add('selected');
-    if (val === 'calm') activeBtn.classList.add('border-emerald-500', 'ring-2', 'ring-emerald-500', 'bg-emerald-50');
-    else if (val === 'happy') activeBtn.classList.add('border-amber-500', 'ring-2', 'ring-amber-500', 'bg-amber-50');
-    else if (val === 'edgy') activeBtn.classList.add('border-rose-500', 'ring-2', 'ring-rose-500', 'bg-rose-50');
-    else if (val === 'anxious') activeBtn.classList.add('border-orange-500', 'ring-2', 'ring-orange-500', 'bg-orange-50');
-    else if (val === 'overthinking') activeBtn.classList.add('border-indigo-500', 'ring-2', 'ring-indigo-500', 'bg-indigo-50');
-    else activeBtn.classList.add('border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50');
+  if (selectedMoodVal) {
+    const activeBtn = Array.from(document.querySelectorAll('.mood-btn')).find(b => b.getAttribute('onclick')?.includes(`'${selectedMoodVal}'`));
+    if (activeBtn) {
+      activeBtn.classList.add('selected');
+      if (selectedMoodVal === 'calm') activeBtn.classList.add('border-emerald-500', 'ring-2', 'ring-emerald-500', 'bg-emerald-50');
+      else if (selectedMoodVal === 'happy') activeBtn.classList.add('border-amber-500', 'ring-2', 'ring-amber-500', 'bg-amber-50');
+      else if (selectedMoodVal === 'edgy') activeBtn.classList.add('border-rose-500', 'ring-2', 'ring-rose-500', 'bg-rose-50');
+      else if (selectedMoodVal === 'anxious') activeBtn.classList.add('border-orange-500', 'ring-2', 'ring-orange-500', 'bg-orange-50');
+      else if (selectedMoodVal === 'overthinking') activeBtn.classList.add('border-indigo-500', 'ring-2', 'ring-indigo-500', 'bg-indigo-50');
+      else activeBtn.classList.add('border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50');
+    }
   }
 }
 
@@ -4486,21 +4536,31 @@ function insertHeadspaceChip(text) {
 }
 
 function selectAlcohol(val) {
-  selectedAlcoholVal = val;
+  if (val && selectedAlcoholVal === val) {
+    val = '';
+  }
+  selectedAlcoholVal = val || '';
   const input = document.getElementById('logAlcohol');
-  if (input) input.value = val;
+  if (input) input.value = selectedAlcoholVal;
   document.querySelectorAll('.alc-btn').forEach(btn => btn.classList.remove('selected', 'border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50'));
-  const activeBtn = Array.from(document.querySelectorAll('.alc-btn')).find(b => b.getAttribute('onclick')?.includes(`'${val}'`));
-  if (activeBtn) activeBtn.classList.add('selected', 'border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50');
+  if (selectedAlcoholVal) {
+    const activeBtn = Array.from(document.querySelectorAll('.alc-btn')).find(b => b.getAttribute('onclick')?.includes(`'${selectedAlcoholVal}'`));
+    if (activeBtn) activeBtn.classList.add('selected', 'border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50');
+  }
 }
 
 function selectSexDrive(val) {
-  selectedSexDriveVal = val;
+  if (val && selectedSexDriveVal === val) {
+    val = '';
+  }
+  selectedSexDriveVal = val || '';
   const input = document.getElementById('logSexDrive');
-  if (input) input.value = val;
+  if (input) input.value = selectedSexDriveVal;
   document.querySelectorAll('.sexdrive-btn').forEach(btn => btn.classList.remove('selected', 'border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50'));
-  const activeBtn = Array.from(document.querySelectorAll('.sexdrive-btn')).find(b => b.getAttribute('onclick')?.includes(`'${val}'`));
-  if (activeBtn) activeBtn.classList.add('selected', 'border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50');
+  if (selectedSexDriveVal) {
+    const activeBtn = Array.from(document.querySelectorAll('.sexdrive-btn')).find(b => b.getAttribute('onclick')?.includes(`'${selectedSexDriveVal}'`));
+    if (activeBtn) activeBtn.classList.add('selected', 'border-purple-600', 'ring-2', 'ring-purple-500', 'bg-purple-50');
+  }
 }
 
 function toggleTag(btn) {
@@ -4564,9 +4624,12 @@ function updateDashboardCheckInBadge(entry) {
       } else if (entry.fastingAdherence === 'broke_early') {
         fStatus.innerText = "Broke Early ⚠️";
         fStatus.className = "font-extrabold text-amber-700";
-      } else {
+      } else if (entry.fastingAdherence === 'not_taken') {
         fStatus.innerText = "Skipped";
         fStatus.className = "font-extrabold text-slate-500";
+      } else {
+        fStatus.innerText = "Pending";
+        fStatus.className = "font-extrabold text-slate-400";
       }
     }
 
@@ -4593,12 +4656,14 @@ function updateDashboardCheckInBadge(entry) {
     }
 
     if (senStatus) {
-      const hasSenna = !!(entry.sennaTea ?? (entry.puffiness && entry.puffiness.includes('🍵 Senna Tea Taken')));
-      if (hasSenna) {
+      if (entry.sennaTea === true || (entry.puffiness && entry.puffiness.includes('🍵 Senna Tea Taken'))) {
         senStatus.innerText = "Had 🍵";
         senStatus.className = "font-extrabold text-emerald-700";
-      } else {
+      } else if (entry.sennaTea === false) {
         senStatus.innerText = "None";
+        senStatus.className = "font-extrabold text-slate-400";
+      } else {
+        senStatus.innerText = "Pending";
         senStatus.className = "font-extrabold text-slate-400";
       }
     }
@@ -4616,9 +4681,12 @@ function updateDashboardCheckInBadge(entry) {
       } else if (entry.bristol === 'liquid') {
         stStatus.innerText = "Liquid";
         stStatus.className = "font-extrabold text-sky-700";
-      } else {
-        stStatus.innerText = entry.movement || "None";
+      } else if (entry.bristol === 'none') {
+        stStatus.innerText = "None";
         stStatus.className = "font-extrabold text-slate-600";
+      } else {
+        stStatus.innerText = entry.movement || "Pending";
+        stStatus.className = "font-extrabold text-slate-400";
       }
     }
 
@@ -4627,7 +4695,7 @@ function updateDashboardCheckInBadge(entry) {
         dStatus.innerText = "Completed 🫁";
         dStatus.className = "font-extrabold text-teal-700";
       } else {
-        dStatus.innerText = `${entry.diaphragmBloat || 4}/10 Bloat`;
+        dStatus.innerText = `${entry.diaphragmBloat ?? 0}/10 Bloat`;
         dStatus.className = "font-extrabold text-slate-500";
       }
     }
@@ -7165,18 +7233,18 @@ function handleQuickLogSubmit(e) {
   const ouraRhrVal = parseInt(document.getElementById('logOuraRhr')?.value, 10) || null;
   const ouraHrvVal = parseInt(document.getElementById('logOuraHrv')?.value, 10) || null;
 
-  const fastingVal = document.getElementById('logFastingAdherence')?.value || selectedFastingVal || 'kept_40';
+  const fastingVal = document.getElementById('logFastingAdherence')?.value || selectedFastingVal || '';
   const warmTriggerVal = document.getElementById('logWarmTrigger')?.checked || false;
   const electrolytesTaken = document.getElementById('logElectrolytesTaken')?.checked || false;
   const eaasTaken = document.getElementById('logEaasTaken')?.checked || false;
-  const sennaTeaTaken = document.getElementById('logSennaTea')?.checked || false;
+  const sennaTeaTaken = selectedSennaTeaVal === true || (document.getElementById('logSennaTea')?.checked && selectedSennaTeaVal !== false) || false;
   const diaphragmResetDone = document.getElementById('logDiaphragmResetDone')?.checked || false;
-  const diaphragmVal = parseInt(document.getElementById('logDiaphragm')?.value || '4', 10);
+  const diaphragmVal = parseInt(document.getElementById('logDiaphragm')?.value || '0', 10);
   const stoolNuance = document.getElementById('logStoolNuance')?.value || '';
-  const alcoholVal = document.getElementById('logAlcohol')?.value || selectedAlcoholVal || 'none';
-  const moodVal = document.getElementById('logMood')?.value || selectedMoodVal || 'flat';
-  const sexDriveVal = document.getElementById('logSexDrive')?.value || selectedSexDriveVal || 'normal';
-  const exerciseVal = document.getElementById('logExercise')?.value?.trim() || 'Gentle';
+  const alcoholVal = document.getElementById('logAlcohol')?.value || selectedAlcoholVal || '';
+  const moodVal = document.getElementById('logMood')?.value || selectedMoodVal || '';
+  const sexDriveVal = document.getElementById('logSexDrive')?.value || selectedSexDriveVal || '';
+  const exerciseVal = document.getElementById('logExercise')?.value?.trim() || '';
   const noteVal = document.getElementById('logNote')?.value?.trim() || '';
 
   let puffinessArr = Array.from(selectedTags);
@@ -7204,13 +7272,15 @@ function handleQuickLogSubmit(e) {
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const displayDate = `${day}th ${monthNames[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
 
-  let movementText = 'None';
+  let movementText = '';
   if (selectedBristolVal === 'liquid') {
     movementText = stoolNuance === 'bypass' ? 'Watery bypass (liquid around solid plug)' : 'Watery liquid purge';
   } else if (selectedBristolVal === 'normal') {
     movementText = stoolNuance === 'formed' ? 'Formed Bristol 4 (Step-down milestone)' : 'Satisfying movement';
   } else if (selectedBristolVal === 'hard') {
     movementText = stoolNuance === 'hard' ? 'Hard / small pellet' : 'Hard / small';
+  } else if (selectedBristolVal === 'none') {
+    movementText = 'None';
   }
 
   const cycleInfo = getCycleInfoForDate(dateVal);
@@ -7224,7 +7294,16 @@ function handleQuickLogSubmit(e) {
     flat: '☁️ Flat / Low Energy',
     great: '☀️ Free & Calm'
   };
-  const emotionText = moodLabels[moodVal] || 'Tired / flat';
+  const emotionText = moodVal ? (moodLabels[moodVal] || moodVal) : '';
+
+  let medNotesText = '';
+  if (fastingVal === 'kept_40') {
+    medNotesText = "Morning Linaclotide taken with 40-min fast";
+  } else if (fastingVal === 'broke_early') {
+    medNotesText = "Linaclotide taken (fast broken early)";
+  } else if (fastingVal === 'not_taken') {
+    medNotesText = "Linaclotide skipped";
+  }
 
   const newEntry = {
     id: dateVal,
@@ -7246,7 +7325,7 @@ function handleQuickLogSubmit(e) {
     electrolyteBuffered: electrolytesTaken,
     electrolytesTaken: electrolytesTaken,
     eaasTaken: eaasTaken,
-    sennaTea: sennaTeaTaken,
+    sennaTea: selectedSennaTeaVal === true ? true : (selectedSennaTeaVal === false ? false : null),
     diaphragmResetDone: diaphragmResetDone,
     movement: movementText,
     bristol: selectedBristolVal,
@@ -7261,9 +7340,9 @@ function handleQuickLogSubmit(e) {
     mood: moodVal,
     sexDrive: sexDriveVal,
     alcohol: alcoholVal,
-    symptoms: noteVal || (movementText !== 'None' ? movementText : "Daily check-in logged"),
-    medNotes: fastingVal === 'kept_40' ? "Morning Linaclotide taken with 40-min fast" : (fastingVal === 'broke_early' ? "Linaclotide taken (fast broken early)" : "Linaclotide skipped"),
-    exercise: exerciseVal,
+    symptoms: noteVal || (movementText ? movementText : "Daily check-in logged"),
+    medNotes: medNotesText,
+    exercise: exerciseVal || 'Gentle',
     notes: noteVal || "Saved via Emma's Unified Daily Check-In.",
     headspaceNotes: noteVal
   };

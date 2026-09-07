@@ -1567,7 +1567,7 @@
               <span class="text-[8px] text-slate-500 block mt-0.5">Not Taken Today</span>
             </button>
           </div>
-          <input type="hidden" id="logFastingAdherence" value="kept_40">
+          <input type="hidden" id="logFastingAdherence" value="">
 
           <!-- Warm Gastrocolic Reflex Trigger -->
           <div class="p-3 rounded-2xl bg-slate-50 border border-brand-border">
@@ -1644,8 +1644,8 @@
                       <span class="text-[11px] font-bold text-emerald-950 flex items-center gap-1">
                         <span>🍵</span> <span>Senna Tea (Rescue Laxative Support)</span>
                       </span>
-                      <span id="sennaTeaBadge" class="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                        None Reported
+                      <span id="sennaTeaBadge" class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">
+                        Tap to choose
                       </span>
                     </div>
                     <p class="text-[10px] text-emerald-900/85 leading-relaxed">
@@ -1656,7 +1656,7 @@
 
                 <!-- 1-Tap Big Choice Buttons for ADHD Ease (Zero forced typing) -->
                 <div class="grid grid-cols-2 gap-2 pt-0.5">
-                  <button type="button" onclick="setSennaTeaQuick(false)" id="sennaBtn-none" class="senna-choice-btn p-2 rounded-xl border border-slate-600 text-xs font-extrabold bg-slate-700 text-white shadow-xs transition-all flex items-center justify-center gap-1.5">
+                  <button type="button" onclick="setSennaTeaQuick(false)" id="sennaBtn-none" class="senna-choice-btn p-2 rounded-xl border border-brand-border text-xs font-semibold bg-white text-brand-textMuted hover:border-slate-400 transition-all flex items-center justify-center gap-1.5">
                     <span>🚫</span>
                     <span>No Senna Tea Today</span>
                   </button>
@@ -1693,7 +1693,7 @@
               🌊 Liquid
             </button>
           </div>
-          <input type="hidden" id="logBristol" value="none">
+          <input type="hidden" id="logBristol" value="">
 
           <!-- Stool Nuance Sub-Picker -->
           <div id="stoolNuanceContainer" class="hidden p-2.5 rounded-2xl bg-purple-50/80 border border-purple-200/70 space-y-1.5 text-left animate-fadeIn">
@@ -1731,9 +1731,9 @@
           <div>
             <div class="flex justify-between text-[11px] font-bold text-brand-textDark mb-1">
               <span>Tummy Tightness / Rib Fullness</span>
-              <span id="diaphragmVal" class="text-brand-coral font-extrabold">4 / 10 (Moderate Tightness)</span>
+              <span id="diaphragmVal" class="text-brand-coral font-extrabold">0 / 10 (Slide to rate tightness)</span>
             </div>
-            <input type="range" min="0" max="10" value="4" id="logDiaphragm" oninput="updateDiaphragmSliderDisplay(this.value)" class="w-full accent-brand-coral">
+            <input type="range" min="0" max="10" value="0" id="logDiaphragm" oninput="updateDiaphragmSliderDisplay(this.value)" class="w-full accent-brand-coral">
             <div class="flex justify-between text-[9px] text-brand-textMuted px-0.5">
               <span>0: Relaxed & Flat</span>
               <span>5: Moderate Tightness</span>
@@ -1838,7 +1838,7 @@
               <span class="text-[9px] text-brand-coral font-semibold">Slows colon transit & lowers dopamine</span>
             </div>
             <div class="grid grid-cols-4 gap-1.5 text-center">
-              <button type="button" onclick="selectAlcohol('none')" class="alc-btn p-2 rounded-xl border border-brand-border text-xs font-semibold hover:border-brand-sage selected">
+              <button type="button" onclick="selectAlcohol('none')" class="alc-btn p-2 rounded-xl border border-brand-border text-xs font-semibold hover:border-brand-sage">
                 🚫 None
               </button>
               <button type="button" onclick="selectAlcohol('1-2_wine')" class="alc-btn p-2 rounded-xl border border-brand-border text-xs font-semibold hover:border-brand-amber">
@@ -1851,7 +1851,7 @@
                 🍸 Spirits
               </button>
             </div>
-            <input type="hidden" id="logAlcohol" value="none">
+            <input type="hidden" id="logAlcohol" value="">
           </div>
 
           <!-- Mental State / Headspace Selector (Emma's 6-Option Grid) -->
@@ -1883,7 +1883,7 @@
                 ☁️ Flat / Tired
               </button>
             </div>
-            <input type="hidden" id="logMood" value="flat">
+            <input type="hidden" id="logMood" value="">
           </div>
 
           <!-- Sex Drive / Libido Tracker -->
@@ -1899,14 +1899,14 @@
               <button type="button" onclick="selectSexDrive('mild')" class="sexdrive-btn p-2 rounded-xl border border-brand-border text-xs font-semibold hover:border-brand-sage">
                 Mild
               </button>
-              <button type="button" onclick="selectSexDrive('normal')" class="sexdrive-btn p-2 rounded-xl border border-brand-border text-xs font-semibold hover:border-brand-sage selected">
+              <button type="button" onclick="selectSexDrive('normal')" class="sexdrive-btn p-2 rounded-xl border border-brand-border text-xs font-semibold hover:border-brand-sage">
                 Normal
               </button>
               <button type="button" onclick="selectSexDrive('high')" class="sexdrive-btn p-2 rounded-xl border border-brand-border text-xs font-semibold hover:border-pink-400">
                 🔥 High
               </button>
             </div>
-            <input type="hidden" id="logSexDrive" value="normal">
+            <input type="hidden" id="logSexDrive" value="">
           </div>
 
           <!-- Exercise & Classes Log (In Note Format) -->
