@@ -547,6 +547,7 @@ function initApp() {
     renderOuraChart();
     if (typeof renderOuraSection === 'function') renderOuraSection(activeDateStr);
     if (typeof renderDashboardOuraGlance === 'function') renderDashboardOuraGlance(activeDateStr);
+    if (typeof renderTripPlannerUI === 'function') renderTripPlannerUI();
     renderHistoryLogs();
     renderEmmaMeals();
     renderSpecialistTrackingUI();
@@ -1975,6 +1976,7 @@ function applyActiveDate(targetDateStr) {
   if (typeof renderOuraSection === 'function') renderOuraSection(activeDateStr);
   if (typeof renderDashboardOuraGlance === 'function') renderDashboardOuraGlance(activeDateStr);
   if (typeof renderOuraOvulationSection === 'function') renderOuraOvulationSection(activeDateStr);
+  if (typeof renderTripPlannerUI === 'function') renderTripPlannerUI();
 
   triggerLucideIcons();
 }
@@ -11459,6 +11461,868 @@ function auditSpecificMeal(title, ingredients) {
     input.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 }
+
+// ============================================================================
+// TRIP & HOLIDAY CYCLE PLANNER ("Where Will I Be In My Cycle On X Date?")
+// ============================================================================
+
+let tripPlannerState = {
+  mode: 'single', // 'single' or 'range'
+  startDate: '2026-12-25', // Emma's Christmas example by default
+  endDate: '2026-12-28',
+  query: 'on the 25th of December where will I be in my cycle',
+  packingChecked: {
+    linaclotide: true,
+    senna: true,
+    stretchClothes: true,
+    airpods: false,
+    electrolytes: false,
+    ouraCharger: false
+  }
+};
+
+function parseFutureDateQuery(query) {
+  if (!query || typeof query !== 'string') return null;
+  const raw = query.trim().toLowerCase();
+  const today = new Date("2026-09-08T12:00:00Z");
+
+  // 1. Festive Holidays & Specific Celebrations
+  if (raw.includes('christmas eve') || raw.includes('xmas eve')) {
+    return { startDate: '2026-12-24', endDate: '2026-12-24', label: 'Christmas Eve (24 Dec)', mode: 'single' };
+  }
+  if (raw.includes('boxing day')) {
+    return { startDate: '2026-12-26', endDate: '2026-12-26', label: 'Boxing Day (26 Dec)', mode: 'single' };
+  }
+  if (raw.includes('christmas') || raw.includes('xmas')) {
+    return { startDate: '2026-12-25', endDate: '2026-12-25', label: 'Christmas Day (25 Dec)', mode: 'single' };
+  }
+  if (raw.includes("new year's eve") || raw.includes('new years eve') || raw.includes('nye')) {
+    return { startDate: '2026-12-31', endDate: '2026-12-31', label: "New Year's Eve (31 Dec)", mode: 'single' };
+  }
+  if (raw.includes("new year's day") || raw.includes('new years day') || raw.includes('new year')) {
+    return { startDate: '2027-01-01', endDate: '2027-01-01', label: "New Year's Day (1 Jan)", mode: 'single' };
+  }
+  if (raw.includes('halloween')) {
+    return { startDate: '2026-10-31', endDate: '2026-10-31', label: 'Halloween (31 Oct)', mode: 'single' };
+  }
+  if (raw.includes('bonfire') || raw.includes('guy fawkes')) {
+    return { startDate: '2026-11-05', endDate: '2026-11-05', label: 'Bonfire Night (5 Nov)', mode: 'single' };
+  }
+  if (raw.includes('valentine')) {
+    return { startDate: '2027-02-14', endDate: '2027-02-14', label: "Valentine's Day (14 Feb)", mode: 'single' };
+  }
+  if (raw.includes('winter getaway') || raw.includes('festive break') || raw.includes('christmas break')) {
+    return { startDate: '2026-12-24', endDate: '2026-12-28', label: 'Festive Break (24–28 Dec)', mode: 'range' };
+  }
+
+  // 2. Relative Phrases
+  if (raw.includes('tomorrow')) {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() + 1);
+    const iso = d.toISOString().split('T')[0];
+    return { startDate: iso, endDate: iso, label: 'Tomorrow', mode: 'single' };
+  }
+  if (raw.includes('next week')) {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() + 7);
+    const iso = d.toISOString().split('T')[0];
+    return { startDate: iso, endDate: iso, label: 'Next Week', mode: 'single' };
+  }
+  if (raw.includes('next month')) {
+    const d = new Date(today);
+    d.setUTCMonth(d.getUTCMonth() + 1);
+    const iso = d.toISOString().split('T')[0];
+    return { startDate: iso, endDate: iso, label: 'Next Month', mode: 'single' };
+  }
+
+  const inWeeksMatch = raw.match(/in\s+(\d+|one|two|three|four|five|six)\s+week/);
+  if (inWeeksMatch) {
+    const wordNums = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
+    const num = isNaN(parseInt(inWeeksMatch[1])) ? (wordNums[inWeeksMatch[1]] || 2) : parseInt(inWeeksMatch[1]);
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() + (num * 7));
+    const iso = d.toISOString().split('T')[0];
+    return { startDate: iso, endDate: iso, label: `In ${num} Weeks`, mode: 'single' };
+  }
+
+  const inDaysMatch = raw.match(/in\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+day/);
+  if (inDaysMatch) {
+    const wordNums = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
+    const num = isNaN(parseInt(inDaysMatch[1])) ? (wordNums[inDaysMatch[1]] || 1) : parseInt(inDaysMatch[1]);
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() + num);
+    const iso = d.toISOString().split('T')[0];
+    return { startDate: iso, endDate: iso, label: `In ${num} Days`, mode: 'single' };
+  }
+
+  // 3. ISO Date (YYYY-MM-DD)
+  const isoMatch = raw.match(/\b(202\d)-(\d{1,2})-(\d{1,2})\b/);
+  if (isoMatch) {
+    const y = parseInt(isoMatch[1]);
+    const m = String(parseInt(isoMatch[2])).padStart(2, '0');
+    const d = String(parseInt(isoMatch[3])).padStart(2, '0');
+    const iso = `${y}-${m}-${d}`;
+    return { startDate: iso, endDate: iso, label: iso, mode: 'single' };
+  }
+
+  // 4. UK Date (DD/MM/YYYY or DD/MM)
+  const ukMatch = raw.match(/\b(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](202\d))?\b/);
+  if (ukMatch) {
+    const d = String(parseInt(ukMatch[1])).padStart(2, '0');
+    const m = String(parseInt(ukMatch[2])).padStart(2, '0');
+    let y = ukMatch[3] ? parseInt(ukMatch[3]) : 2026;
+    if (!ukMatch[3] && parseInt(m) < 9) y = 2027;
+    const iso = `${y}-${m}-${d}`;
+    return { startDate: iso, endDate: iso, label: iso, mode: 'single' };
+  }
+
+  // 5. Month Name & Day (e.g. "25th of December", "December 25th", "25 Dec", "Dec 25")
+  const months = {
+    january: 1, jan: 1, february: 2, feb: 2, march: 3, mar: 3,
+    april: 4, apr: 4, may: 5, june: 6, jun: 6, july: 7, jul: 7,
+    august: 8, aug: 8, september: 9, sept: 9, sep: 9,
+    october: 10, oct: 10, november: 11, nov: 11, december: 12, dec: 12
+  };
+  const monthRegex = '(january|jan|february|feb|march|mar|april|apr|may|june|jun|july|jul|august|aug|september|sept|sep|october|oct|november|nov|december|dec)';
+
+  const patternA = new RegExp('(\\d{1,2})(?:st|nd|rd|th)?\\s+(?:of\\s+)?' + monthRegex + '(?:\\s+(202\\d))?', 'i');
+  const matchA = raw.match(patternA);
+  if (matchA) {
+    const day = String(parseInt(matchA[1])).padStart(2, '0');
+    const monthNum = months[matchA[2].toLowerCase()];
+    let year = matchA[3] ? parseInt(matchA[3]) : (monthNum < 9 ? 2027 : 2026);
+    const iso = `${year}-${String(monthNum).padStart(2, '0')}-${day}`;
+    return { startDate: iso, endDate: iso, label: `${matchA[1]} ${matchA[2]}`, mode: 'single' };
+  }
+
+  const patternB = new RegExp(monthRegex + '\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s+(202\\d))?', 'i');
+  const matchB = raw.match(patternB);
+  if (matchB) {
+    const monthNum = months[matchB[1].toLowerCase()];
+    const day = String(parseInt(matchB[2])).padStart(2, '0');
+    let year = matchB[3] ? parseInt(matchB[3]) : (monthNum < 9 ? 2027 : 2026);
+    const iso = `${year}-${String(monthNum).padStart(2, '0')}-${day}`;
+    return { startDate: iso, endDate: iso, label: `${matchB[1]} ${matchB[2]}`, mode: 'single' };
+  }
+
+  return null;
+}
+
+function calculateFutureCycleDay(dateStr) {
+  const anchorDate = new Date("2026-09-06T12:00:00Z");
+  const targetDate = new Date(`${dateStr}T12:00:00Z`);
+  const diffDays = Math.round((targetDate - anchorDate) / (1000 * 60 * 60 * 24));
+  const cycleLength = 28;
+  return ((19 + diffDays - 1) % cycleLength + cycleLength) % cycleLength + 1;
+}
+
+function getFutureCycleDetails(dateStr) {
+  const dayNum = calculateFutureCycleDay(dateStr);
+  const targetDate = new Date(`${dateStr}T12:00:00Z`);
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const dayName = dayNames[targetDate.getUTCDay()];
+  const dayOfMonth = targetDate.getUTCDate();
+  const suffix = (dayOfMonth % 10 === 1 && dayOfMonth !== 11) ? 'st' : ((dayOfMonth % 10 === 2 && dayOfMonth !== 12) ? 'nd' : ((dayOfMonth % 10 === 3 && dayOfMonth !== 13) ? 'rd' : 'th'));
+  const formattedDate = `${dayName}, ${dayOfMonth}${suffix} ${monthNames[targetDate.getUTCMonth()]} ${targetDate.getUTCFullYear()}`;
+  const shortDate = `${dayOfMonth}${suffix} ${monthNames[targetDate.getUTCMonth()].slice(0, 3)}`;
+
+  const today = new Date("2026-09-08T12:00:00Z");
+  const daysDiff = Math.round((targetDate - today) / (1000 * 60 * 60 * 24));
+  let relString = "";
+  if (daysDiff === 0) relString = "Today";
+  else if (daysDiff === 1) relString = "Tomorrow";
+  else if (daysDiff > 1) relString = `in ${daysDiff} days`;
+  else relString = `${Math.abs(daysDiff)} days ago`;
+
+  let phase = "luteal";
+  let phaseLabel = "Early-Mid Luteal (Progesterone Ramp)";
+  let badgeColor = "rose";
+  let battery = 75;
+  let batteryTitle = "Warm & Cozy Battery (75%)";
+  let batteryNote = "Progesterone is climbing. Great stamina for cheerful family dinners, present opening, and social fun, but evening stamina fades quicker. Plan a quiet bedtime wind-down.";
+  let bloatScore = "4-5/10 (Low-to-Moderate)";
+  let bloatLabel = "Mild Smooth Muscle Relaxation";
+  let bloatNote = "Smooth muscle relaxation starting. For festive dining or hotel breakfasts: take Linaclotide immediately upon waking with a tall glass of water. Allow a 30-40 min fasting window before holiday breakfast.";
+  let ouraTemp = "+0.20°C to +0.35°C (Luteal Warmth)";
+  let packingTip = "Stretchy-waistband holiday outfits, chic flowy evening dresses, peppermint tea, electrolytes, Senna rescue pack.";
+
+  if (dayNum >= 1 && dayNum <= 13) {
+    phase = "follicular";
+    phaseLabel = "Follicular Phase (Estrogen Ramp)";
+    badgeColor = "emerald";
+    battery = 90;
+    batteryTitle = "High & Clear Dopamine (90%)";
+    batteryNote = "High social battery, spontaneous energy, and sharp focus. Perfect for flights, active sight-seeing, exploring, and busy itineraries.";
+    bloatScore = "2/10 (Low)";
+    bloatLabel = "Minimal APD Distension";
+    bloatNote = "Estrogen keeps gut motility brisk and diaphragm relaxed. Lowest bloating risk of your cycle. Normal morning Linaclotide routine.";
+    ouraTemp = "-0.15°C to -0.35°C (Cooler Baseline)";
+    packingTip = "Fitted vacation outfits, walking shoes, adventurous plans.";
+  } else if (dayNum >= 14 && dayNum <= 16) {
+    phase = "ovulation";
+    phaseLabel = "Ovulation Window (LH Peak & Vitality)";
+    badgeColor = "amber";
+    battery = 95;
+    batteryTitle = "Peak Charisma & Energy (95%)";
+    batteryNote = "Outgoing, high sensory tolerance, radiant mood. Great for festive parties, celebration dinners, and photography.";
+    bloatScore = "4/10 (Mild)";
+    bloatLabel = "Mild Fluid / Ovulatory Awareness";
+    bloatNote = "Transient mid-cycle fluid shift. Keep water intake high. Fast 30-40 min after Linaclotide before holiday buffet breakfast.";
+    ouraTemp = "+0.05°C to +0.20°C (Thermal Shift Begins)";
+    packingTip = "Favorite confidence outfits, camera-ready clothes, hydration salts.";
+  } else if (dayNum >= 17 && dayNum <= 20) {
+    phase = "luteal";
+    phaseLabel = "Early-Mid Luteal (Progesterone Ramp)";
+    badgeColor = "rose";
+    battery = 75;
+    batteryTitle = "Warm & Cozy Battery (75%)";
+    batteryNote = "Progesterone is climbing. Great stamina for cozy family dinners and holiday gatherings, but evening battery fades faster. Plan a quiet bedtime wind-down.";
+    bloatScore = "4-5/10 (Low-to-Moderate)";
+    bloatLabel = "Mild Smooth Muscle Relaxation";
+    bloatNote = "Progesterone begins slowing transit. Crucial on travel mornings: take Linaclotide immediately upon waking with plenty of water 40 min before eating.";
+    ouraTemp = "+0.20°C to +0.35°C (Luteal Warmth)";
+    packingTip = "Stretchy-waistband holiday trousers, flowy evening dresses, peppermint tea, electrolytes.";
+  } else if (dayNum >= 21 && dayNum <= 24) {
+    phase = "luteal";
+    phaseLabel = "Mid-Luteal (Progesterone Peak Window)";
+    badgeColor = "purple";
+    battery = 60;
+    batteryTitle = "Selective / Lower Sensory Battery (60%)";
+    batteryNote = "Progesterone peaks and dopamine naturally dips. Emma may reach sensory overload faster in noisy restaurants or crowded airports. Schedule guilt-free quiet breaks with AirPods.";
+    bloatScore = "7-8/10 (Elevated)";
+    bloatLabel = "APD Bloating & Motility Slowdown Risk";
+    bloatNote = "Diaphragmatic distension risk is highest after rich meals. Maintain strict 45-minute fasting post-Linaclotide. Keep Senna rescue pack in carry-on.";
+    ouraTemp = "+0.30°C to +0.45°C (Peak Luteal Elevation)";
+    packingTip = "Ultra-comfortable high-waisted loungewear, non-restrictive elastic waistbands, Senna emergency pack, digestive enzymes.";
+  } else {
+    phase = "luteal";
+    phaseLabel = "Late Luteal (Pre-Reset Transition)";
+    badgeColor = "indigo";
+    battery = 55;
+    batteryTitle = "Gentle Cocoon & Recharging (55%)";
+    batteryNote = "Hormone drop triggers PMS vulnerability and low sensory threshold. Keep travel schedule unpressured. Great for movie nights, cozy fires, and spas.";
+    bloatScore = "6-7/10 (Variable)";
+    bloatLabel = "Fluid Shifts & Pelvic Heaviness";
+    bloatNote = "Prostaglandin signaling starts. Drink warm electrolytes and herbal teas upon waking. Do not stress over scale fluctuations—it is 100% water retention.";
+    ouraTemp = "+0.20°C dropping toward baseline (0.00°C)";
+    packingTip = "Softest knitwear, cozy socks, heat patches/hot water bottle, emergency chocolate, noise-canceling headphones.";
+  }
+
+  return {
+    date: dateStr,
+    formattedDate,
+    shortDate,
+    dayName,
+    relString,
+    daysDiff,
+    dayNum,
+    phase,
+    phaseLabel,
+    badgeColor,
+    battery,
+    batteryTitle,
+    batteryNote,
+    bloatScore,
+    bloatLabel,
+    bloatNote,
+    ouraTemp,
+    packingTip
+  };
+}
+
+function calculateFutureCycleRange(startDateStr, endDateStr) {
+  const start = new Date(`${startDateStr}T12:00:00Z`);
+  let end = new Date(`${endDateStr}T12:00:00Z`);
+  if (end < start) {
+    const tmp = startDateStr;
+    startDateStr = endDateStr;
+    endDateStr = tmp;
+  }
+  const days = [];
+  const curr = new Date(`${startDateStr}T12:00:00Z`);
+  const finalDate = new Date(`${endDateStr}T12:00:00Z`);
+  let count = 0;
+  while (curr <= finalDate && count < 31) {
+    const y = curr.getUTCFullYear();
+    const m = String(curr.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(curr.getUTCDate()).padStart(2, '0');
+    const iso = `${y}-${m}-${d}`;
+    days.push(getFutureCycleDetails(iso));
+    curr.setUTCDate(curr.getUTCDate() + 1);
+    count++;
+  }
+  return days;
+}
+
+function generateTripPlannerHTML(isModal) {
+  const pfx = isModal ? 'modal' : 'dash';
+  const isRange = tripPlannerState.mode === 'range';
+  const singleDetail = getFutureCycleDetails(tripPlannerState.startDate);
+  const rangeDetails = isRange ? calculateFutureCycleRange(tripPlannerState.startDate, tripPlannerState.endDate) : [singleDetail];
+  const primaryDetail = rangeDetails[0];
+
+  const phaseColors = {
+    follicular: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-900', badge: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+    ovulation: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-900', badge: 'bg-amber-100 text-amber-800 border-amber-300' },
+    luteal: { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-900', badge: 'bg-rose-100 text-rose-800 border-rose-300' }
+  };
+  const currentTheme = phaseColors[primaryDetail.phase] || phaseColors.luteal;
+
+  return `
+    <div class="space-y-4">
+      <!-- Search / Natural Language Ask Bar -->
+      <div class="space-y-2">
+        <div class="flex flex-col sm:flex-row items-stretch gap-2">
+          <div class="relative flex-1">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-teal-700">🔮</span>
+            <input 
+              type="text" 
+              id="${pfx}TripSearchInput" 
+              value="${tripPlannerState.query || ''}" 
+              placeholder="e.g. 'on the 25th of December where will I be in my cycle' or 'Christmas'..." 
+              onkeydown="if(event.key === 'Enter') handleTripQuerySubmit('${pfx}')" 
+              class="w-full pl-9 pr-3 py-2.5 rounded-2xl border border-teal-200 bg-white text-xs font-semibold text-brand-textDark focus:outline-hidden focus:ring-2 focus:ring-teal-400 shadow-2xs placeholder:text-slate-400"
+            />
+          </div>
+          <button 
+            type="button" 
+            onclick="handleTripQuerySubmit('${pfx}')" 
+            class="px-4 py-2.5 rounded-2xl bg-teal-700 hover:bg-teal-800 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+          >
+            <span>Ask Cycle</span>
+          </button>
+        </div>
+
+        <!-- Mode Selector & Date Pickers -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+          <div class="flex items-center space-x-1 bg-white p-1 rounded-xl border border-teal-200/80 text-[11px] font-bold">
+            <button 
+              type="button" 
+              onclick="setTripPlannerMode('single')" 
+              class="px-2.5 py-1 rounded-lg transition-all ${!isRange ? 'bg-teal-600 text-white shadow-2xs' : 'text-slate-600 hover:text-teal-800'}"
+            >
+              Single Event / Day
+            </button>
+            <button 
+              type="button" 
+              onclick="setTripPlannerMode('range')" 
+              class="px-2.5 py-1 rounded-lg transition-all ${isRange ? 'bg-teal-600 text-white shadow-2xs' : 'text-slate-600 hover:text-teal-800'}"
+            >
+              Multi-Day Vacation 🌴
+            </button>
+          </div>
+
+          <!-- Direct Date Inputs -->
+          <div class="flex items-center gap-2">
+            ${!isRange ? `
+              <div class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-teal-200/80 text-[11px]">
+                <span class="text-teal-700 font-bold">Date:</span>
+                <input 
+                  type="date" 
+                  value="${tripPlannerState.startDate}" 
+                  onchange="onTripSingleDateChange(this.value)" 
+                  class="border-none bg-transparent font-extrabold text-brand-textDark focus:outline-hidden cursor-pointer"
+                />
+              </div>
+            ` : `
+              <div class="flex flex-wrap items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-teal-200/80 text-[11px]">
+                <span class="text-teal-700 font-bold">Trip:</span>
+                <input 
+                  type="date" 
+                  value="${tripPlannerState.startDate}" 
+                  onchange="onTripRangeDateChange(this.value, tripPlannerState.endDate)" 
+                  class="border-none bg-transparent font-extrabold text-brand-textDark focus:outline-hidden cursor-pointer"
+                />
+                <span class="text-slate-400 font-bold">→</span>
+                <input 
+                  type="date" 
+                  value="${tripPlannerState.endDate}" 
+                  onchange="onTripRangeDateChange(tripPlannerState.startDate, this.value)" 
+                  class="border-none bg-transparent font-extrabold text-brand-textDark focus:outline-hidden cursor-pointer"
+                />
+              </div>
+            `}
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Holiday Presets (1-Tap ADHD Chips) -->
+      <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mr-1">Quick Presets:</span>
+        <button type="button" onclick="quickSelectHoliday('christmas')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-emerald-50 text-emerald-950 border border-emerald-300/80 text-[11px] font-bold transition-all shadow-2xs active:scale-95 flex items-center gap-1 cursor-pointer">
+          <span>🎄 Christmas (25 Dec)</span>
+        </button>
+        <button type="button" onclick="quickSelectHoliday('nye')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-purple-50 text-purple-950 border border-purple-300/80 text-[11px] font-bold transition-all shadow-2xs active:scale-95 flex items-center gap-1 cursor-pointer">
+          <span>🥂 New Year's Eve (31 Dec)</span>
+        </button>
+        <button type="button" onclick="quickSelectHoliday('newyear')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-teal-50 text-teal-950 border border-teal-300/80 text-[11px] font-bold transition-all shadow-2xs active:scale-95 flex items-center gap-1 cursor-pointer">
+          <span>🎉 New Year's Day (1 Jan)</span>
+        </button>
+        <button type="button" onclick="quickSelectHoliday('wintergetaway')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-rose-50 text-rose-950 border border-rose-300/80 text-[11px] font-bold transition-all shadow-2xs active:scale-95 flex items-center gap-1 cursor-pointer">
+          <span>❄️ Festive Break (24–28 Dec)</span>
+        </button>
+        <button type="button" onclick="quickSelectHoliday('halloween')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-amber-50 text-amber-950 border border-amber-300/80 text-[11px] font-bold transition-all shadow-2xs active:scale-95 flex items-center gap-1 cursor-pointer">
+          <span>🎃 Halloween (31 Oct)</span>
+        </button>
+        <button type="button" onclick="quickSelectHoliday('in2weeks')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-sky-50 text-sky-950 border border-sky-300/80 text-[11px] font-bold transition-all shadow-2xs active:scale-95 flex items-center gap-1 cursor-pointer">
+          <span>✈️ In 2 Weeks</span>
+        </button>
+      </div>
+
+      <!-- FORECAST RESULT CARD -->
+      <div class="p-4 sm:p-5 rounded-2xl bg-white border ${currentTheme.border} shadow-xs space-y-4">
+        
+        <!-- Header Banner -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-brand-border/60 pb-3">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-base sm:text-lg font-black text-brand-textDark">
+                ${!isRange ? primaryDetail.formattedDate : `${rangeDetails[0].shortDate} → ${rangeDetails[rangeDetails.length - 1].shortDate} (${rangeDetails.length} Days)`}
+              </span>
+              <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${currentTheme.badge} border">
+                Day ${primaryDetail.dayNum} • ${primaryDetail.phaseLabel}
+              </span>
+            </div>
+            <p class="text-xs text-brand-textMuted mt-0.5">
+              ${!isRange ? `${primaryDetail.relString} • Future Cycle Prediction` : `Multi-Day Trip Itinerary • ${primaryDetail.relString}`}
+            </p>
+          </div>
+          <div class="flex items-center gap-1.5 self-start sm:self-auto">
+            <span class="text-[11px] font-bold text-teal-800 bg-teal-50 px-2.5 py-1 rounded-xl border border-teal-200">
+              ✈️ Holiday Shield
+            </span>
+          </div>
+        </div>
+
+        <!-- 4 CORE ADHD TRAVEL SURVIVAL PILLARS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          
+          <!-- Pillar 1: Social & Dopamine Battery -->
+          <div class="p-3.5 rounded-2xl bg-gradient-to-br from-purple-50/80 via-white to-purple-50/40 border border-purple-200/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5 font-extrabold text-purple-950 text-xs">
+                <span>🔋</span>
+                <span>Social & Dopamine Battery</span>
+              </div>
+              <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-200">
+                ${primaryDetail.battery}%
+              </span>
+            </div>
+            <!-- Battery Progress Bar -->
+            <div class="w-full h-1.5 bg-purple-100 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full transition-all duration-500" style="width: ${primaryDetail.battery}%;"></div>
+            </div>
+            <p class="text-[11px] text-purple-950/90 leading-relaxed font-medium">
+              ${primaryDetail.batteryNote}
+            </p>
+          </div>
+
+          <!-- Pillar 2: Gut Motility & APD Bloat Risk -->
+          <div class="p-3.5 rounded-2xl bg-gradient-to-br from-amber-50/80 via-white to-amber-50/40 border border-amber-200/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5 font-extrabold text-amber-950 text-xs">
+                <span>🌊</span>
+                <span>Gut & APD Bloat Forecast</span>
+              </div>
+              <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
+                ${primaryDetail.bloatScore}
+              </span>
+            </div>
+            <div class="text-[10px] font-bold text-amber-900 flex items-center gap-1">
+              <span>Status:</span>
+              <span class="font-extrabold">${primaryDetail.bloatLabel}</span>
+            </div>
+            <p class="text-[11px] text-amber-950/90 leading-relaxed font-medium">
+              ${primaryDetail.bloatNote}
+            </p>
+          </div>
+
+          <!-- Pillar 3: Holiday Outfits & Packing Strategy -->
+          <div class="p-3.5 rounded-2xl bg-gradient-to-br from-rose-50/80 via-white to-rose-50/40 border border-rose-200/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5 font-extrabold text-rose-950 text-xs">
+                <span>🧳</span>
+                <span>Holiday Outfit & Packing Strategy</span>
+              </div>
+              <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-100 text-rose-900 border border-rose-200">
+                Comfort
+              </span>
+            </div>
+            <p class="text-[11px] text-rose-950/90 leading-relaxed font-medium">
+              ${primaryDetail.packingTip}
+            </p>
+          </div>
+
+          <!-- Pillar 4: Oura Temperature Forecast -->
+          <div class="p-3.5 rounded-2xl bg-gradient-to-br from-teal-50/80 via-white to-teal-50/40 border border-teal-200/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5 font-extrabold text-teal-950 text-xs">
+                <span>💍</span>
+                <span>Oura Ring Temp Forecast</span>
+              </div>
+              <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-teal-100 text-teal-900 border border-teal-200">
+                ${primaryDetail.ouraTemp.split(' ')[0]}
+              </span>
+            </div>
+            <p class="text-[11px] text-teal-950/90 leading-relaxed font-medium">
+              Expected night shift: <strong>${primaryDetail.ouraTemp}</strong>. Emma will see higher temperatures on Oura during luteal phases—this is healthy progesterone warmth, NOT a sickness or fever!
+            </p>
+          </div>
+
+        </div>
+
+        <!-- MULTI-DAY TIMELINE STRIP (If Range Mode) -->
+        ${isRange ? `
+          <div class="space-y-2 pt-2 border-t border-brand-border/60">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-brand-textDark flex items-center gap-1.5">
+                <span>🌴</span>
+                <span>Day-by-Day Vacation Rhythm</span>
+              </span>
+              <span class="text-[10px] text-brand-textMuted">${rangeDetails.length} days forecasted</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 overflow-x-auto pb-1">
+              ${rangeDetails.map(d => `
+                <div class="p-2.5 rounded-xl border ${d.date === tripPlannerState.startDate ? 'border-teal-400 bg-teal-50/70 ring-1 ring-teal-300' : 'border-brand-border bg-slate-50/80'} space-y-1 text-center shrink-0">
+                  <div class="text-[10px] font-black text-slate-500 uppercase tracking-wider">${d.dayName.slice(0, 3)}</div>
+                  <div class="text-xs font-black text-brand-textDark">${d.shortDate}</div>
+                  <div class="text-[10px] font-bold text-teal-700">Day ${d.dayNum}</div>
+                  <div class="text-[9px] font-semibold text-brand-textMuted truncate" title="${d.phaseLabel}">${d.phaseLabel.split(' ')[0]}</div>
+                  <div class="text-[9px] font-black px-1.5 py-0.5 rounded-full ${d.battery >= 80 ? 'bg-emerald-100 text-emerald-800' : (d.battery >= 70 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800')} mt-1 inline-block">
+                    🔋 ${d.battery}%
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- INTERACTIVE PACKING CHECKLIST -->
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-brand-border/70 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div class="text-xs font-extrabold text-brand-textDark flex items-center gap-1.5">
+              <span>✅</span>
+              <span>Emma's Holiday Travel Checklist</span>
+            </div>
+            <span class="text-[10px] font-bold text-slate-500">Tap to check off</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-brand-border/80 cursor-pointer transition-all hover:bg-teal-50/50">
+              <input 
+                type="checkbox" 
+                ${tripPlannerState.packingChecked.linaclotide ? 'checked' : ''} 
+                onchange="toggleTripPackingItem('linaclotide')" 
+                class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"
+              />
+              <span class="font-medium text-slate-800">Linaclotide + Morning water bottle</span>
+            </label>
+
+            <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-brand-border/80 cursor-pointer transition-all hover:bg-teal-50/50">
+              <input 
+                type="checkbox" 
+                ${tripPlannerState.packingChecked.senna ? 'checked' : ''} 
+                onchange="toggleTripPackingItem('senna')" 
+                class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"
+              />
+              <span class="font-medium text-slate-800">Senna emergency rescue pack</span>
+            </label>
+
+            <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-brand-border/80 cursor-pointer transition-all hover:bg-teal-50/50">
+              <input 
+                type="checkbox" 
+                ${tripPlannerState.packingChecked.stretchClothes ? 'checked' : ''} 
+                onchange="toggleTripPackingItem('stretchClothes')" 
+                class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"
+              />
+              <span class="font-medium text-slate-800">Stretchy waistband holiday evening wear</span>
+            </label>
+
+            <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-brand-border/80 cursor-pointer transition-all hover:bg-teal-50/50">
+              <input 
+                type="checkbox" 
+                ${tripPlannerState.packingChecked.airpods ? 'checked' : ''} 
+                onchange="toggleTripPackingItem('airpods')" 
+                class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"
+              />
+              <span class="font-medium text-slate-800">Noise-canceling AirPods (sensory breaks)</span>
+            </label>
+
+            <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-brand-border/80 cursor-pointer transition-all hover:bg-teal-50/50">
+              <input 
+                type="checkbox" 
+                ${tripPlannerState.packingChecked.electrolytes ? 'checked' : ''} 
+                onchange="toggleTripPackingItem('electrolytes')" 
+                class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"
+              />
+              <span class="font-medium text-slate-800">Hydration electrolyte sachets</span>
+            </label>
+
+            <label class="flex items-center gap-2 p-2 rounded-xl bg-white border border-brand-border/80 cursor-pointer transition-all hover:bg-teal-50/50">
+              <input 
+                type="checkbox" 
+                ${tripPlannerState.packingChecked.ouraCharger ? 'checked' : ''} 
+                onchange="toggleTripPackingItem('ouraCharger')" 
+                class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"
+              />
+              <span class="font-medium text-slate-800">Oura Ring charger & power bank</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Action Footer -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <button 
+            type="button" 
+            onclick="copyTripForecastSummary()" 
+            class="px-3.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 active:scale-95 cursor-pointer"
+          >
+            <span>📋 Copy Travel Summary</span>
+          </button>
+
+          ${!isModal ? `
+            <button 
+              type="button" 
+              onclick="openTripPlannerModal()" 
+              class="px-3.5 py-1.5 rounded-xl bg-brand-cream hover:bg-brand-border text-brand-textDark border border-brand-border text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 active:scale-95 cursor-pointer"
+            >
+              <span>✈️ Open Full Trip Planner ↗</span>
+            </button>
+          ` : ''}
+        </div>
+
+      </div>
+    </div>
+  `;
+}
+
+function renderTripPlannerUI() {
+  const container = document.getElementById('tripCyclePlannerContainer');
+  const modalBody = document.getElementById('modalTripPlannerBody');
+
+  if (container) {
+    container.innerHTML = `
+      <div class="bg-gradient-to-r from-teal-50/90 via-white to-teal-50/90 border border-teal-200/90 rounded-3xl p-4 sm:p-6 shadow-2xs space-y-4">
+        <!-- Top Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center text-lg shadow-2xs shrink-0">
+              ✈️
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm sm:text-base font-extrabold text-brand-textDark">Trip & Holiday Cycle Planner</h3>
+                <span class="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 border border-teal-200">
+                  ADHD Travel Shield
+                </span>
+              </div>
+              <p class="text-xs text-brand-textMuted">Ask where you'll be on any future date to plan ahead for holidays, trips, and events.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <button onclick="openTripPlannerModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-teal-100 hover:bg-teal-200 text-teal-900 border border-teal-300 transition-all flex items-center gap-1.5 active:scale-95 shadow-2xs cursor-pointer">
+              <span>Full Screen View</span>
+              <span>↗</span>
+            </button>
+          </div>
+        </div>
+
+        ${generateTripPlannerHTML(false)}
+      </div>
+    `;
+  }
+
+  if (modalBody) {
+    modalBody.innerHTML = generateTripPlannerHTML(true);
+  }
+
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    lucide.createIcons();
+  }
+}
+
+function handleTripQuerySubmit(prefix) {
+  const input = document.getElementById(`${prefix}TripSearchInput`);
+  if (!input) return;
+  const q = input.value.trim();
+  if (!q) return;
+
+  const parsed = parseFutureDateQuery(q);
+  if (parsed) {
+    tripPlannerState.startDate = parsed.startDate;
+    tripPlannerState.endDate = parsed.endDate || parsed.startDate;
+    if (parsed.mode) tripPlannerState.mode = parsed.mode;
+    tripPlannerState.query = q;
+    renderTripPlannerUI();
+    if (typeof showDynamicToast === 'function') {
+      showDynamicToast(`Forecast loaded for ${parsed.label || parsed.startDate}! ✨`, 2500);
+    }
+  } else {
+    if (typeof showDynamicToast === 'function') {
+      showDynamicToast("Please try e.g. '25th of December', 'Christmas', 'New Year', or pick a date!", 3500);
+    }
+  }
+}
+
+function quickSelectHoliday(key) {
+  if (key === 'christmas') {
+    tripPlannerState.mode = 'single';
+    tripPlannerState.startDate = '2026-12-25';
+    tripPlannerState.endDate = '2026-12-25';
+    tripPlannerState.query = 'Christmas Day (25 Dec)';
+  } else if (key === 'nye') {
+    tripPlannerState.mode = 'single';
+    tripPlannerState.startDate = '2026-12-31';
+    tripPlannerState.endDate = '2026-12-31';
+    tripPlannerState.query = "New Year's Eve (31 Dec)";
+  } else if (key === 'newyear') {
+    tripPlannerState.mode = 'single';
+    tripPlannerState.startDate = '2027-01-01';
+    tripPlannerState.endDate = '2027-01-01';
+    tripPlannerState.query = "New Year's Day (1 Jan)";
+  } else if (key === 'halloween') {
+    tripPlannerState.mode = 'single';
+    tripPlannerState.startDate = '2026-10-31';
+    tripPlannerState.endDate = '2026-10-31';
+    tripPlannerState.query = 'Halloween (31 Oct)';
+  } else if (key === 'wintergetaway') {
+    tripPlannerState.mode = 'range';
+    tripPlannerState.startDate = '2026-12-24';
+    tripPlannerState.endDate = '2026-12-28';
+    tripPlannerState.query = 'Festive Break (24–28 Dec)';
+  } else if (key === 'in2weeks') {
+    const today = new Date("2026-09-08T12:00:00Z");
+    today.setUTCDate(today.getUTCDate() + 14);
+    const iso = today.toISOString().split('T')[0];
+    tripPlannerState.mode = 'single';
+    tripPlannerState.startDate = iso;
+    tripPlannerState.endDate = iso;
+    tripPlannerState.query = 'In 2 Weeks';
+  }
+  renderTripPlannerUI();
+}
+
+function setTripPlannerMode(mode) {
+  tripPlannerState.mode = mode;
+  renderTripPlannerUI();
+}
+
+function onTripSingleDateChange(dateStr) {
+  if (!dateStr) return;
+  tripPlannerState.startDate = dateStr;
+  tripPlannerState.endDate = dateStr;
+  tripPlannerState.query = '';
+  renderTripPlannerUI();
+}
+
+function onTripRangeDateChange(startStr, endStr) {
+  if (startStr) tripPlannerState.startDate = startStr;
+  if (endStr) tripPlannerState.endDate = endStr;
+  tripPlannerState.query = '';
+  renderTripPlannerUI();
+}
+
+function toggleTripPackingItem(key) {
+  if (tripPlannerState.packingChecked.hasOwnProperty(key)) {
+    tripPlannerState.packingChecked[key] = !tripPlannerState.packingChecked[key];
+    renderTripPlannerUI();
+  }
+}
+
+function copyTripForecastSummary() {
+  const isRange = tripPlannerState.mode === 'range';
+  let summaryText = "";
+
+  if (!isRange) {
+    const d = getFutureCycleDetails(tripPlannerState.startDate);
+    summaryText = `✈️ Emma's Trip & Holiday Cycle Forecast
+📅 Date: ${d.formattedDate} (${d.relString})
+🌸 Cycle Day: Day ${d.dayNum} • ${d.phaseLabel}
+
+🔋 Social & Dopamine Battery: ${d.batteryTitle}
+• ${d.batteryNote}
+
+🌊 Gut Motility & Bloat Risk: ${d.bloatScore} (${d.bloatLabel})
+• ${d.bloatNote}
+
+🧳 Outfit & Packing Tip:
+• ${d.packingTip}
+
+💍 Oura Nocturnal Temperature:
+• ${d.ouraTemp} (Healthy luteal warmth—not an illness!)`;
+  } else {
+    const days = calculateFutureCycleRange(tripPlannerState.startDate, tripPlannerState.endDate);
+    const startD = days[0];
+    const endD = days[days.length - 1];
+    summaryText = `🌴 Emma's Multi-Day Trip Cycle Itinerary
+📅 Range: ${startD.formattedDate} to ${endD.formattedDate} (${days.length} Days)
+
+📊 Day-by-Day Forecast:
+${days.map(d => `• ${d.shortDate} (${d.dayName}): Cycle Day ${d.dayNum} (${d.phaseLabel}) | Battery: ${d.battery}% | Gut Bloat: ${d.bloatScore}`).join('\n')}
+
+🧳 Trip Packing Essentials:
+• Linaclotide + Morning Travel Water Bottle
+• Senna Emergency Rescue Sachets
+• Stretchy Waistband Holiday Clothes & Flowy Outfits
+• Noise-canceling AirPods (Sensory Buffer)
+• Electrolyte sachets`;
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(summaryText).then(() => {
+      if (typeof showDynamicToast === 'function') {
+        showDynamicToast("📋 Copied travel forecast to clipboard! ✨", 3500);
+      }
+    }).catch(() => {
+      if (typeof showDynamicToast === 'function') {
+        showDynamicToast("Copied travel forecast! ✨", 3500);
+      }
+    });
+  } else if (typeof showDynamicToast === 'function') {
+    showDynamicToast("Summary ready! ✨", 3000);
+  }
+}
+
+function openTripPlannerModal(prefillQuery) {
+  if (prefillQuery) {
+    const parsed = parseFutureDateQuery(prefillQuery);
+    if (parsed) {
+      tripPlannerState.startDate = parsed.startDate;
+      tripPlannerState.endDate = parsed.endDate || parsed.startDate;
+      if (parsed.mode) tripPlannerState.mode = parsed.mode;
+      tripPlannerState.query = prefillQuery;
+    }
+  }
+  const modal = document.getElementById('tripPlannerModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    renderTripPlannerUI();
+    if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+  }
+}
+
+function closeTripPlannerModal() {
+  const modal = document.getElementById('tripPlannerModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// Global Window Exports
+window.tripPlannerState = tripPlannerState;
+window.parseFutureDateQuery = parseFutureDateQuery;
+window.calculateFutureCycleDay = calculateFutureCycleDay;
+window.getFutureCycleDetails = getFutureCycleDetails;
+window.calculateFutureCycleRange = calculateFutureCycleRange;
+window.renderTripPlannerUI = renderTripPlannerUI;
+window.handleTripQuerySubmit = handleTripQuerySubmit;
+window.quickSelectHoliday = quickSelectHoliday;
+window.setTripPlannerMode = setTripPlannerMode;
+window.onTripSingleDateChange = onTripSingleDateChange;
+window.onTripRangeDateChange = onTripRangeDateChange;
+window.toggleTripPackingItem = toggleTripPackingItem;
+window.copyTripForecastSummary = copyTripForecastSummary;
+window.openTripPlannerModal = openTripPlannerModal;
+window.closeTripPlannerModal = closeTripPlannerModal;
 
 // ============================================================================
 // APP BOOTSTRAP: INITIALIZE AFTER ALL SCRIPTS & DOM LOAD

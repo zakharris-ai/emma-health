@@ -236,6 +236,9 @@
               <button type="button" onclick="openBayesianModal()" class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 text-[10px] font-bold transition-all shadow-2xs active:scale-95">
                 <span>🌸 Emma's Cycle Guide ↗</span>
               </button>
+              <button type="button" onclick="openTripPlannerModal()" class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-300 text-[10px] font-bold transition-all shadow-2xs active:scale-95 cursor-pointer">
+                <span>✈️ Plan a Trip / Holiday ↗</span>
+              </button>
             </div>
           </div>
 
@@ -245,6 +248,9 @@
 
       <!-- ADHD OURA MORNING GLANCE CARD (Auto-populated from Ring Data) -->
       <div id="dashOuraGlanceContainer"></div>
+
+      <!-- TRIP & HOLIDAY CYCLE PLANNER ("Where will I be in my cycle on X date?") -->
+      <div id="tripCyclePlannerContainer"></div>
 
       <!-- ============================================================= -->
       <!-- UNIFIED DAILY CHECK-IN DASHBOARD HUB                          -->
@@ -3000,7 +3006,50 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260908-v25"></script>
+  <!-- ============================================================= -->
+  <!-- MODAL: TRIP & HOLIDAY CYCLE PLANNER ("Where Will I Be?")      -->
+  <!-- ============================================================= -->
+  <div id="tripPlannerModal" onclick="if(event.target === this) closeTripPlannerModal()" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-4 sm:p-6 space-y-4 shadow-2xl border border-brand-border max-h-[92vh] flex flex-col justify-between overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between border-b border-brand-border/60 pb-3">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-teal-100 text-teal-800 border border-teal-200 flex items-center justify-center text-xl shadow-2xs shrink-0">
+            ✈️
+          </div>
+          <div>
+            <h3 class="font-bold text-base sm:text-lg text-brand-textDark flex items-center gap-2">
+              <span>Trip & Holiday Cycle Planner</span>
+              <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 border border-teal-200">Travel & Events</span>
+            </h3>
+            <p class="text-xs text-brand-textMuted">Ask where you'll be in your cycle on any future date to plan ahead for holidays, trips, and events.</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeTripPlannerModal()" class="w-8 h-8 rounded-full bg-brand-cream hover:bg-brand-border text-brand-textMuted flex items-center justify-center transition-all active:scale-95 shrink-0" aria-label="Close">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Scrollable Modal Content -->
+      <div id="modalTripPlannerBody" class="space-y-4 overflow-y-auto pr-1 flex-1 no-scrollbar text-xs leading-relaxed">
+        <!-- Injected via renderTripPlannerUI in modal mode -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="pt-2 border-t border-brand-border/60 flex items-center justify-between">
+        <button type="button" onclick="copyTripForecastSummary()" class="px-3.5 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 active:scale-95 cursor-pointer">
+          <span>📋 Copy Travel Summary</span>
+        </button>
+        <button type="button" onclick="closeTripPlannerModal()" class="px-4 py-2 rounded-xl bg-brand-textDark hover:bg-black text-white font-bold text-xs transition-all active:scale-95 cursor-pointer">
+          Done
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js?v=20260908-v26"></script>
   <script>
     // Safeguard: Guarantee Lucide icons and logos render on first paint
     (function() {
