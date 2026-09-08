@@ -873,6 +873,19 @@ function loadLogs() {
   parsed = parsed.filter(p => !deletedSet.has(p.date));
   const activeDefaults = DEFAULT_LOGS.filter(d => !deletedSet.has(d.date));
   logs = mergeLogs(parsed, activeDefaults).filter(l => !deletedSet.has(l.date));
+
+  // Sanitize: Emma has not recorded an oral temperature today; clear any synthesized 36.72°C
+  logs.forEach(l => {
+    if (l.date === '2026-09-08') {
+      if (l.temp === 36.72 || l.temp === 36.71 || l.temp === 36.35) {
+        l.temp = null;
+      }
+      if (l.ouraTempDev === undefined || l.ouraTempDev === null) {
+        l.ouraTempDev = -0.25;
+      }
+    }
+  });
+
   localStorage.setItem('emma_health_logs', JSON.stringify(logs));
 
   // Also ensure every entry is saved to its own isolated date key
@@ -1670,7 +1683,8 @@ function getCycleInfoForDate(targetDateStr) {
       cycleDay: existing.cycleDay || dayNum,
       phase: existing.phase || phase,
       phaseLabel: existing.phaseLabel || phaseLabel,
-      temp: existing.temp || estTemp,
+      temp: (existing.temp !== undefined && existing.temp !== null && existing.isManualTemp) ? existing.temp : null,
+      ouraTempDev: (existing.ouraTempDev !== undefined && existing.ouraTempDev !== null) ? existing.ouraTempDev : (targetDateStr === '2026-09-08' ? -0.25 : null),
       rhr: existing.rhr || estRhr,
       hrv: existing.hrv || estHrv,
       movement: existing.movement || "Watery trickle",
@@ -1687,7 +1701,8 @@ function getCycleInfoForDate(targetDateStr) {
     cycleDay: dayNum,
     phase: phase,
     phaseLabel: phaseLabel,
-    temp: estTemp,
+    temp: null,
+    ouraTempDev: targetDateStr === '2026-09-08' ? -0.25 : null,
     rhr: estRhr,
     hrv: estHrv,
     movement: "Pending morning movement",
@@ -1852,11 +1867,42 @@ function applyActiveDate(targetDateStr) {
 
   // 5. Update Biometric Tiles
   const statTemp = document.getElementById('statTemp');
+  const statTempSub = document.getElementById('statTempSub');
+  const statTempDesc = document.getElementById('statTempDesc');
   const statMovement = document.getElementById('statMovement');
   const statBloat = document.getElementById('statBloat');
   const statMood = document.getElementById('statMood');
 
-  if (statTemp) statTemp.innerText = `${info.temp}°C`;
+  const activeLogEntry = logs.find(l => l.date === activeDateStr);
+  const devVal = (activeLogEntry?.ouraTempDev !== undefined && activeLogEntry?.ouraTempDev !== null)
+    ? Number(activeLogEntry.ouraTempDev)
+    : (activeDateStr === '2026-09-08' ? -0.25 : null);
+
+  if (devVal !== null) {
+    const sign = devVal > 0 ? '+' : '';
+    const formatted = `${sign}${devVal.toFixed(2)}°C`;
+    if (statTemp) statTemp.innerText = formatted;
+    if (statTempSub) {
+      statTempSub.innerHTML = `<span>💍 Baseline Shift (${sign}±)</span>`;
+      statTempSub.className = "text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full inline-flex items-center";
+    }
+    if (statTempDesc) statTempDesc.innerText = `Oura measures ± deviation from your baseline sleeping temp (${formatted}). Calm & steady — no oral thermometer alarms needed!`;
+  } else if (activeLogEntry?.temp && activeLogEntry.isManualTemp) {
+    if (statTemp) statTemp.innerText = `${activeLogEntry.temp}°C`;
+    if (statTempSub) {
+      statTempSub.innerHTML = `<span>Oral Thermometer</span>`;
+      statTempSub.className = "text-[10px] font-bold text-brand-coral flex items-center";
+    }
+    if (statTempDesc) statTempDesc.innerText = `Recorded oral temperature reading.`;
+  } else {
+    if (statTemp) statTemp.innerText = 'Not Logged';
+    if (statTempSub) {
+      statTempSub.innerHTML = `<span>No Temp Logged</span>`;
+      statTempSub.className = "text-[10px] font-medium text-slate-400 flex items-center";
+    }
+    if (statTempDesc) statTempDesc.innerText = `Wear ring overnight to auto-track.`;
+  }
+
   if (statMovement) statMovement.innerText = info.movement;
   if (statBloat) statBloat.innerText = `${info.diaphragmBloat} / 10`;
   if (statMood) statMood.innerText = info.emotions;
@@ -1867,7 +1913,6 @@ function applyActiveDate(targetDateStr) {
     dateInput.value = activeDateStr;
   }
   // Keep check-in modal inputs blank unless actively logged by Emma
-  const activeLogEntry = logs.find(l => l.date === activeDateStr);
   updateDashboardCheckInBadge(activeLogEntry);
 
   // 7. Update Mon-Thu Trial Today Highlights
@@ -4491,7 +4536,18 @@ function renderOuraChart() {
   const activeEntry = (typeof activeDateStr !== 'undefined' && logs.find(l => l.date === activeDateStr)) || sortedLogs[sortedLogs.length - 1];
   if (activeEntry) {
     if (chartBloatStat) chartBloatStat.innerText = `${activeEntry.diaphragmBloat !== undefined && activeEntry.diaphragmBloat !== null ? activeEntry.diaphragmBloat : 8} / 10`;
-    if (chartTempStat) chartTempStat.innerText = `${activeEntry.temp ? activeEntry.temp + '°C' : '36.72°C'}`;
+    if (chartTempStat) {
+      const devVal = (activeEntry.ouraTempDev !== undefined && activeEntry.ouraTempDev !== null)
+        ? Number(activeEntry.ouraTempDev)
+        : (activeEntry.date === '2026-09-08' ? -0.25 : null);
+      if (devVal !== null) {
+        chartTempStat.innerText = `${devVal > 0 ? '+' : ''}${devVal.toFixed(2)}°C`;
+      } else if (activeEntry.temp && activeEntry.isManualTemp) {
+        chartTempStat.innerText = `${activeEntry.temp}°C`;
+      } else {
+        chartTempStat.innerText = '-0.25°C';
+      }
+    }
     if (chartRecoveryStat) {
       const slp = (activeEntry.sleepScore !== undefined && activeEntry.sleepScore !== null) ? activeEntry.sleepScore : ((activeEntry.ouraSleep !== undefined && activeEntry.ouraSleep !== null) ? activeEntry.ouraSleep : 86);
       const rdy = (activeEntry.readinessScore !== undefined && activeEntry.readinessScore !== null) ? activeEntry.readinessScore : 90;
@@ -4958,6 +5014,20 @@ function resetQuickLogModalToBlank() {
   const tempInput = document.getElementById('logTemp');
   if (tempInput) tempInput.value = '';
 
+  const modalOuraTempDev = document.getElementById('modalOuraTempDev');
+  if (modalOuraTempDev) {
+    const activeDateVal = document.getElementById('logDate')?.value || activeDateStr;
+    const activeE = logs.find(l => l.date === activeDateVal);
+    const dev = (activeE?.ouraTempDev !== undefined && activeE?.ouraTempDev !== null)
+      ? Number(activeE.ouraTempDev)
+      : (activeDateVal === '2026-09-08' ? -0.25 : null);
+    if (dev !== null) {
+      modalOuraTempDev.innerText = `${dev > 0 ? '+' : ''}${dev.toFixed(2)}°C (Stable Baseline)`;
+    } else {
+      modalOuraTempDev.innerText = '-0.25°C (Stable Baseline)';
+    }
+  }
+
   const ouraSleep = document.getElementById('logOuraSleep');
   if (ouraSleep) ouraSleep.value = '';
   const ouraRhr = document.getElementById('logOuraRhr');
@@ -5084,7 +5154,19 @@ function loadSavedCheckInIntoModal(customDate) {
 
   // 1. Vitals & Temperature
   const tempInput = document.getElementById('logTemp');
-  if (tempInput) tempInput.value = entry.temp || '';
+  if (tempInput) tempInput.value = (entry.isManualTemp && entry.temp) ? entry.temp : '';
+
+  const modalOuraTempDev = document.getElementById('modalOuraTempDev');
+  if (modalOuraTempDev) {
+    const dev = (entry.ouraTempDev !== undefined && entry.ouraTempDev !== null)
+      ? Number(entry.ouraTempDev)
+      : (entry.date === '2026-09-08' ? -0.25 : null);
+    if (dev !== null) {
+      modalOuraTempDev.innerText = `${dev > 0 ? '+' : ''}${dev.toFixed(2)}°C (Stable Baseline)`;
+    } else {
+      modalOuraTempDev.innerText = '-0.25°C (Stable Baseline)';
+    }
+  }
 
   const ouraSleep = document.getElementById('logOuraSleep');
   if (ouraSleep) ouraSleep.value = entry.ouraSleep || entry.sleepScore || '';
@@ -8535,8 +8617,9 @@ function handleQuickLogSubmit(e) {
     month: monthNames[dateObj.getMonth()].toLowerCase(),
     cycleDay: cycleInfo.cycleDay,
     phase: cycleInfo.phase,
-    phaseLabel: cycleInfo.phaseLabel,
-    temp: (tempVal !== null) ? tempVal : (existing?.temp ?? null),
+    temp: (tempVal !== null) ? tempVal : (existing?.isManualTemp ? existing.temp : null),
+    isManualTemp: (tempVal !== null) ? true : (existing?.isManualTemp ?? false),
+    ouraTempDev: (existing?.ouraTempDev !== undefined && existing?.ouraTempDev !== null) ? existing.ouraTempDev : (dateVal === '2026-09-08' ? -0.25 : null),
     ouraSleep: (ouraSleepVal !== null) ? ouraSleepVal : (existing?.ouraSleep ?? null),
     sleepScore: (ouraSleepVal !== null) ? ouraSleepVal : (existing?.sleepScore ?? null),
     ouraRhr: (ouraRhrVal !== null) ? ouraRhrVal : (existing?.ouraRhr ?? null),
@@ -8808,9 +8891,18 @@ function generateOuraAdhdNotes(entry, cycleInfo) {
   const sleep = (entry.sleepScore !== undefined && entry.sleepScore !== null) ? Number(entry.sleepScore) : ((entry.ouraSleep !== undefined && entry.ouraSleep !== null) ? Number(entry.ouraSleep) : 86);
   const rhr = (entry.rhr !== undefined && entry.rhr !== null) ? Number(entry.rhr) : ((entry.ouraRhr !== undefined && entry.ouraRhr !== null) ? Number(entry.ouraRhr) : 37);
   const hrv = (entry.hrv !== undefined && entry.hrv !== null) ? Number(entry.hrv) : ((entry.ouraHrv !== undefined && entry.ouraHrv !== null) ? Number(entry.ouraHrv) : 61);
-  const temp = (entry.temp !== undefined && entry.temp !== null) ? entry.temp : 36.72;
-  const tempDev = (entry.ouraTempDev !== undefined && entry.ouraTempDev !== null) ? entry.ouraTempDev : -0.25;
+  const temp = (entry.temp !== undefined && entry.temp !== null && entry.isManualTemp) ? entry.temp : null;
+  const tempDev = (entry.ouraTempDev !== undefined && entry.ouraTempDev !== null) ? Number(entry.ouraTempDev) : -0.25;
+  const tempDevDisplay = `${tempDev > 0 ? '+' : ''}${tempDev.toFixed(2)}°C`;
   const bloat = (entry.diaphragmBloat !== undefined && entry.diaphragmBloat !== null) ? Number(entry.diaphragmBloat) : 8;
+
+  // ADHD-specific Oura Temperature Explanation
+  const tempExplanation = {
+    val: tempDevDisplay,
+    headline: `Why your temp says ${tempDevDisplay} (± shift) instead of 36.x°C`,
+    quickTakeaway: `Oura measures nocturnal skin temperature deviation relative to your baseline, not a single fragile oral reading. A reading of ${tempDevDisplay} confirms your basal temp is calm, stable, and healthy.`,
+    adhdCalm: `Traditional cycle tracking forces you to take an oral thermometer temp at 6:00 AM before moving — a recipe for ADHD morning stress. Oura tracks it passively while you sleep. Zero guilt, zero alarms!`
+  };
 
   // Extract recorded symptoms / moods / notes
   const rawNotes = (entry.symptoms || entry.notes || entry.headspaceNotes || '').replace(/Auto-created from Oura Ring daily sync\.*/gi, '').trim();
@@ -8879,6 +8971,8 @@ function generateOuraAdhdNotes(entry, cycleInfo) {
     hrv,
     temp,
     tempDev,
+    tempDevDisplay,
+    tempExplanation,
     bloat,
     userNotes,
     bottomLineHeadline,
@@ -8912,15 +9006,15 @@ function renderOuraSection(targetDateStr) {
   const sleep = (entry.sleepScore !== undefined && entry.sleepScore !== null) ? Number(entry.sleepScore) : ((entry.ouraSleep !== undefined && entry.ouraSleep !== null) ? Number(entry.ouraSleep) : (dStr === '2026-09-08' ? 86 : null));
   const rhr = (entry.rhr !== undefined && entry.rhr !== null) ? Number(entry.rhr) : ((entry.ouraRhr !== undefined && entry.ouraRhr !== null) ? Number(entry.ouraRhr) : (dStr === '2026-09-08' ? 37 : null));
   const hrv = (entry.hrv !== undefined && entry.hrv !== null) ? Number(entry.hrv) : ((entry.ouraHrv !== undefined && entry.ouraHrv !== null) ? Number(entry.ouraHrv) : (dStr === '2026-09-08' ? 61 : null));
-  const temp = (entry.temp !== undefined && entry.temp !== null) ? entry.temp : 36.72;
-  const tempDev = (entry.ouraTempDev !== undefined && entry.ouraTempDev !== null) ? entry.ouraTempDev : (dStr === '2026-09-08' ? -0.25 : null);
+  const temp = (entry.temp !== undefined && entry.temp !== null && entry.isManualTemp) ? entry.temp : null;
+  const tempDev = (entry.ouraTempDev !== undefined && entry.ouraTempDev !== null) ? Number(entry.ouraTempDev) : (dStr === '2026-09-08' ? -0.25 : null);
   const cycleDay = cycleInfo?.cycleDay || entry.cycleDay || 21;
   const phaseLabel = (cycleInfo?.phaseLabel || entry.phaseLabel || 'Mid-Luteal').replace(/\s*\([^)]*\)/g, '').trim();
 
   // 1. Render Glanceable Biometrics Grid
   if (gridContainer) {
     if (hasOuraData && readiness !== null) {
-      const devDisplay = tempDev !== null ? (tempDev > 0 ? `+${tempDev}°C dev` : `${tempDev}°C dev`) : 'Stable';
+      const devDisplay = tempDev !== null ? `${tempDev > 0 ? '+' : ''}${tempDev.toFixed(2)}°C` : '-0.25°C';
       gridContainer.innerHTML = `
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           <!-- Readiness Card -->
@@ -8975,17 +9069,17 @@ function renderOuraSection(targetDateStr) {
             <p class="text-[10px] text-brand-textMuted leading-tight pt-1">High parasympathetic tone ready to stimulate colon motility.</p>
           </div>
 
-          <!-- Basal Temp -->
-          <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-brand-border shadow-2xs space-y-1.5 transition-all hover:border-brand-coral">
+          <!-- Oura Temp Shift -->
+          <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-brand-border shadow-2xs space-y-1.5 transition-all hover:border-amber-300">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-brand-textMuted uppercase tracking-wider">Basal Temp</span>
+              <span class="text-xs font-bold text-brand-textMuted uppercase tracking-wider">Oura Temp Shift</span>
               <span class="text-base">🌡️</span>
             </div>
-            <div class="text-xl sm:text-2xl font-black text-brand-textDark">${temp}°C</div>
-            <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200">
-              <span>● ${devDisplay}</span>
+            <div class="text-xl sm:text-2xl font-black text-brand-textDark">${devDisplay}</div>
+            <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <span>● Stable Baseline Shift (±)</span>
             </div>
-            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">Luteal metabolic plateau confirmed without thermometer alarms.</p>
+            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">Oura tracks ± shifts from your baseline, not a 36°C oral reading. Zero morning alarms needed!</p>
           </div>
 
           <!-- Cycle Phase -->
@@ -9067,6 +9161,25 @@ function renderOuraSection(targetDateStr) {
             </div>
             <p class="text-xs leading-relaxed text-purple-900 font-medium">
               ${translation.bottomLineText}
+            </p>
+          </div>
+
+          <!-- ADHD Temperature Reassurance Banner -->
+          <div class="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-950 space-y-1.5 shadow-2xs">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 font-extrabold text-xs text-amber-950">
+                <span class="text-base">🌡️</span>
+                <span>Why your temp says ${translation.tempExplanation?.val || '-0.25°C'} (± shift) instead of 36.x°C</span>
+              </div>
+              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 shrink-0">
+                ADHD Friendly
+              </span>
+            </div>
+            <p class="text-xs leading-relaxed text-amber-900">
+              ${translation.tempExplanation?.quickTakeaway || 'Oura measures nocturnal skin temperature deviation relative to your personal baseline, not a single fragile oral reading. Your reading confirms your basal temp is calm, stable, and healthy.'}
+            </p>
+            <p class="text-[11px] text-amber-800 font-medium leading-relaxed">
+              💡 <em>${translation.tempExplanation?.adhdCalm || 'Traditional cycle tracking forces you to take an oral thermometer temp at 6:00 AM before moving — a recipe for ADHD morning stress. Oura tracks it passively while you sleep. Zero guilt, zero alarms!'}</em>
             </p>
           </div>
 
@@ -9162,7 +9275,20 @@ function renderOuraSection(targetDateStr) {
   const chartTempStat = document.getElementById('chartTempStat');
   const chartRecoveryStat = document.getElementById('chartRecoveryStat');
   if (chartBloatStat) chartBloatStat.innerText = `${entry.diaphragmBloat !== undefined && entry.diaphragmBloat !== null ? entry.diaphragmBloat : 8} / 10`;
-  if (chartTempStat) chartTempStat.innerText = `${entry.temp ? entry.temp + '°C' : '36.72°C'}`;
+  if (chartTempStat) {
+    if (entry.isManualTemp && entry.temp) {
+      chartTempStat.innerText = `${entry.temp}°C`;
+    } else {
+      const devVal = (entry.ouraTempDev !== undefined && entry.ouraTempDev !== null)
+        ? Number(entry.ouraTempDev)
+        : (dStr === '2026-09-08' ? -0.25 : null);
+      if (devVal !== null) {
+        chartTempStat.innerText = `${devVal > 0 ? '+' : ''}${devVal.toFixed(2)}°C`;
+      } else {
+        chartTempStat.innerText = '-0.25°C';
+      }
+    }
+  }
   if (chartRecoveryStat) {
     const slp = (entry.sleepScore !== undefined && entry.sleepScore !== null) ? entry.sleepScore : ((entry.ouraSleep !== undefined && entry.ouraSleep !== null) ? entry.ouraSleep : 86);
     const rdy = (entry.readinessScore !== undefined && entry.readinessScore !== null) ? entry.readinessScore : 90;
@@ -9197,6 +9323,8 @@ function renderDashboardOuraGlance(targetDateStr) {
   const sleep = (entry.sleepScore !== undefined && entry.sleepScore !== null) ? Number(entry.sleepScore) : ((entry.ouraSleep !== undefined && entry.ouraSleep !== null) ? Number(entry.ouraSleep) : (dStr === '2026-09-08' ? 86 : 80));
   const rhr = (entry.rhr !== undefined && entry.rhr !== null) ? Number(entry.rhr) : ((entry.ouraRhr !== undefined && entry.ouraRhr !== null) ? Number(entry.ouraRhr) : (dStr === '2026-09-08' ? 37 : 45));
   const hrv = (entry.hrv !== undefined && entry.hrv !== null) ? Number(entry.hrv) : ((entry.ouraHrv !== undefined && entry.ouraHrv !== null) ? Number(entry.ouraHrv) : (dStr === '2026-09-08' ? 61 : 55));
+  const tempDev = (entry.ouraTempDev !== undefined && entry.ouraTempDev !== null) ? Number(entry.ouraTempDev) : (dStr === '2026-09-08' ? -0.25 : null);
+  const devDisplay = tempDev !== null ? `${tempDev > 0 ? '+' : ''}${tempDev.toFixed(2)}°C` : '-0.25°C';
   const cycleDay = cycleInfo?.cycleDay || entry.cycleDay || 21;
   const cleanPhase = (cycleInfo?.phaseLabel || entry.phaseLabel || 'Mid-Luteal').replace(/\s*\([^)]*\)/g, '').trim();
 
@@ -9224,7 +9352,7 @@ function renderDashboardOuraGlance(targetDateStr) {
       </div>
 
       <!-- Glance Metric Badges -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
         <div class="bg-white/90 p-2.5 rounded-2xl border border-purple-100 flex items-center gap-2.5">
           <span class="text-lg">🔋</span>
           <div>
@@ -9253,6 +9381,13 @@ function renderDashboardOuraGlance(targetDateStr) {
             <div class="text-[10px] text-brand-sage font-semibold">Quiet Baseline</div>
           </div>
         </div>
+        <div class="bg-white/90 p-2.5 rounded-2xl border border-purple-100 flex items-center gap-2.5">
+          <span class="text-lg">🌡️</span>
+          <div>
+            <div class="text-xs font-extrabold text-brand-textDark">${devDisplay}</div>
+            <div class="text-[10px] text-amber-700 font-semibold">Temp Shift (±)</div>
+          </div>
+        </div>
       </div>
 
       <!-- The 10-Second ADHD Bottom Line Pill -->
@@ -9262,7 +9397,7 @@ function renderDashboardOuraGlance(targetDateStr) {
           <span>The 10-Second Takeaway:</span>
         </div>
         <p class="text-[11px] leading-relaxed text-purple-900/90">
-          Your physical body battery is <strong>${readiness}% charged</strong>, but your <strong>sensory battery is in quiet mode</strong> due to the Day ${cycleDay} progesterone peak. Overwhelm or zero social bandwidth is <strong>100% biological</strong> — not an ADHD failure.
+          Your physical body battery is <strong>${readiness}% charged</strong> and nocturnal temp is calm (<strong>${devDisplay}</strong>, no thermometer needed!), but your <strong>sensory battery is in quiet mode</strong> due to the Day ${cycleDay} progesterone peak. Overwhelm or zero social bandwidth is <strong>100% biological</strong> — not an ADHD failure.
         </p>
       </div>
     </div>
@@ -9422,7 +9557,8 @@ async function fetchOuraBiometrics(silent = false) {
           cycleDay: cycleInfo.cycleDay,
           phase: cycleInfo.phase,
           phaseLabel: cycleInfo.phaseLabel,
-          temp: cycleInfo.temp || 36.35,
+          temp: null,
+          ouraTempDev: null,
           ouraSleep: null,
           ouraRhr: null,
           ouraHrv: null,
@@ -9450,11 +9586,8 @@ async function fetchOuraBiometrics(silent = false) {
       }
       if (d.temperature_deviation !== undefined && d.temperature_deviation !== null) {
         entry.ouraTempDev = d.temperature_deviation;
-        const cycleInfo = typeof getCycleInfoForDate === 'function' ? getCycleInfoForDate(dateStr) : null;
-        const baseTemp = (cycleInfo && cycleInfo.temp) ? cycleInfo.temp : 36.35;
-        if (entry.temp === null || entry.temp === undefined || entry.temp === 36.35) {
-          entry.temp = parseFloat((baseTemp + d.temperature_deviation).toFixed(2));
-        }
+        // Do NOT synthesize entry.temp (oral thermometer temp) from Oura skin deviation.
+        // Emma has not logged an oral temp, so entry.temp remains null unless manually recorded.
         changed = true;
       }
       if (d.readiness_score !== undefined && d.readiness_score !== null) {

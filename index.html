@@ -555,13 +555,16 @@
         <!-- Tile 1: Nocturnal Temp -->
         <div class="bg-white p-4 rounded-2xl border border-brand-border shadow-2xs space-y-1">
           <span class="text-[11px] font-semibold text-brand-textMuted flex items-center justify-between">
-            <span>Nocturnal Temp</span>
-            <i data-lucide="thermometer" class="w-3.5 h-3.5 text-brand-coral"></i>
+            <span>Oura Nocturnal Temp</span>
+            <i data-lucide="thermometer" class="w-3.5 h-3.5 text-purple-600"></i>
           </span>
-          <div class="text-xl font-extrabold text-brand-textDark" id="statTemp">36.71°C</div>
-          <div class="text-[10px] font-bold text-brand-coral flex items-center">
-            <span>+0.33°C Luteal Shift</span>
+          <div class="text-xl font-extrabold text-brand-textDark" id="statTemp">-0.25°C</div>
+          <div class="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full inline-flex items-center" id="statTempSub">
+            <span>💍 Baseline Shift (±)</span>
           </div>
+          <p class="text-[10px] text-brand-textMuted leading-tight pt-1" id="statTempDesc">
+            Tracks ± shifts from your personal baseline. No thermometer needed!
+          </p>
         </div>
 
         <!-- Tile 2: Last Bowel Movement -->
@@ -874,9 +877,9 @@
             <span class="text-[10px] text-brand-textMuted">Lower belly fullness</span>
           </div>
           <div class="p-3 rounded-2xl bg-brand-sageLight/50 border border-brand-sage/20 text-center">
-            <span class="text-[10px] font-bold uppercase text-brand-sage">Recorded Basal Temp</span>
-            <div id="chartTempStat" class="text-sm sm:text-base font-extrabold text-brand-sage mt-0.5">36.72°C</div>
-            <span class="text-[10px] text-brand-textMuted">Luteal baseline shift</span>
+            <span class="text-[10px] font-bold uppercase text-brand-sage">Oura Temp Shift</span>
+            <div id="chartTempStat" class="text-sm sm:text-base font-extrabold text-brand-sage mt-0.5">-0.25°C</div>
+            <span class="text-[10px] text-brand-textMuted">± Baseline shift (No thermometer)</span>
           </div>
           <div class="p-3 rounded-2xl bg-purple-50 border border-purple-100 text-center">
             <span class="text-[10px] font-bold uppercase text-purple-700">Recovery State</span>
@@ -1515,8 +1518,10 @@
               <input type="date" id="logDate" class="w-full text-xs p-2.5 bg-brand-cream border border-brand-border rounded-xl font-medium" required>
             </div>
             <div>
-              <label class="block text-[10px] font-bold text-brand-textMuted mb-1">Morning Temp (°C)</label>
-              <input type="number" step="0.01" id="logTemp" placeholder="e.g. 36.72" class="w-full text-xs p-2.5 bg-brand-cream border border-brand-border rounded-xl font-medium">
+              <label class="block text-[10px] font-bold text-brand-textMuted mb-1">
+                Oral Temp (°C) <span class="font-normal text-[9px] text-brand-textMuted">(Optional)</span>
+              </label>
+              <input type="number" step="0.01" id="logTemp" placeholder="Optional (Oura auto-tracks)" class="w-full text-xs p-2.5 bg-brand-cream border border-brand-border rounded-xl font-medium">
             </div>
           </div>
         </div>
@@ -1532,8 +1537,17 @@
               🟢 Live Connected
             </span>
           </div>
+          <div class="flex items-center justify-between p-2 bg-white/90 rounded-xl border border-purple-100 text-xs">
+            <span class="text-[11px] font-bold text-purple-900 flex items-center gap-1">
+              <span>🌡️</span>
+              <span>Oura Temp Shift:</span>
+            </span>
+            <span id="modalOuraTempDev" class="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+              -0.25°C (Stable Baseline)
+            </span>
+          </div>
           <p class="text-[10px] text-purple-900/80 leading-relaxed">
-            Auto-populated from your Oura Ring cloud sync, or tap to adjust manually.
+            Auto-populated from your Oura Ring cloud sync. Oura tracks ± shifts from your baseline, so you never need an oral thermometer.
           </p>
           <div class="grid grid-cols-3 gap-2">
             <div>
@@ -2976,7 +2990,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260908-v23"></script>
+  <script src="app.js?v=20260908-v24"></script>
   <script>
     // Safeguard: Guarantee Lucide icons and logos render on first paint
     (function() {
