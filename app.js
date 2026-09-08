@@ -8771,7 +8771,7 @@ function openOuraConfigModal() {
   const oauthBtn = document.getElementById('btnOuraOAuthAuthorize');
   if (oauthBtn) {
     const redirectUri = encodeURIComponent(getOuraRedirectUri());
-    oauthBtn.href = `https://cloud.ouraring.com/oauth/authorize?response_type=code&client_id=${OURA_CLIENT_ID}&redirect_uri=${redirectUri}&scope=email+personal+daily+heartrate+workout+tag+session+spo2`;
+    oauthBtn.href = `https://cloud.ouraring.com/oauth/authorize?response_type=code&client_id=${OURA_CLIENT_ID}&redirect_uri=${redirectUri}`;
   }
 
   updateOuraConnectionUI();
