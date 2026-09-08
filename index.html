@@ -240,6 +240,9 @@
 
       </div>
 
+      <!-- ADHD OURA MORNING GLANCE CARD (Auto-populated from Ring Data) -->
+      <div id="dashOuraGlanceContainer"></div>
+
       <!-- ============================================================= -->
       <!-- UNIFIED DAILY CHECK-IN DASHBOARD HUB                          -->
       <!-- ============================================================= -->
@@ -805,20 +808,22 @@
     <!-- ================================================================= -->
     <!-- TAB 2: OURA RING BIOMETRIC ENGINE (SIMPLIFIED & INTUITIVE) -->
     <!-- ================================================================= -->
+    <!-- TAB 2: OURA RING (CONTINUOUS BIOMETRICS & ADHD TRANSLATION)       -->
+    <!-- ================================================================= -->
     <section id="tab-oura" class="space-y-5 hidden animate-fadeIn">
       
       <!-- Oura Status Header -->
       <div class="bg-white p-5 rounded-3xl border border-brand-border shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="flex items-center space-x-3">
-          <div class="w-11 h-11 rounded-2xl bg-brand-textDark text-white flex items-center justify-center font-bold shadow-xs text-xl">
+          <div class="w-11 h-11 rounded-2xl bg-purple-950 text-white flex items-center justify-center font-bold shadow-xs text-xl">
             💍
           </div>
           <div>
             <div class="flex items-center space-x-2">
-              <h3 class="font-bold text-sm sm:text-base text-brand-textDark">Oura Ring: Setup & Onboarding</h3>
-              <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-200">✨ Ring Arrived Today!</span>
+              <h3 class="font-bold text-sm sm:text-base text-brand-textDark">Oura Ring: Live Biometrics</h3>
+              <span id="ouraTabLiveBadge" class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-200">🟢 Cloud Connected</span>
             </div>
-            <p class="text-xs text-brand-textMuted">Continuous nocturnal finger temperature streams begin tonight • Zero morning alarms</p>
+            <p class="text-xs text-brand-textMuted" id="ouraLastSyncLabel">Streaming nocturnal temperature, sleep score, resting HR & HRV</p>
           </div>
         </div>
 
@@ -827,56 +832,34 @@
             <span>💍</span>
             <span>Last Period Date: <strong>19 Aug 2026</strong></span>
           </button>
-          <button id="btnOuraTabSync" onclick="fetchOuraBiometrics()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 transition-all shadow-2xs items-center gap-1.5 hidden cursor-pointer">
+          <button id="btnOuraTabSync" onclick="fetchOuraBiometrics()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-2xs inline-flex items-center gap-1.5 cursor-pointer active:scale-95">
             <span>🔄</span>
-            <span>Sync Ring</span>
+            <span>Sync Ring Now</span>
           </button>
-          <button onclick="openOuraConfigModal()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-brand-textDark text-white hover:bg-black transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer">
-            <span id="btnConnectOuraIcon">⚡</span>
-            <span id="btnConnectOuraLabel">Connect Oura Ring</span>
+          <button onclick="openOuraConfigModal()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-brand-textDark text-white hover:bg-black transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95">
+            <span id="btnConnectOuraIcon">⚙️</span>
+            <span id="btnConnectOuraLabel">Ring Settings</span>
           </button>
         </div>
       </div>
 
-      <!-- Quick 3-Step Setup Roadmap for Tonight -->
-      <div class="bg-gradient-to-r from-purple-50 via-slate-50 to-brand-cream border border-purple-200/80 rounded-3xl p-5 shadow-xs space-y-3">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-extrabold text-purple-900 flex items-center gap-1.5">
-            <span>✨</span>
-            <span>Tonight's Night 1 Ring Setup Protocol (Effortless for ADHD)</span>
-          </span>
-          <span class="text-[10px] font-bold text-brand-textMuted">Zero stress • No morning thermometer alarms</span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-          <div class="bg-white/90 p-3 rounded-2xl border border-purple-100 space-y-1">
-            <span class="text-[10px] font-extrabold text-purple-700 uppercase">Step 1: Fit</span>
-            <div class="font-bold text-xs text-brand-textDark">Index or Middle Finger</div>
-            <p class="text-[10px] text-brand-textMuted leading-relaxed">Place ring on non-dominant hand. Sensor bumps sit flat on the underside (palm-side) of your finger.</p>
-          </div>
-          <div class="bg-white/90 p-3 rounded-2xl border border-purple-100 space-y-1">
-            <span class="text-[10px] font-extrabold text-purple-700 uppercase">Step 2: Sleep</span>
-            <div class="font-bold text-xs text-brand-textDark">Wear Overnight Tonight (Sept 7)</div>
-            <p class="text-[10px] text-brand-textMuted leading-relaxed">Sleep normally. Oura collects continuous nocturnal temp, resting HR, and HRV without any effort.</p>
-          </div>
-          <div class="bg-white/90 p-3 rounded-2xl border border-purple-100 space-y-1">
-            <span class="text-[10px] font-extrabold text-purple-700 uppercase">Step 3: Sync</span>
-            <div class="font-bold text-xs text-brand-textDark">Morning Auto-Sync</div>
-            <p class="text-[10px] text-brand-textMuted leading-relaxed">Open Oura iOS app tomorrow morning to upload data, then tap Sync here to stream biometrics!</p>
-          </div>
-        </div>
-      </div>
+      <!-- Live Glanceable Biometrics Deck (Injected / updated dynamically) -->
+      <div id="ouraBiometricsGrid"></div>
 
-      <!-- Main Diary Baseline Chart -->
+      <!-- Emma's ADHD Mind & Body Translation Card (Auto-calibrated from Incoming Data) -->
+      <div id="ouraAdhdNotesContainer"></div>
+
+      <!-- Main Dual-Axis Correlation Chart -->
       <div class="bg-white p-5 rounded-3xl border border-brand-border shadow-xs space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-brand-border pb-3">
           <div>
-            <h4 class="font-bold text-sm text-brand-textDark">Recent Rhythm & Bloating Curve (May–September 2026)</h4>
-            <p class="text-xs text-brand-textMuted">Dual-axis correlation of basal temperature surge with APD diaphragm bloating. Oura continuous stream begins tomorrow.</p>
+            <h4 class="font-bold text-sm text-brand-textDark">Cycle Rhythm & Diaphragm Bloating Curve</h4>
+            <p class="text-xs text-brand-textMuted">Dual-axis correlation of basal temperature & sleep with APD diaphragm bloating.</p>
           </div>
           <div class="flex items-center space-x-3 text-[10px] font-bold">
             <span class="text-brand-coral">● Diaphragm Bloat (1–10)</span>
-            <span class="text-brand-sage">● Recorded Oral Temp (°C)</span>
-            <span class="text-purple-600 border-l border-brand-border pl-2">💍 Oura Stream Starts Tomorrow</span>
+            <span class="text-brand-sage">● Basal Temp (°C)</span>
+            <span class="text-purple-600 border-l border-brand-border pl-2">💍 Oura Live Stream</span>
           </div>
         </div>
 
@@ -884,34 +867,46 @@
           <canvas id="ouraMainChart"></canvas>
         </div>
 
-        <div class="grid grid-cols-3 gap-2.5 pt-2">
+        <div id="ouraChartStatDeck" class="grid grid-cols-3 gap-2.5 pt-2">
           <div class="p-3 rounded-2xl bg-brand-coralLight/50 border border-brand-coral/20 text-center">
-            <span class="text-[10px] font-bold uppercase text-brand-coral">Current Phase</span>
-            <div class="text-sm sm:text-base font-extrabold text-brand-coral mt-0.5">Early-Mid Luteal</div>
-            <span class="text-[10px] text-brand-textMuted">Day 4 Post-Ovulation (92%)</span>
+            <span class="text-[10px] font-bold uppercase text-brand-coral">Active Bloat</span>
+            <div id="chartBloatStat" class="text-sm sm:text-base font-extrabold text-brand-coral mt-0.5">8 / 10</div>
+            <span class="text-[10px] text-brand-textMuted">Lower belly fullness</span>
           </div>
           <div class="p-3 rounded-2xl bg-brand-sageLight/50 border border-brand-sage/20 text-center">
-            <span class="text-[10px] font-bold uppercase text-brand-sage">Recorded Temp Nadir</span>
-            <div class="text-sm sm:text-base font-extrabold text-brand-sage mt-0.5">35.86°C</div>
-            <span class="text-[10px] text-brand-textMuted">Aug 21 Reset Diary Entry</span>
+            <span class="text-[10px] font-bold uppercase text-brand-sage">Recorded Basal Temp</span>
+            <div id="chartTempStat" class="text-sm sm:text-base font-extrabold text-brand-sage mt-0.5">36.72°C</div>
+            <span class="text-[10px] text-brand-textMuted">Luteal baseline shift</span>
           </div>
           <div class="p-3 rounded-2xl bg-purple-50 border border-purple-100 text-center">
-            <span class="text-[10px] font-bold uppercase text-purple-700">Oura Calibration</span>
-            <div class="text-sm sm:text-base font-extrabold text-purple-700 mt-0.5">Begins Tomorrow</div>
-            <span class="text-[10px] text-brand-textMuted">Continuous nocturnal stream</span>
+            <span class="text-[10px] font-bold uppercase text-purple-700">Recovery State</span>
+            <div id="chartRecoveryStat" class="text-sm sm:text-base font-extrabold text-purple-700 mt-0.5">86 Sleep • 90 Ready</div>
+            <span class="text-[10px] text-brand-textMuted">Optimal physical recovery</span>
           </div>
         </div>
       </div>
 
-      <!-- Why Oura Is Emma's Best Friend Card -->
-      <div class="bg-brand-sageLight/50 border border-brand-sage/20 rounded-3xl p-5 space-y-2 text-xs text-brand-textDark">
-        <h4 class="font-bold flex items-center text-brand-sage text-sm">
-          <i data-lucide="check-circle-2" class="w-4 h-4 mr-1.5"></i>
-          Why Oura Completely Eliminates Emma's Morning Thermometer Anxiety
-        </h4>
-        <p class="leading-relaxed text-brand-textMuted">
-          With oral thermometers, waking up at 4 AM with cramps, taking a sip of water, breathing through your mouth, or staying in a warm room immediately ruins the reading. Oura takes <strong>thousands of nocturnal finger temperature measurements while you sleep</strong>, automatically calculating your personal baseline. Emma will never have to set a morning thermometer alarm again.
-        </p>
+      <!-- ADHD Wearable Wisdom Cards (Zero Guilt, Pure Empowerment) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+        <div class="bg-brand-sageLight/50 border border-brand-sage/20 rounded-3xl p-5 space-y-2 text-brand-textDark">
+          <h4 class="font-bold flex items-center text-brand-sage text-sm">
+            <i data-lucide="check-circle-2" class="w-4 h-4 mr-1.5"></i>
+            The Readiness Score is a Gas Gauge, NOT a Grade
+          </h4>
+          <p class="leading-relaxed text-brand-textMuted">
+            For Emma's ADHD, numbers can easily trigger "all-or-nothing" guilt. If Readiness is 70 or 90, it is never a judgment of your effort. It is simply your body's dashboard telling you how much physical bandwidth you have today.
+          </p>
+        </div>
+
+        <div class="bg-purple-50/70 border border-purple-200/70 rounded-3xl p-5 space-y-2 text-brand-textDark">
+          <h4 class="font-bold flex items-center text-purple-900 text-sm">
+            <i data-lucide="heart" class="w-4 h-4 mr-1.5 text-purple-600"></i>
+            Why HRV is Your Secret Gut Motility Metric
+          </h4>
+          <p class="leading-relaxed text-brand-textMuted">
+            Heart Rate Variability measures your Vagus Nerve ("Rest and Digest" tone). High HRV (like your 61 ms today) confirms your nervous system is in the exact calm state your colon needs to stimulate smooth muscle motility!
+          </p>
+        </div>
       </div>
 
     </section>
@@ -2981,7 +2976,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260908-v21"></script>
+  <script src="app.js?v=20260908-v22"></script>
   <script>
     // Safeguard: Guarantee Lucide icons and logos render on first paint
     (function() {
