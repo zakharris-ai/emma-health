@@ -2845,11 +2845,11 @@ function resetToCurrentDate() {
 }
 
 function syncOuraBiometrics() {
-  alert(
-    "💍 Oura Ring Gen 3: Arriving Tomorrow (Sept 7th)!\n\n" +
-    "Emma, your ring is currently in transit. Starting tomorrow night, wearing your Oura Ring will continuously measure finger temperature, resting heart rate, and HRV automatically while you sleep.\n\n" +
-    "Until then, all cycle tracking and phase calculations are 100% verified from your authentic written diary entries and oral temperature logs."
-  );
+  if (typeof fetchOuraBiometrics === 'function') {
+    fetchOuraBiometrics();
+  } else {
+    showDynamicToast("💍 Syncing Oura Ring biometrics...");
+  }
 }
 
 function showDynamicToast(text) {
@@ -4436,7 +4436,7 @@ function renderOuraChart() {
               if (context.parsed.y !== null && context.parsed.y !== undefined) {
                 return `Oral Temp: ${context.parsed.y}°C (Recorded in Notes)`;
               }
-              return 'Oura continuous stream starts tomorrow night';
+              return 'Oura continuous overnight stream';
             }
           }
         }
@@ -8779,6 +8779,17 @@ function updateOuraConnectionUI() {
   if (syncNowBtn) {
     if (savedToken) syncNowBtn.classList.remove('hidden');
     else syncNowBtn.classList.add('hidden');
+  }
+
+  const quickLogBadge = document.getElementById('quickLogOuraBadge');
+  if (quickLogBadge) {
+    if (savedToken) {
+      quickLogBadge.innerText = "🟢 Live Connected";
+      quickLogBadge.className = "text-[9px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200";
+    } else {
+      quickLogBadge.innerText = "💍 Ring Ready";
+      quickLogBadge.className = "text-[9px] font-black text-purple-800 bg-purple-100 px-2 py-0.5 rounded-full border border-purple-200";
+    }
   }
 }
 
