@@ -119,6 +119,11 @@ def init_db():
                     data_json TEXT,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS archived_checkins (
+                    date VARCHAR(32) PRIMARY KEY,
+                    data_json TEXT,
+                    archived_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
                 CREATE TABLE IF NOT EXISTS app_state (
                     key VARCHAR(64) PRIMARY KEY,
                     value TEXT,
@@ -138,6 +143,13 @@ def init_db():
                     splenic_pressure INTEGER,
                     data_json TEXT,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS archived_checkins (
+                    date TEXT PRIMARY KEY,
+                    data_json TEXT,
+                    archived_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
             cur.execute("""
@@ -458,6 +470,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.handle_save_checkin()
         elif self.path == '/api/delete-checkin':
             self.handle_delete_checkin()
+        elif self.path == '/api/restore-archived-checkin':
+            self.handle_restore_archived_checkin()
         elif self.path == '/api/sync-data':
             self.handle_sync_data()
         elif self.path == '/api/oura/exchange-token':
@@ -524,14 +538,34 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             is_pg = hasattr(conn, 'status')
             cur = conn.cursor()
             ph = "%s" if is_pg else "?"
+
+            # 1. Fetch existing record before soft-archiving (Zero Data Loss)
+            cur.execute(f"SELECT data_json FROM checkins WHERE date = {ph}", (d,))
+            row = cur.fetchone()
+            if row and row[0]:
+                dj = row[0]
+                if is_pg:
+                    cur.execute(f"""
+                        INSERT INTO archived_checkins (date, data_json, archived_at)
+                        VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
+                        ON CONFLICT(date) DO UPDATE SET data_json=excluded.data_json, archived_at=CURRENT_TIMESTAMP
+                    """, (d, dj))
+                else:
+                    cur.execute(f"""
+                        INSERT INTO archived_checkins (date, data_json, archived_at)
+                        VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
+                        ON CONFLICT(date) DO UPDATE SET data_json=excluded.data_json, archived_at=CURRENT_TIMESTAMP
+                    """, (d, dj))
+
             cur.execute(f"DELETE FROM checkins WHERE date = {ph}", (d,))
             conn.commit()
             conn.close()
 
             # Record in append-only audit ledger
             append_to_audit_ledger({
-                "action": "DELETE",
+                "action": "ARCHIVE",
                 "date": d,
+                "data_json": row[0] if (row and row[0]) else None,
                 "timestamp": datetime.datetime.now().isoformat()
             })
 
@@ -540,8 +574,53 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
             self._send_json(200, {
                 "ok": True,
-                "message": f"Check-in for {d} permanently deleted",
+                "message": f"Check-in for {d} safely archived to vault (never deleted)",
                 "date": d
+            })
+        except Exception as e:
+            self._send_json(500, {"ok": False, "error": str(e)})
+
+    def handle_restore_archived_checkin(self):
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            raw_body = self.rfile.read(content_length).decode('utf-8')
+            payload = json.loads(raw_body) if raw_body else {}
+            d = payload.get('date')
+            if not d:
+                self._send_json(400, {"ok": False, "error": "Missing date parameter"})
+                return
+
+            conn = get_db_connection()
+            is_pg = hasattr(conn, 'status')
+            cur = conn.cursor()
+            ph = "%s" if is_pg else "?"
+            cur.execute(f"SELECT data_json FROM archived_checkins WHERE date = {ph}", (d,))
+            row = cur.fetchone()
+            if not row or not row[0]:
+                conn.close()
+                self._send_json(404, {"ok": False, "error": f"No archived entry found for {d}"})
+                return
+
+            dj = row[0]
+            entry = json.loads(dj)
+
+            # Remove from archive and restore to active checkins
+            cur.execute(f"DELETE FROM archived_checkins WHERE date = {ph}", (d,))
+            conn.commit()
+            conn.close()
+
+            save_single_checkin_to_db(entry)
+            append_to_audit_ledger({
+                "action": "RESTORE",
+                "date": d,
+                "timestamp": datetime.datetime.now().isoformat()
+            })
+            self._update_disk_snapshots()
+
+            self._send_json(200, {
+                "ok": True,
+                "message": f"Check-in for {d} successfully restored from vault",
+                "entry": entry
             })
         except Exception as e:
             self._send_json(500, {"ok": False, "error": str(e)})
