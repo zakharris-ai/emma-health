@@ -230,6 +230,9 @@
                 <i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-amber"></i>
                 <span id="heroResetCountdown">Cycle Reset: <strong class="text-brand-textDark">Sep 13–15</strong> (~7–9 days)</span>
               </div>
+              <button type="button" onclick="switchTab('oura'); setTimeout(() => { if (typeof scrollToSilentPeriodSection === 'function') scrollToSilentPeriodSection(); }, 150);" class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-300 text-[10px] font-bold transition-all shadow-2xs active:scale-95 cursor-pointer" id="heroSilentPeriodBtn">
+                <span>🩸 Silent Period Tracker ↗</span>
+              </button>
               <button type="button" onclick="switchTab('oura'); setTimeout(() => { if (typeof scrollToOuraOvulation === 'function') scrollToOuraOvulation(); }, 150);" class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold transition-all shadow-2xs active:scale-95 cursor-pointer">
                 <span>🌡️ How Oura Spots Ovulation ↗</span>
               </button>
@@ -863,6 +866,9 @@
 
       <!-- Oura Temperature & Ovulation Tracker Section (ADHD & Mirena Aware) -->
       <div id="ouraOvulationSection"></div>
+
+      <!-- Emma's Silent Period & Bleeding Window Detection Section (Mirena IUD Aware) -->
+      <div id="ouraSilentPeriodSection"></div>
 
       <!-- Main Multi-Metric Oura Correlation Chart -->
       <div class="bg-white p-5 rounded-3xl border border-brand-border shadow-xs space-y-4">
@@ -1981,6 +1987,8 @@
 
           <!-- Other Somatic Symptoms -->
           <div class="flex flex-wrap gap-1.5 pt-0.5">
+            <button type="button" onclick="toggleTag(this)" class="tag-btn text-[11px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-textMuted bg-white transition-all">🩸 Light Spotting / Wipe</button>
+            <button type="button" onclick="toggleTag(this)" class="tag-btn text-[11px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-textMuted bg-white transition-all">⚡ Period-Type Pelvic Cramps</button>
             <button type="button" onclick="toggleTag(this)" class="tag-btn text-[11px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-textMuted bg-white transition-all">Left Rib Pressure</button>
             <button type="button" onclick="toggleTag(this)" class="tag-btn text-[11px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-textMuted bg-white transition-all">All Trousers/Bottoms Feeling Tight</button>
             <button type="button" onclick="toggleTag(this)" class="tag-btn text-[11px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-textMuted bg-white transition-all">Tight Chest</button>
@@ -3186,7 +3194,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260909-v27"></script>
+  <script src="app.js?v=20260916-v28"></script>
   <script>
     // Safeguard: Guarantee Lucide icons and logos render on first paint
     (function() {

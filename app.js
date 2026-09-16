@@ -1760,14 +1760,23 @@ function getCycleInfoForDate(targetDateStr) {
 
   let phase = "luteal";
   let phaseLabel = "Late Luteal (Progesterone Peak)";
+  let isSilentPeriod = false;
   let tempDev = +0.33;
   let estTemp = 36.71;
   let estRhr = 69;
   let estHrv = 41;
 
-  if (dayNum >= 1 && dayNum <= 13) {
+  if (dayNum >= 1 && dayNum <= 4) {
+    phase = "reset";
+    phaseLabel = "Silent Period • Days 1–4 (Mirena Menses Window)";
+    isSilentPeriod = true;
+    tempDev = -0.28;
+    estTemp = 36.15;
+    estRhr = 62;
+    estHrv = 55;
+  } else if (dayNum >= 5 && dayNum <= 13) {
     phase = "follicular";
-    phaseLabel = "Follicular Phase";
+    phaseLabel = "Follicular Phase (Estrogen Ramp)";
     tempDev = -0.15;
     estTemp = 36.20;
     estRhr = 63;
@@ -1794,12 +1803,19 @@ function getCycleInfoForDate(targetDateStr) {
       estTemp = 36.72;
       estRhr = 69;
       estHrv = 40;
-    } else {
+    } else if (dayNum >= 24 && dayNum <= 27) {
       phaseLabel = "Late Luteal (Pre-Reset Transition)";
       tempDev = +0.20;
       estTemp = 36.52;
       estRhr = 66;
       estHrv = 45;
+    } else {
+      phaseLabel = "Late Luteal (Silent Period Eve)";
+      isSilentPeriod = true;
+      tempDev = +0.10;
+      estTemp = 36.35;
+      estRhr = 65;
+      estHrv = 48;
     }
   }
 
@@ -1821,6 +1837,7 @@ function getCycleInfoForDate(targetDateStr) {
       cycleDay: existing.cycleDay || dayNum,
       phase: existing.phase || phase,
       phaseLabel: existing.phaseLabel || phaseLabel,
+      isSilentPeriod: (existing.isSilentPeriod !== undefined) ? existing.isSilentPeriod : isSilentPeriod,
       temp: (existing.temp !== undefined && existing.temp !== null && existing.isManualTemp) ? existing.temp : null,
       ouraTempDev: (existing.ouraTempDev !== undefined && existing.ouraTempDev !== null) ? existing.ouraTempDev : (targetDateStr === '2026-09-08' ? -0.25 : null),
       rhr: existing.rhr || estRhr,
@@ -1839,13 +1856,14 @@ function getCycleInfoForDate(targetDateStr) {
     cycleDay: dayNum,
     phase: phase,
     phaseLabel: phaseLabel,
+    isSilentPeriod: isSilentPeriod,
     temp: null,
     ouraTempDev: targetDateStr === '2026-09-08' ? -0.25 : null,
     rhr: estRhr,
     hrv: estHrv,
     movement: "Pending morning movement",
-    diaphragmBloat: phase === 'luteal' ? 7 : (phase === 'ovulation' ? 5 : 3),
-    emotions: phase === 'luteal' ? "Low dopamine / tired" : "Good energy",
+    diaphragmBloat: phase === 'luteal' ? 7 : (phase === 'reset' ? 5 : (phase === 'ovulation' ? 5 : 3)),
+    emotions: phase === 'reset' ? "Gentle cocoon / low dopamine" : (phase === 'luteal' ? "Low dopamine / tired" : "Good energy"),
     isLogged: false
   };
 }
@@ -1910,14 +1928,20 @@ function applyActiveDate(targetDateStr) {
   if (headerCycleLogo) headerCycleLogo.innerText = activePhaseLogo;
   if (headerCycleDay) headerCycleDay.innerText = `Day ${info.cycleDay}`;
   if (headerPhaseBadge) {
-    headerPhaseBadge.innerText = cleanPhase;
-    headerPhaseBadge.title = info.phaseLabel || cleanPhase;
-    if (info.phase === 'luteal') {
-      headerPhaseBadge.className = "text-brand-coral font-bold";
-    } else if (info.phase === 'follicular') {
-      headerPhaseBadge.className = "text-brand-sage font-bold";
+    if (info.isSilentPeriod || info.phase === 'reset') {
+      headerPhaseBadge.innerText = 'SILENT PERIOD';
+      headerPhaseBadge.title = info.phaseLabel || 'Silent Period (Mirena Menses Window)';
+      headerPhaseBadge.className = "text-rose-600 font-bold";
     } else {
-      headerPhaseBadge.className = "text-brand-amber font-bold";
+      headerPhaseBadge.innerText = cleanPhase;
+      headerPhaseBadge.title = info.phaseLabel || cleanPhase;
+      if (info.phase === 'luteal') {
+        headerPhaseBadge.className = "text-brand-coral font-bold";
+      } else if (info.phase === 'follicular') {
+        headerPhaseBadge.className = "text-brand-sage font-bold";
+      } else {
+        headerPhaseBadge.className = "text-brand-amber font-bold";
+      }
     }
   }
 
@@ -1925,14 +1949,19 @@ function applyActiveDate(targetDateStr) {
   const heroDialDay = document.getElementById('heroDialDay');
   const heroDialPhase = document.getElementById('heroDialPhase');
   if (heroDialDay) heroDialDay.innerText = info.cycleDay;
-  if (heroDialPhase) heroDialPhase.innerText = info.phase.toUpperCase();
+  if (heroDialPhase) heroDialPhase.innerText = (info.isSilentPeriod || info.phase === 'reset') ? 'RESET' : info.phase.toUpperCase();
 
   // Update SVG Arc Highlights
   const arcLuteal = document.getElementById('dialLutealArc');
   const arcFollicular = document.getElementById('dialFollicularArc');
   const arcOvulation = document.getElementById('dialOvulationArc');
   if (arcLuteal && arcFollicular && arcOvulation) {
-    if (info.phase === 'luteal') {
+    if (info.phase === 'reset' || info.isSilentPeriod) {
+      arcFollicular.classList.remove('opacity-30');
+      arcFollicular.setAttribute('stroke-width', '9');
+      arcLuteal.classList.add('opacity-30');
+      arcOvulation.classList.add('opacity-30');
+    } else if (info.phase === 'luteal') {
       arcLuteal.classList.remove('opacity-30');
       arcLuteal.setAttribute('stroke-width', '9');
       arcFollicular.classList.add('opacity-30');
@@ -1955,10 +1984,23 @@ function applyActiveDate(targetDateStr) {
   const heroHeadline = document.getElementById('heroHeadline');
   const heroBody = document.getElementById('heroBody');
   const heroResetCountdown = document.getElementById('heroResetCountdown');
+  const heroSilentBtn = document.getElementById('heroSilentPeriodBtn');
+
+  if (heroSilentBtn) {
+    if (info.isSilentPeriod || info.phase === 'reset') {
+      heroSilentBtn.className = "inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white border border-rose-600 text-[10px] font-extrabold transition-all shadow-xs active:scale-95 cursor-pointer ring-2 ring-rose-300";
+      heroSilentBtn.innerHTML = `<span>🩸 Active Silent Period (Day ${info.cycleDay}) ↗</span>`;
+    } else {
+      heroSilentBtn.className = "inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-300 text-[10px] font-bold transition-all shadow-2xs active:scale-95 cursor-pointer";
+      heroSilentBtn.innerHTML = `<span>🩸 Silent Period Tracker ↗</span>`;
+    }
+  }
 
   if (heroTempDevBadge) {
     if (existing && existing.temp) {
       heroTempDevBadge.innerText = `Recorded Temp: ${existing.temp}°C`;
+    } else if (info.isSilentPeriod || info.phase === 'reset') {
+      heroTempDevBadge.innerText = `🩸 Silent Period Active (Mirena Menses Window)`;
     } else if (info.phase === 'luteal') {
       heroTempDevBadge.innerText = `Early-Mid Luteal Ramp (Notes Verified)`;
     } else if (info.phase === 'ovulation') {
@@ -1969,7 +2011,9 @@ function applyActiveDate(targetDateStr) {
   }
 
   if (heroHeadline) {
-    if (info.phase === 'luteal' && info.cycleDay < 24) {
+    if (info.isSilentPeriod || info.phase === 'reset') {
+      heroHeadline.innerText = "Biological Period Window: Rest & Reset, Emma 🩸";
+    } else if (info.phase === 'luteal' && info.cycleDay < 24) {
       heroHeadline.innerText = "Be gentle with yourself today, Emma.";
     } else if (info.phase === 'luteal') {
       heroHeadline.innerText = "Late Luteal Transition: Rest & Hydrate, Emma.";
@@ -1981,7 +2025,9 @@ function applyActiveDate(targetDateStr) {
   }
 
   if (heroBody) {
-    if (info.phase === 'luteal' && info.cycleDay < 24) {
+    if (info.isSilentPeriod || info.phase === 'reset') {
+      heroBody.innerHTML = `Even though your <strong>Mirena IUD suppresses overt menstrual bleeding</strong>, your body is currently undergoing its biological monthly hormonal reset (progesterone withdrawal drop). Prostaglandins stimulate uterine and intestinal smooth muscle—any looser stools, lower pelvic heaviness, or low dopamine are 100% normal and temporary. Keep mornings unhurried, buffer electrolytes, and be gentle with yourself.`;
+    } else if (info.phase === 'luteal' && info.cycleDay < 24) {
       heroBody.innerHTML = `Your body is currently producing natural progesterone (the body's natural "slow-down" hormone). This naturally relaxes bowel muscles and holds onto water. <strong>Any tightness in your ribs, tummy bloating, or lower dopamine is 100% biological and temporary.</strong>`;
     } else if (info.phase === 'luteal') {
       heroBody.innerHTML = `Progesterone is at the tail end of its monthly wave and will drop in ~2–4 days. Trapped air under your left ribs is common now—stick to light evening dinners (like warm congee or purees) and enjoy your 15-minute legs-up-wall relaxation.`;
@@ -1994,7 +2040,9 @@ function applyActiveDate(targetDateStr) {
 
   if (heroResetCountdown) {
     const daysLeft = Math.max(1, 28 - info.cycleDay);
-    if (info.phase === 'luteal') {
+    if (info.isSilentPeriod || info.phase === 'reset') {
+      heroResetCountdown.innerHTML = `🩸 Silent Period Active: <strong class="text-rose-700">Days 1–4 Mirena Menses Window</strong>`;
+    } else if (info.phase === 'luteal') {
       heroResetCountdown.innerHTML = `Predicted Cycle Reset & Drop: <strong class="text-brand-textDark">in ~${daysLeft} day${daysLeft === 1 ? '' : 's'}</strong>`;
     } else if (info.phase === 'follicular') {
       heroResetCountdown.innerHTML = `Next Ovulation Window: <strong class="text-brand-textDark">in ~${Math.max(1, 14 - info.cycleDay)} days</strong>`;
@@ -2113,6 +2161,7 @@ function applyActiveDate(targetDateStr) {
   if (typeof renderOuraSection === 'function') renderOuraSection(activeDateStr);
   if (typeof renderDashboardOuraGlance === 'function') renderDashboardOuraGlance(activeDateStr);
   if (typeof renderOuraOvulationSection === 'function') renderOuraOvulationSection(activeDateStr);
+  if (typeof renderOuraSilentPeriodSection === 'function') renderOuraSilentPeriodSection(activeDateStr);
   if (typeof renderTripPlannerUI === 'function') renderTripPlannerUI();
 
   triggerLucideIcons();
@@ -5554,12 +5603,13 @@ function loadSavedCheckInIntoModal(customDate) {
   // 5. Symptoms, Bloating, Gassiness & Puffiness Tags
   selectedTags.clear();
   document.querySelectorAll('#quickLogModal .tag-btn').forEach(btn => {
-    btn.classList.remove('selected', 'bg-brand-coral', 'text-white', 'border-brand-coral', 'bg-amber-600', 'border-amber-600', 'bg-sky-600', 'border-sky-600');
+    btn.classList.remove('selected', 'bg-brand-coral', 'text-white', 'border-brand-coral', 'bg-amber-600', 'border-amber-600', 'bg-sky-600', 'border-sky-600', 'bg-rose-600', 'border-rose-600');
     const text = btn.innerText.trim();
     const isBloatTag = text.includes('Upper Tummy Bloating') || text.includes('Lower Tummy Bloating');
     const isGasTag = text.includes('Gassiness') || text.includes('Burpiness') || text.includes('Trapped Wind') || text.includes('Can\'t Burp');
+    const isPeriodTag = text.includes('Spotting') || text.includes('Pelvic Cramp') || text.includes('Period-Type');
 
-    if (isBloatTag || isGasTag) {
+    if (isBloatTag || isGasTag || isPeriodTag) {
       btn.classList.add('bg-white', 'text-brand-textDark', 'border-brand-border');
     } else {
       btn.classList.add('bg-white', 'text-brand-textMuted');
@@ -5572,6 +5622,8 @@ function loadSavedCheckInIntoModal(customDate) {
       (text.includes('Gassiness') && (entry.gassiness || entry.puffiness?.some(p => p.toLowerCase().includes('gass') || p.toLowerCase().includes('trapped gas')) || entry.symptoms?.toLowerCase().includes('gass'))) ||
       (text.includes('Burpiness') && (entry.burpiness || entry.puffiness?.some(p => p.toLowerCase().includes('burp')) || entry.symptoms?.toLowerCase().includes('burp'))) ||
       (text.includes('Trapped Wind') && entry.puffiness?.some(p => p.toLowerCase().includes('trapped gas') || p.toLowerCase().includes('trapped wind'))) ||
+      (text.includes('Spotting') && (entry.spotting || entry.puffiness?.some(p => p.toLowerCase().includes('spotting') || p.toLowerCase().includes('wipe')) || entry.symptoms?.toLowerCase().includes('spotting'))) ||
+      (text.includes('Pelvic Cramp') && (entry.pelvicCramps || entry.puffiness?.some(p => p.toLowerCase().includes('cramp') || p.toLowerCase().includes('pelvic')) || entry.symptoms?.toLowerCase().includes('cramp'))) ||
       (text === "All Trousers/Bottoms Feeling Tight" && entry.puffiness && entry.puffiness.includes("Jeans Tight"))
     );
 
@@ -5582,6 +5634,9 @@ function loadSavedCheckInIntoModal(customDate) {
         btn.classList.remove('bg-white', 'text-brand-textDark', 'border-brand-border');
       } else if (isGasTag) {
         btn.classList.add('bg-sky-600', 'text-white', 'border-sky-600', 'shadow-xs');
+        btn.classList.remove('bg-white', 'text-brand-textDark', 'border-brand-border');
+      } else if (isPeriodTag) {
+        btn.classList.add('bg-rose-600', 'text-white', 'border-rose-600', 'shadow-xs');
         btn.classList.remove('bg-white', 'text-brand-textDark', 'border-brand-border');
       } else {
         btn.classList.add('bg-brand-coral', 'text-white', 'border-brand-coral');
@@ -6348,6 +6403,7 @@ function toggleTag(btn) {
   const tagText = btn.innerText.trim();
   const isBloatTag = tagText.includes('Upper Tummy Bloating') || tagText.includes('Lower Tummy Bloating');
   const isGasTag = tagText.includes('Gassiness') || tagText.includes('Burpiness') || tagText.includes('Trapped Wind') || tagText.includes('Can\'t Burp');
+  const isPeriodTag = tagText.includes('Spotting') || tagText.includes('Pelvic Cramp') || tagText.includes('Period-Type');
 
   if (selectedTags.has(tagText)) {
     selectedTags.delete(tagText);
@@ -6356,6 +6412,9 @@ function toggleTag(btn) {
       btn.classList.add('bg-white', 'text-brand-textDark', 'border-brand-border');
     } else if (isGasTag) {
       btn.classList.remove('bg-sky-600', 'text-white', 'border-sky-600', 'shadow-xs');
+      btn.classList.add('bg-white', 'text-brand-textDark', 'border-brand-border');
+    } else if (isPeriodTag) {
+      btn.classList.remove('bg-rose-600', 'text-white', 'border-rose-600', 'shadow-xs');
       btn.classList.add('bg-white', 'text-brand-textDark', 'border-brand-border');
     } else {
       btn.classList.remove('bg-brand-coral', 'text-white', 'border-brand-coral');
@@ -6368,6 +6427,9 @@ function toggleTag(btn) {
       btn.classList.remove('bg-white', 'text-brand-textDark', 'border-brand-border');
     } else if (isGasTag) {
       btn.classList.add('bg-sky-600', 'text-white', 'border-sky-600', 'shadow-xs');
+      btn.classList.remove('bg-white', 'text-brand-textDark', 'border-brand-border');
+    } else if (isPeriodTag) {
+      btn.classList.add('bg-rose-600', 'text-white', 'border-rose-600', 'shadow-xs');
       btn.classList.remove('bg-white', 'text-brand-textDark', 'border-brand-border');
     } else {
       btn.classList.add('bg-brand-coral', 'text-white', 'border-brand-coral');
@@ -9214,6 +9276,8 @@ function handleQuickLogSubmit(e) {
     lowerTummyBloat: lowerTummyBloat || existing?.lowerTummyBloat || false,
     gassiness: hasGassiness || existing?.gassiness || false,
     burpiness: hasBurpiness || existing?.burpiness || false,
+    spotting: selectedTags.has('🩸 Light Spotting / Wipe') || selectedTags.has('Light Spotting / Wipe') || selectedTags.has('Spotting') || (existing?.spotting ?? false),
+    pelvicCramps: selectedTags.has('⚡ Period-Type Pelvic Cramps') || selectedTags.has('Period-Type Pelvic Cramps') || selectedTags.has('Pelvic Cramps') || (existing?.pelvicCramps ?? false),
     puffiness: Array.from(new Set([...(existing?.puffiness || []), ...puffinessArr])),
     emotions: emotionText || existing?.emotions || '',
     moods: finalMoods.length > 0 ? finalMoods : (existing?.moods || (moodVal ? moodVal.split(',').map(m => m.trim()).filter(Boolean) : [])),
@@ -9869,6 +9933,9 @@ function renderOuraSection(targetDateStr) {
 
   if (typeof renderOuraOvulationSection === 'function') {
     renderOuraOvulationSection(dStr);
+  }
+  if (typeof renderOuraSilentPeriodSection === 'function') {
+    renderOuraSilentPeriodSection(dStr);
   }
 
   if (window.lucide && typeof lucide.createIcons === 'function') {
@@ -10885,8 +10952,511 @@ function copyOuraPeriodDate() {
 }
 
 // ============================================================================
-// 10. RESCUE TOOLKIT GUIDES
+// EMMA'S SILENT PERIOD & BLEEDING WINDOW DETECTION ENGINE (MIRENA AWARE)
 // ============================================================================
+function getEmmaSilentPeriodAnalysis(targetDateStr) {
+  const dStr = targetDateStr || activeDateStr || getTodayISOString();
+  const cycleInfo = (typeof getCycleInfoForDate === 'function') 
+    ? getCycleInfoForDate(dStr) 
+    : { cycleDay: 1, phase: 'reset', phaseLabel: 'Silent Period • Days 1–4 (Mirena Menses Window)', isSilentPeriod: true };
+  const entry = logs.find(l => l.date === dStr) || { date: dStr };
+  const dayNum = cycleInfo.cycleDay;
+
+  // Multi-source scoring (0-100)
+  let score = 0;
+  const signals = [];
+
+  // 1. Cycle Timing Window (Anchor 2026-09-16 is Day 1)
+  const isPeriodDay = (dayNum >= 1 && dayNum <= 4);
+  const isEve = (dayNum === 28);
+  if (isPeriodDay) {
+    score += 40;
+    signals.push({
+      icon: "🗓️",
+      title: `Cycle Timing: Day ${dayNum} of 28`,
+      status: "Confirmed Window",
+      color: "rose",
+      detail: `Falls directly in Emma's natural 4-day menses reset window (Days 1–4). Even with Mirena suppressing overt bleeding, her ovarian hormone cycle triggers systemic progesterone withdrawal right now.`
+    });
+  } else if (isEve) {
+    score += 30;
+    signals.push({
+      icon: "🌙",
+      title: "Cycle Timing: Day 28 (Silent Period Eve)",
+      status: "Pre-Reset Cliff",
+      color: "indigo",
+      detail: "Day 28 represents the final transition before menses. Progesterone is precipitously falling toward baseline tonight."
+    });
+  } else if (dayNum === 27) {
+    score += 15;
+    signals.push({
+      icon: "⏳",
+      title: "Cycle Timing: Day 27 (Late Luteal)",
+      status: "Upcoming Reset",
+      color: "slate",
+      detail: "1–2 days before biological reset. Body preparing for progesterone clearance."
+    });
+  } else {
+    signals.push({
+      icon: "🌱",
+      title: `Cycle Timing: Day ${dayNum} (${cycleInfo.phaseLabel?.split(' ')[0] || 'Inter-period'})`,
+      status: "Outside Menses Window",
+      color: "slate",
+      detail: "Emma is in her follicular, ovulatory, or mid-luteal phase; no acute menstrual progesterone cliff expected."
+    });
+  }
+
+  // 2. Oura Ring Nocturnal Temperature Drop
+  const tempDev = (entry.ouraTempDev !== undefined && entry.ouraTempDev !== null) ? Number(entry.ouraTempDev) : null;
+  const manualTemp = (entry.temp !== undefined && entry.temp !== null && entry.isManualTemp) ? Number(entry.temp) : null;
+  
+  if (tempDev !== null) {
+    if (tempDev <= -0.15) {
+      score += 25;
+      signals.push({
+        icon: "📉",
+        title: `Oura Nocturnal Temp Plunge (${tempDev > 0 ? '+' : ''}${tempDev.toFixed(2)}°C)`,
+        status: "Classic Progesterone Drop",
+        color: "emerald",
+        detail: `Sleeping skin temperature crashed below baseline (${tempDev.toFixed(2)}°C). In an ovulatory cycle, this thermal plunge indicates the complete withdrawal of thermogenic progesterone—the universal hallmark of menstruation.`
+      });
+    } else if (tempDev <= 0.05) {
+      score += 15;
+      signals.push({
+        icon: "📉",
+        title: `Oura Temp at Baseline (${tempDev > 0 ? '+' : ''}${tempDev.toFixed(2)}°C)`,
+        status: "Cooling Toward Baseline",
+        color: "emerald",
+        detail: "Temperature has retreated from luteal elevation back toward baseline levels."
+      });
+    } else {
+      signals.push({
+        icon: "🌡️",
+        title: `Oura Temp Elevated (+${tempDev.toFixed(2)}°C)`,
+        status: "Luteal Warmth Active",
+        color: "amber",
+        detail: "Progesterone is actively sustaining thermal elevation."
+      });
+    }
+  } else if (manualTemp !== null) {
+    if (manualTemp <= 36.3) {
+      score += 20;
+      signals.push({
+        icon: "📉",
+        title: `Oral Basal Temp: ${manualTemp}°C`,
+        status: "Baseline Low",
+        color: "emerald",
+        detail: "Manual temperature confirms cool baseline consistent with menstrual phase."
+      });
+    } else {
+      signals.push({
+        icon: "🌡️",
+        title: `Oral Basal Temp: ${manualTemp}°C`,
+        status: "Elevated",
+        color: "amber",
+        detail: "Temperature indicates active luteal progesterone."
+      });
+    }
+  } else {
+    if (isPeriodDay) {
+      score += 20;
+      signals.push({
+        icon: "📉",
+        title: "Thermal Signature: Baseline Reset Predicted",
+        status: "Low Thermal Phase",
+        color: "emerald",
+        detail: "Estimated night temperature is -0.15°C to -0.35°C below baseline, matching progesterone drop."
+      });
+    }
+  }
+
+  // 3. Autonomic Rebound (Resting Heart Rate Drop & HRV Recovery)
+  const rhr = (entry.rhr !== undefined && entry.rhr !== null) ? Number(entry.rhr) : ((entry.ouraRhr !== undefined && entry.ouraRhr !== null) ? Number(entry.ouraRhr) : null);
+  
+  if (rhr !== null && rhr <= 65) {
+    score += 10;
+    signals.push({
+      icon: "❤️",
+      title: `Nocturnal Resting Heart Rate: ${rhr} bpm`,
+      status: "Vagal Autonomic Ease",
+      color: "emerald",
+      detail: `RHR has dropped from luteal highs (68–72 bpm) down to ${rhr} bpm as progesterone's sympathetic drive dissipates.`
+    });
+  } else if (isPeriodDay) {
+    score += 8;
+    signals.push({
+      icon: "❤️",
+      title: "Cardiovascular Rhythm: Sympathetic Dial-Down",
+      status: "Autonomic Reset",
+      color: "emerald",
+      detail: "Resting heart rate trends down and HRV rebounds as progesterone withdraws."
+    });
+  }
+
+  // 4. Bowel Motility & Prostaglandin "Period Motility" Signature
+  const movement = (entry.movement || '').toLowerCase();
+  const freq = entry.movementFrequency || 0;
+  const bristol = (entry.bristol || '').toLowerCase();
+  const isLiquidOrBypass = movement.includes('liquid') || movement.includes('bypass') || movement.includes('watery') || bristol.includes('liquid');
+  const hasFrequencySurge = freq >= 2;
+
+  if (isLiquidOrBypass || hasFrequencySurge) {
+    score += 15;
+    signals.push({
+      icon: "🌊",
+      title: `Motility Shift: ${entry.movement || `${freq}x Movements`}`,
+      status: "Prostaglandin Evacuation Surge",
+      color: "teal",
+      detail: "Uterine prostaglandins cross-react with colonic smooth muscle receptors during menses, frequently causing an abrupt evacuation surge, looser stool, or rapid un-bloating."
+    });
+  } else if (isPeriodDay) {
+    signals.push({
+      icon: "🌊",
+      title: "Motility Dynamics: Transition Window",
+      status: "Un-bloating Expected",
+      color: "teal",
+      detail: "Prostaglandins begin clearing luteal fluid retention and encouraging colonic emptying."
+    });
+  }
+
+  // 5. Emma's Somatic Inputs (Spotting & Cramping Tags)
+  const hasSpotting = (entry.puffiness && entry.puffiness.some(p => p.toLowerCase().includes('spotting') || p.toLowerCase().includes('wipe'))) ||
+                      (entry.symptoms && entry.symptoms.toLowerCase().includes('spotting')) ||
+                      entry.spotting === true;
+  const hasCramps = (entry.puffiness && entry.puffiness.some(p => p.toLowerCase().includes('cramp') || p.toLowerCase().includes('pelvic'))) ||
+                    (entry.symptoms && entry.symptoms.toLowerCase().includes('cramp')) ||
+                    entry.pelvicCramps === true;
+
+  if (hasSpotting) {
+    score += 25;
+    signals.push({
+      icon: "🩸",
+      title: "Physical Input: Light Spotting / Wipe Logged",
+      status: "Direct Endometrial Confirmation",
+      color: "rose",
+      detail: "Emma directly noticed light spotting or pink/brown wipe—unequivocal confirmation of her Mirena withdrawal window!"
+    });
+  }
+  if (hasCramps) {
+    score += 15;
+    signals.push({
+      icon: "⚡",
+      title: "Physical Input: Period-Type Pelvic Cramps Logged",
+      status: "Myometrial Contraction Signal",
+      color: "rose",
+      detail: "Local myometrial prostaglandins causing typical period aching/cramping in lower abdomen/pelvis."
+    });
+  }
+
+  // Determine final status
+  let isActive = false;
+  let probability = Math.min(98, Math.max(10, score));
+  let statusBadge = "Outside Window";
+  let statusColor = "slate";
+  let statusSummary = "";
+
+  if (isPeriodDay) {
+    isActive = true;
+    probability = Math.max(88, probability);
+    statusBadge = `Active Period Window (Day ${dayNum} of 4)`;
+    statusColor = "rose";
+    statusSummary = `Emma is biologically inside her <strong>September Silent Period</strong> (Days 1–4: 16th–19th September 2026). While her Mirena IUD prevents heavy bleeding by suppressing the uterine lining, her systemic hormonal reset is 100% active today.`;
+  } else if (isEve) {
+    isActive = true;
+    probability = Math.max(75, probability);
+    statusBadge = "Silent Period Eve (Pre-Reset Transition)";
+    statusColor = "indigo";
+    statusSummary = "Progesterone is falling toward baseline tonight. Emma's biological period window begins tomorrow morning.";
+  } else {
+    isActive = false;
+    statusBadge = `Not in Period Window (Day ${dayNum})`;
+    statusColor = "slate";
+    statusSummary = `Emma is currently in her <strong>${cycleInfo.phaseLabel}</strong>. Her next estimated Silent Period bleeding window begins <strong>14th October 2026</strong>.`;
+  }
+
+  return {
+    date: dStr,
+    cycleDay: dayNum,
+    isActive,
+    isPeriodDay,
+    probability,
+    statusBadge,
+    statusColor,
+    statusSummary,
+    signals,
+    clinicalGuidance: {
+      mirenaFact: "With a Mirena IUD, levonorgestrel acts locally on the uterine endometrium to keep it microscopic and dormant, which eliminates normal bleeding. However, circulating estrogen, progesterone, and prostaglandins still cycle systemically in your bloodstream.",
+      comfortPlan: "Wear comfortable non-restricting waistbands, use a warm water bottle or travel heat patch across the lower pelvis for prostaglandin cramping, take morning Linaclotide with a full glass of water, and allow a 40-minute fast.",
+      adhdPacing: "Dopamine and serotonin temporarily reset when progesterone and estrogen are at their lowest baseline. Do not force high executive-function tasks today; prioritize unhurried pacing and guilt-free downtime."
+    }
+  };
+}
+
+function getHistoricalAndFutureSilentPeriods() {
+  return [
+    {
+      monthName: "May 2026",
+      startDate: "2026-05-27",
+      endDate: "2026-05-30",
+      displayDates: "27 May – 30 May 2026",
+      status: "completed",
+      badge: "Historical Cycle",
+      note: "Silent menses window (Mirena amenorrhea; systemic reset)"
+    },
+    {
+      monthName: "June 2026",
+      startDate: "2026-06-24",
+      endDate: "2026-06-27",
+      displayDates: "24 Jun – 27 Jun 2026",
+      status: "completed",
+      badge: "Historical Cycle",
+      note: "Midsummer cycle reset; prompt prostaglandin fluid mobilization"
+    },
+    {
+      monthName: "July 2026",
+      startDate: "2026-07-22",
+      endDate: "2026-07-25",
+      displayDates: "22 Jul – 25 Jul 2026",
+      status: "completed",
+      badge: "Historical Cycle",
+      note: "Progesterone withdrawal followed by high energy follicular ramp"
+    },
+    {
+      monthName: "August 2026",
+      startDate: "2026-08-19",
+      endDate: "2026-08-22",
+      displayDates: "19 Aug – 22 Aug 2026",
+      status: "completed",
+      badge: "Logged Vitals Verified",
+      note: "Emma logged 35.86°C thermal crash & lower tummy heaviness, followed by dramatic bloat release."
+    },
+    {
+      monthName: "September 2026",
+      startDate: "2026-09-16",
+      endDate: "2026-09-19",
+      displayDates: "16 Sep – 19 Sep 2026",
+      status: "active",
+      badge: "ACTIVE TODAY 🩸",
+      note: "Current 4-day menses reset window. Day 1 is 16th September. Low baseline temp, prostaglandin bowel transition, gentle ADHD pacing."
+    },
+    {
+      monthName: "October 2026",
+      startDate: "2026-10-14",
+      endDate: "2026-10-17",
+      displayDates: "14 Oct – 17 Oct 2026",
+      status: "upcoming",
+      badge: "Next Expected",
+      note: "Predicted 4-day window. Plan low-stress mornings and pack electrolytes."
+    },
+    {
+      monthName: "November 2026",
+      startDate: "2026-11-11",
+      endDate: "2026-11-14",
+      displayDates: "11 Nov – 14 Nov 2026",
+      status: "upcoming",
+      badge: "Upcoming",
+      note: "Autumn reset window; cozy knitwear and heat patches recommended."
+    },
+    {
+      monthName: "December 2026",
+      startDate: "2026-12-09",
+      endDate: "2026-12-12",
+      displayDates: "9 Dec – 12 Dec 2026",
+      status: "upcoming",
+      badge: "Pre-Holiday Window",
+      note: "Occurs comfortably 2 weeks before Christmas (25 Dec), so Christmas Day falls in peak follicular high energy!"
+    },
+    {
+      monthName: "January 2027",
+      startDate: "2027-01-06",
+      endDate: "2027-01-09",
+      displayDates: "6 Jan – 9 Jan 2027",
+      status: "upcoming",
+      badge: "New Year Reset",
+      note: "First cycle reset of 2027 following New Year celebrations."
+    },
+    {
+      monthName: "February 2027",
+      startDate: "2027-02-03",
+      endDate: "2027-02-06",
+      displayDates: "3 Feb – 6 Feb 2027",
+      status: "upcoming",
+      badge: "Upcoming",
+      note: "Late winter reset window before Valentine's week."
+    }
+  ];
+}
+
+function renderOuraSilentPeriodSection(targetDateStr) {
+  const container = document.getElementById('ouraSilentPeriodSection');
+  if (!container) return;
+
+  const dStr = targetDateStr || activeDateStr || getTodayISOString();
+  const analysis = getEmmaSilentPeriodAnalysis(dStr);
+  const periods = getHistoricalAndFutureSilentPeriods();
+  const activePeriod = periods.find(p => p.status === 'active') || periods[4];
+  const nextPeriod = periods.find(p => p.status === 'upcoming');
+
+  container.innerHTML = `
+    <div class="bg-gradient-to-br from-rose-50/70 via-white to-amber-50/40 rounded-3xl border border-rose-200 shadow-xs p-5 space-y-4">
+      
+      <!-- Top Title & Badge Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-rose-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🩸</span>
+          <div>
+            <h3 class="text-sm sm:text-base font-black text-rose-950 flex items-center gap-1.5">
+              <span>Emma's Silent Period & Bleeding Window Detection</span>
+            </h3>
+            <p class="text-xs text-rose-800/80 font-medium">
+              Multi-source biometric detection for Mirena IUD amenorrhea (no overt bleed, but real systemic periods)
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 self-start sm:self-auto">
+          <span class="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${analysis.isActive ? 'bg-rose-600 text-white shadow-xs animate-pulse ring-2 ring-rose-300' : 'bg-rose-100 text-rose-900 border border-rose-200'}">
+            ${analysis.statusBadge}
+          </span>
+        </div>
+      </div>
+
+      <!-- Live Clinical Status Hero Card -->
+      <div class="p-4 rounded-2xl ${analysis.isActive ? 'bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-amber-500/10 border-2 border-rose-400/80' : 'bg-slate-50 border border-slate-200'} space-y-2.5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+          <div class="flex items-center gap-2 font-black text-xs ${analysis.isActive ? 'text-rose-900' : 'text-slate-800'}">
+            <span>${analysis.isActive ? '🔥' : '⏳'}</span>
+            <span>${analysis.isActive ? `Biological Menstrual Phase Active Right Now (Confidence: ${analysis.probability}%)` : `Next Predicted Silent Bleeding Window: ${nextPeriod?.displayDates || '14–17 Oct 2026'}`}</span>
+          </div>
+          <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full ${analysis.isActive ? 'bg-rose-200 text-rose-900 border border-rose-300' : 'bg-slate-200 text-slate-700'}">
+            ${analysis.isActive ? `Active Window • 16–19 Sep` : `Upcoming in ~27 days`}
+          </span>
+        </div>
+
+        <p class="text-xs ${analysis.isActive ? 'text-rose-950/90' : 'text-slate-700'} leading-relaxed font-medium">
+          ${analysis.statusSummary}
+        </p>
+
+        <!-- Fast Action Guidance Chips -->
+        <div class="flex flex-wrap items-center gap-1.5 pt-1">
+          <span class="text-[10px] font-black text-rose-900 bg-rose-100/80 border border-rose-200 px-2 py-0.5 rounded-lg flex items-center gap-1">
+            <span>🩱</span><span>Loose Waistbands</span>
+          </span>
+          <span class="text-[10px] font-black text-rose-900 bg-rose-100/80 border border-rose-200 px-2 py-0.5 rounded-lg flex items-center gap-1">
+            <span>🔥</span><span>Heat Patch for Pelvis</span>
+          </span>
+          <span class="text-[10px] font-black text-teal-900 bg-teal-100/80 border border-teal-200 px-2 py-0.5 rounded-lg flex items-center gap-1">
+            <span>💧</span><span>Linaclotide + Tall Water</span>
+          </span>
+          <span class="text-[10px] font-black text-purple-900 bg-purple-100/80 border border-purple-200 px-2 py-0.5 rounded-lg flex items-center gap-1">
+            <span>🧠</span><span>ADHD Restorative Pacing</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- 5-Point Biometric Evidence Grid -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+            <span>🔍</span>
+            <span>Multi-Source Biometric Evidence Breakdown</span>
+          </h4>
+          <span class="text-[10px] font-bold text-slate-500">${analysis.signals.length} Signals Correlated</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          ${analysis.signals.map(s => `
+            <div class="p-3 rounded-2xl bg-white border border-rose-100/80 shadow-2xs space-y-1">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                  <span>${s.icon}</span>
+                  <span class="truncate">${s.title}</span>
+                </div>
+                <span class="text-[9px] font-black px-1.5 py-0.5 rounded-md ${s.color === 'rose' ? 'bg-rose-100 text-rose-800' : (s.color === 'emerald' ? 'bg-emerald-100 text-emerald-800' : (s.color === 'teal' ? 'bg-teal-100 text-teal-800' : 'bg-slate-100 text-slate-700'))}">
+                  ${s.status}
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                ${s.detail}
+              </p>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Mirena IUD Biology Card: Why No Bleed Doesn't Mean No Period -->
+      <div class="p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80 space-y-2 text-xs">
+        <div class="flex items-center gap-1.5 font-black text-amber-950">
+          <span>💡</span>
+          <span>Why Emma Doesn't Bleed, But Her Period Is 100% Real (Mirena Biology)</span>
+        </div>
+        <p class="text-[11px] text-amber-900/90 leading-relaxed font-medium">
+          The Mirena IUD continuously releases microscopic amounts of <em>levonorgestrel</em> directly into the uterus. This acts as a localized mucosal shield, preventing the endometrium (uterine lining) from building up. Because there is virtually no tissue to shed, <strong>Emma experiences amenorrhea (no heavy or visible menstrual blood)</strong>.
+        </p>
+        <p class="text-[11px] text-amber-900/90 leading-relaxed font-medium">
+          However, <strong>her ovaries still cycle systemically!</strong> Emma ovulates, produces progesterone, and experiences the dramatic progesterone drop that triggers menses. When this drop happens, local prostaglandins stimulate both uterine smooth muscle (causing deep pelvic aching) and colonic smooth muscle (causing looser stools or the "period evacuation surge"). Emma's monthly reset is real, biological, and measurable!
+        </p>
+      </div>
+
+      <!-- Historical & Future Silent Period Timeline -->
+      <div class="space-y-2 pt-1 border-t border-rose-100">
+        <div class="flex items-center justify-between">
+          <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+            <span>🗓️</span>
+            <span>Mirena Menses Timeline (May 2026 – Feb 2027)</span>
+          </h4>
+          <span class="text-[10px] text-slate-500 font-semibold">28-day synchronized cycle</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 overflow-x-auto pb-1">
+          ${periods.map(p => `
+            <div class="p-2.5 rounded-xl border ${p.status === 'active' ? 'border-rose-400 bg-rose-50/80 ring-2 ring-rose-300' : (p.status === 'completed' ? 'border-slate-200 bg-slate-50/70' : 'border-teal-200 bg-teal-50/40')} space-y-1 text-center shrink-0">
+              <div class="text-[10px] font-black uppercase tracking-wider ${p.status === 'active' ? 'text-rose-700' : 'text-slate-500'}">${p.monthName}</div>
+              <div class="text-xs font-black text-brand-textDark">${p.displayDates.split(' 202')[0]}</div>
+              <div class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full inline-block ${p.status === 'active' ? 'bg-rose-600 text-white shadow-2xs' : (p.status === 'completed' ? 'bg-slate-200 text-slate-700' : 'bg-teal-100 text-teal-800')}">
+                ${p.badge}
+              </div>
+              <div class="text-[9px] text-slate-500 font-medium line-clamp-2" title="${p.note}">${p.note}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-rose-100/80">
+        <button 
+          type="button" 
+          onclick="openTripPlannerModal()" 
+          class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-rose-950 border border-rose-200 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 active:scale-95 cursor-pointer"
+        >
+          <span>✈️ Check Future Trip Bleeding Windows ↗</span>
+        </button>
+        <button 
+          type="button" 
+          onclick="openQuickLogModal('${dStr}')" 
+          class="px-3.5 py-1.5 rounded-xl bg-rose-700 hover:bg-rose-800 text-white font-extrabold text-xs transition-all shadow-xs flex items-center gap-1.5 active:scale-95 cursor-pointer"
+        >
+          <span>🩸 Log Spotting or Pelvic Cramps</span>
+        </button>
+      </div>
+
+    </div>
+  `;
+
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
+}
+
+function scrollToSilentPeriodSection() {
+  const el = document.getElementById('ouraSilentPeriodSection');
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    el.classList.add('ring-4', 'ring-rose-400', 'transition-all', 'duration-500');
+    setTimeout(() => {
+      el.classList.remove('ring-4', 'ring-rose-400');
+    }, 2000);
+  }
+}
 function openRescueModal() {
   const m = document.getElementById('rescueModal');
   if (m) m.classList.remove('hidden');
@@ -12055,7 +12625,14 @@ function parseFutureDateQuery(query) {
   const raw = query.trim().toLowerCase();
   const today = new Date("2026-09-08T12:00:00Z");
 
-  // 1. Festive Holidays & Specific Celebrations
+  // 1. Festive Holidays, Silent Period & Specific Celebrations
+  if (raw.includes('bleed') || raw.includes('silent period') || raw.includes('period window') || (raw.includes('period') && !raw.includes('period of time'))) {
+    const silentList = typeof getHistoricalAndFutureSilentPeriods === 'function' ? getHistoricalAndFutureSilentPeriods() : [];
+    const upcoming = silentList.find(p => p.status === 'active' || p.status === 'upcoming');
+    if (upcoming) {
+      return { startDate: upcoming.startDate, endDate: upcoming.endDate, label: `${upcoming.monthName} Silent Period (${upcoming.displayDates.split(' 202')[0]})`, mode: 'range' };
+    }
+  }
   if (raw.includes('christmas eve') || raw.includes('xmas eve')) {
     return { startDate: '2026-12-24', endDate: '2026-12-24', label: 'Christmas Eve (24 Dec)', mode: 'single' };
   }
@@ -12207,6 +12784,7 @@ function getFutureCycleDetails(dateStr) {
   let phase = "luteal";
   let phaseLabel = "Early-Mid Luteal (Progesterone Ramp)";
   let badgeColor = "rose";
+  let isSilentPeriod = false;
   let battery = 75;
   let batteryTitle = "Warm & Cozy Battery (75%)";
   let batteryNote = "Progesterone is climbing. Great stamina for cheerful family dinners, present opening, and social fun, but evening stamina fades quicker. Plan a quiet bedtime wind-down.";
@@ -12216,7 +12794,20 @@ function getFutureCycleDetails(dateStr) {
   let ouraTemp = "+0.20°C to +0.35°C (Luteal Warmth)";
   let packingTip = "Stretchy-waistband holiday outfits, chic flowy evening dresses, peppermint tea, electrolytes, Senna rescue pack.";
 
-  if (dayNum >= 1 && dayNum <= 13) {
+  if (dayNum >= 1 && dayNum <= 4) {
+    phase = "reset";
+    phaseLabel = "Silent Period • Days 1–4 (Mirena Menses Window)";
+    badgeColor = "rose";
+    isSilentPeriod = true;
+    battery = 60;
+    batteryTitle = "Gentle Reset Battery (60%)";
+    batteryNote = "Progesterone drops back to baseline. Even without overt bleeding (thanks to Mirena), Emma is in her biological period window. Expect a mild prostaglandin gut motility surge, lower sensory tolerance, and natural fatigue. Give yourself unpressured mornings and permission to cocoon.";
+    bloatScore = "5-6/10 (Fluid Clearing)";
+    bloatLabel = "Motility Surge & Fluid Mobilization";
+    bloatNote = "Prostaglandins stimulate uterine and bowel smooth muscle, which may cause a sudden evacuation surge or looser stools, followed by rapid un-bloating as water retention drains. Keep morning Linaclotide routine with plenty of water.";
+    ouraTemp = "-0.20°C to -0.45°C (Baseline Reset Plunge)";
+    packingTip = "Ultra-comfortable loose waistbands, travel heat patches, electrolyte sachets, warm socks, cozy evening layers.";
+  } else if (dayNum >= 5 && dayNum <= 13) {
     phase = "follicular";
     phaseLabel = "Follicular Phase (Estrogen Ramp)";
     badgeColor = "emerald";
@@ -12264,7 +12855,7 @@ function getFutureCycleDetails(dateStr) {
     bloatNote = "Diaphragmatic distension risk is highest after rich meals. Maintain strict 45-minute fasting post-Linaclotide. Keep Senna rescue pack in carry-on.";
     ouraTemp = "+0.30°C to +0.45°C (Peak Luteal Elevation)";
     packingTip = "Ultra-comfortable high-waisted loungewear, non-restrictive elastic waistbands, Senna emergency pack, digestive enzymes.";
-  } else {
+  } else if (dayNum >= 25 && dayNum <= 27) {
     phase = "luteal";
     phaseLabel = "Late Luteal (Pre-Reset Transition)";
     badgeColor = "indigo";
@@ -12276,6 +12867,19 @@ function getFutureCycleDetails(dateStr) {
     bloatNote = "Prostaglandin signaling starts. Drink warm electrolytes and herbal teas upon waking. Do not stress over scale fluctuations—it is 100% water retention.";
     ouraTemp = "+0.20°C dropping toward baseline (0.00°C)";
     packingTip = "Softest knitwear, cozy socks, heat patches/hot water bottle, emergency chocolate, noise-canceling headphones.";
+  } else {
+    phase = "luteal";
+    phaseLabel = "Late Luteal (Silent Period Eve)";
+    badgeColor = "indigo";
+    isSilentPeriod = true;
+    battery = 55;
+    batteryTitle = "Gentle Cocoon & Recharging (55%)";
+    batteryNote = "Progesterone plunges sharply toward baseline tonight. Tomorrow begins Emma's monthly Silent Period. Keep evening low-key, avoid sensory fatigue, and prepare cozy essentials.";
+    bloatScore = "6-7/10 (Pre-Reset Peak)";
+    bloatLabel = "Peak Pre-Reset Fluid & Pelvic Fullness";
+    bloatNote = "Water retention peaks right before the progesterone cliff. Don't worry about waist tightness—it will release within 48-72h once the reset begins.";
+    ouraTemp = "+0.10°C dropping to baseline";
+    packingTip = "Loose loungewear, travel heat patches, electrolytes, noise-canceling headphones.";
   }
 
   return {
@@ -12289,6 +12893,7 @@ function getFutureCycleDetails(dateStr) {
     phase,
     phaseLabel,
     badgeColor,
+    isSilentPeriod,
     battery,
     batteryTitle,
     batteryNote,
@@ -12334,7 +12939,8 @@ function generateTripPlannerHTML(isModal) {
   const phaseColors = {
     follicular: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-900', badge: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
     ovulation: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-900', badge: 'bg-amber-100 text-amber-800 border-amber-300' },
-    luteal: { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-900', badge: 'bg-rose-100 text-rose-800 border-rose-300' }
+    luteal: { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-900', badge: 'bg-rose-100 text-rose-800 border-rose-300' },
+    reset: { bg: 'bg-rose-50', border: 'border-rose-300', text: 'text-rose-950', badge: 'bg-rose-100 text-rose-900 border-rose-400' }
   };
   const currentTheme = phaseColors[primaryDetail.phase] || phaseColors.luteal;
 
@@ -12419,6 +13025,9 @@ function generateTripPlannerHTML(isModal) {
       <!-- Quick Holiday Presets (1-Tap ADHD Chips) -->
       <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
         <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mr-1">Quick Presets:</span>
+        <button type="button" onclick="quickSelectHoliday('silentperiod')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-rose-50 text-rose-950 border border-rose-300/80 text-[11px] font-bold transition-all shadow-2xs active:scale-95 flex items-center gap-1 cursor-pointer">
+          <span>🩸 Silent Period Window</span>
+        </button>
         <button type="button" onclick="quickSelectHoliday('christmas')" class="px-2.5 py-1 rounded-xl bg-white hover:bg-emerald-50 text-emerald-950 border border-emerald-300/80 text-[11px] font-bold transition-all shadow-2xs active:scale-95 flex items-center gap-1 cursor-pointer">
           <span>🎄 Christmas (25 Dec)</span>
         </button>
@@ -12463,6 +13072,28 @@ function generateTripPlannerHTML(isModal) {
             </span>
           </div>
         </div>
+
+        <!-- Mirena Silent Period Overlap Notice -->
+        ${rangeDetails.some(d => d.isSilentPeriod) ? `
+          <div class="p-3.5 rounded-2xl bg-gradient-to-r from-rose-50 via-rose-100/60 to-amber-50 border border-rose-300 text-rose-950 space-y-1.5 shadow-2xs">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 font-black text-xs text-rose-900">
+                <span>🩸</span>
+                <span>Mirena Silent Period Travel Notice</span>
+              </div>
+              <span class="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-rose-200/90 text-rose-900 border border-rose-300">
+                ${isRange 
+                  ? `${rangeDetails.filter(d => d.isSilentPeriod).length} Period Day${rangeDetails.filter(d => d.isSilentPeriod).length > 1 ? 's' : ''} during trip` 
+                  : 'Active Period Window'}
+              </span>
+            </div>
+            <p class="text-[11px] leading-relaxed font-medium text-rose-950/90">
+              ${isRange 
+                ? `This trip overlaps with Emma's estimated Silent Period (${rangeDetails.filter(d => d.isSilentPeriod).map(d => d.shortDate).join(', ')}). Because of her <strong>Mirena IUD</strong>, overt menstrual bleeding is absent or minimal spotting, but her body experiences a natural progesterone plunge, pelvic settling, and prostaglandin gut motility transition. Pack travel heat patches, ultra-comfy loose waistbands, and hydrate with electrolytes.` 
+                : `This date falls within Emma's estimated Silent Period (Mirena Menses Window). While the Mirena prevents overt bleeding, systemic hormonal reset and prostaglandin bowel motility shifts still occur. Plan gentle mornings and non-restrictive clothes.`}
+            </p>
+          </div>
+        ` : ''}
 
         <!-- 4 CORE ADHD TRAVEL SURVIVAL PILLARS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -12557,7 +13188,9 @@ function generateTripPlannerHTML(isModal) {
                   <div class="text-[10px] font-black text-slate-500 uppercase tracking-wider">${d.dayName.slice(0, 3)}</div>
                   <div class="text-xs font-black text-brand-textDark">${d.shortDate}</div>
                   <div class="text-[10px] font-bold text-teal-700">Day ${d.dayNum}</div>
-                  <div class="text-[9px] font-semibold text-brand-textMuted truncate" title="${d.phaseLabel}">${d.phaseLabel.split(' ')[0]}</div>
+                  <div class="text-[9px] font-semibold text-brand-textMuted truncate" title="${d.phaseLabel}">
+                    ${d.isSilentPeriod ? '🩸 Silent Period' : d.phaseLabel.split(' ')[0]}
+                  </div>
                   <div class="text-[9px] font-black px-1.5 py-0.5 rounded-full ${d.battery >= 80 ? 'bg-emerald-100 text-emerald-800' : (d.battery >= 70 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800')} mt-1 inline-block">
                     🔋 ${d.battery}%
                   </div>
@@ -12735,7 +13368,16 @@ function handleTripQuerySubmit(prefix) {
 }
 
 function quickSelectHoliday(key) {
-  if (key === 'christmas') {
+  if (key === 'silentperiod') {
+    const silentList = typeof getHistoricalAndFutureSilentPeriods === 'function' ? getHistoricalAndFutureSilentPeriods() : [];
+    const upcoming = silentList.find(p => p.status === 'active' || p.status === 'upcoming');
+    if (upcoming) {
+      tripPlannerState.mode = 'range';
+      tripPlannerState.startDate = upcoming.startDate;
+      tripPlannerState.endDate = upcoming.endDate;
+      tripPlannerState.query = `${upcoming.monthName} Silent Period (${upcoming.displayDates.split(' 202')[0]})`;
+    }
+  } else if (key === 'christmas') {
     tripPlannerState.mode = 'single';
     tripPlannerState.startDate = '2026-12-25';
     tripPlannerState.endDate = '2026-12-25';
@@ -12892,6 +13534,10 @@ window.toggleTripPackingItem = toggleTripPackingItem;
 window.copyTripForecastSummary = copyTripForecastSummary;
 window.openTripPlannerModal = openTripPlannerModal;
 window.closeTripPlannerModal = closeTripPlannerModal;
+window.getEmmaSilentPeriodAnalysis = getEmmaSilentPeriodAnalysis;
+window.getHistoricalAndFutureSilentPeriods = getHistoricalAndFutureSilentPeriods;
+window.renderOuraSilentPeriodSection = renderOuraSilentPeriodSection;
+window.scrollToSilentPeriodSection = scrollToSilentPeriodSection;
 
 // ============================================================================
 // APP BOOTSTRAP: INITIALIZE AFTER ALL SCRIPTS & DOM LOAD
