@@ -12,6 +12,7 @@ import sys
 import json
 import sqlite3
 import datetime
+import re
 import tempfile
 import signal
 import urllib.request
@@ -64,23 +65,100 @@ def append_to_audit_ledger(entry):
     except Exception as e:
         print(f"⚠️ Audit log write warning: {e}")
 
+def clean_synthetic_text(text):
+    if not text or not isinstance(text, str):
+        return ''
+    cleaned = re.sub(r'Auto-created from Oura Ring daily sync\.+\s*', '', text, flags=re.I).strip()
+    return cleaned
+
+def merge_checkin_entries(existing, incoming):
+    if not existing:
+        res = dict(incoming) if isinstance(incoming, dict) else {}
+        res['symptoms'] = clean_synthetic_text(res.get('symptoms'))
+        res['notes'] = clean_synthetic_text(res.get('notes'))
+        res['headspaceNotes'] = clean_synthetic_text(res.get('headspaceNotes'))
+        return res
+
+    merged = dict(existing)
+
+    # 1. Clean synthetic text in both existing and incoming
+    for f in ['symptoms', 'notes', 'headspaceNotes']:
+        if f in merged:
+            merged[f] = clean_synthetic_text(merged.get(f))
+
+    # 2. Non-destructive field merge
+    for k, v in incoming.items():
+        if v is None:
+            continue
+
+        if k in ['symptoms', 'notes', 'headspaceNotes']:
+            incoming_clean = clean_synthetic_text(v)
+            existing_val = merged.get(k, '')
+            if incoming_clean:
+                if not existing_val or len(incoming_clean) >= len(existing_val):
+                    merged[k] = incoming_clean
+            # If incoming_clean is empty, keep existing_val!
+        elif k == 'movement':
+            if v and str(v).strip() and str(v).strip() != 'None':
+                merged[k] = v
+            elif not merged.get(k):
+                merged[k] = v
+        elif k in ['puffiness', 'exercises', 'moods']:
+            arr_ex = merged.get(k) or []
+            arr_in = v or []
+            if not isinstance(arr_ex, list):
+                arr_ex = [arr_ex]
+            if not isinstance(arr_in, list):
+                arr_in = [arr_in]
+            combined = []
+            for item in arr_ex + arr_in:
+                if item and item not in combined:
+                    combined.append(item)
+            merged[k] = combined
+        elif k == 'dailyFocus' and isinstance(v, dict):
+            ex_focus = merged.get('dailyFocus') or {}
+            merged['dailyFocus'] = {**ex_focus, **v}
+        elif isinstance(v, bool):
+            if v:
+                merged[k] = True
+            elif k not in merged:
+                merged[k] = False
+        else:
+            merged[k] = v
+
+    return merged
+
 def save_single_checkin_to_db(entry):
     if not isinstance(entry, dict) or not entry.get('date'):
         return False
     d = entry.get('date')
-    c_day = entry.get('cycleDay')
-    c_phase = entry.get('cyclePhase', '')
-    b_stool = entry.get('bristolStool')
-    b_score = entry.get('bloatingScore')
-    m_speed = entry.get('motilitySpeed', '')
-    a_pain = entry.get('abdominalPain')
-    s_press = entry.get('splenicPressure')
-    dj = json.dumps(entry)
 
     conn = get_db_connection()
     is_pg = hasattr(conn, 'status')
     cur = conn.cursor()
     ph = "%s" if is_pg else "?"
+
+    # 1. Fetch existing record to perform lossless smart merge
+    cur.execute(f"SELECT data_json FROM checkins WHERE date = {ph}", (d,))
+    row = cur.fetchone()
+    existing_entry = None
+    if row and row[0]:
+        try:
+            existing_entry = json.loads(row[0])
+        except Exception:
+            existing_entry = None
+
+    merged_entry = merge_checkin_entries(existing_entry, entry)
+
+    c_day = merged_entry.get('cycleDay')
+    c_phase = merged_entry.get('phase') or merged_entry.get('cyclePhase', '')
+    b_stool = 4 if merged_entry.get('bristol') == 'normal' else (1 if merged_entry.get('bristol') == 'hard' else (7 if merged_entry.get('bristol') == 'liquid' else 0))
+    b_score = merged_entry.get('diaphragmBloat', 0)
+    m_speed = merged_entry.get('movement', '')
+    a_pain = merged_entry.get('abdominalPain', 0)
+    s_press = merged_entry.get('splenicPressure', 0)
+    dj = json.dumps(merged_entry)
+
     query = f"""
         INSERT INTO checkins (date, cycle_day, cycle_phase, bristol_stool, bloating_score, motility_speed, abdominal_pain, splenic_pressure, data_json, updated_at)
         VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, CURRENT_TIMESTAMP)
@@ -161,29 +239,26 @@ def init_db():
             """)
         conn.commit()
 
-        # Seed initial records if empty
-        cur.execute("SELECT COUNT(*) FROM checkins")
-        count = cur.fetchone()[0]
-        if count == 0:
-            for seed_file in [os.path.join(DIRECTORY, "seed_data.json"), os.path.join(DIRECTORY, "emma_backup.json")]:
-                if os.path.isfile(seed_file):
-                    try:
-                        with open(seed_file, "r", encoding="utf-8") as f:
-                            seed = json.load(f)
-                        for item in seed.get("logs", []):
-                            save_single_checkin_to_db(item)
-                        for k, v in seed.get("app_states", {}).items():
-                            ph = "%s" if is_pg else "?"
-                            cur.execute(f"""
-                                INSERT INTO app_state (key, value)
-                                VALUES ({ph}, {ph})
-                                ON CONFLICT(key) DO UPDATE SET value=excluded.value
-                            """, (k, v if isinstance(v, str) else json.dumps(v)))
-                        conn.commit()
-                        print(f"📦 Seeded initial records from {os.path.basename(seed_file)}")
-                        break
-                    except Exception as s_err:
-                        print(f"⚠️ Seeding notice: {s_err}")
+        # Unconditional synchronization: guarantee that any and all records from seed_data.json and emma_backup.json exist in DB
+        for seed_file in [os.path.join(DIRECTORY, "seed_data.json"), os.path.join(DIRECTORY, "emma_backup.json")]:
+            if os.path.isfile(seed_file):
+                try:
+                    with open(seed_file, "r", encoding="utf-8") as f:
+                        seed = json.load(f)
+                    for item in seed.get("logs", []):
+                        save_single_checkin_to_db(item)
+                    for k, v in seed.get("app_states", {}).items():
+                        ph = "%s" if is_pg else "?"
+                        cur.execute(f"""
+                            INSERT INTO app_state (key, value)
+                            VALUES ({ph}, {ph})
+                            ON CONFLICT(key) DO UPDATE SET value=excluded.value
+                        """, (k, v if isinstance(v, str) else json.dumps(v)))
+                    conn.commit()
+                    print(f"📦 Harmonized initial records from {os.path.basename(seed_file)}")
+                    break
+                except Exception as s_err:
+                    print(f"⚠️ Seeding notice: {s_err}")
 
         # Replay any records from audit ledger file if present
         if os.path.isfile(AUDIT_FILE):
@@ -749,10 +824,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             conn = get_db_connection()
             cur = conn.cursor()
             cur.execute("SELECT data_json FROM checkins ORDER BY date DESC")
-            all_logs = []
+            db_logs = []
             for (dj,) in cur.fetchall():
                 try:
-                    all_logs.append(json.loads(dj))
+                    db_logs.append(json.loads(dj))
                 except Exception:
                     pass
             cur.execute("SELECT key, value FROM app_state")
@@ -764,9 +839,30 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     app_states[k] = v
             conn.close()
 
+            # Merge with existing disk records to guarantee zero data loss
+            disk_logs = []
+            if os.path.isfile(BACKUP_FILE):
+                try:
+                    with open(BACKUP_FILE, 'r', encoding='utf-8') as f:
+                        bk = json.load(f)
+                        disk_logs = bk.get('logs', [])
+                except Exception:
+                    pass
+
+            by_date = {}
+            for l in disk_logs:
+                if isinstance(l, dict) and l.get('date'):
+                    by_date[l['date']] = l
+            for l in db_logs:
+                if isinstance(l, dict) and l.get('date'):
+                    d = l['date']
+                    by_date[d] = merge_checkin_entries(by_date.get(d), l)
+
+            all_logs = sorted(by_date.values(), key=lambda x: x.get('date', ''), reverse=True)
+
             now_iso = datetime.datetime.now().isoformat()
             backup_dict = {
-                "version": "1.0",
+                "version": "2.0",
                 "last_synced": now_iso,
                 "total_logs": len(all_logs),
                 "logs": all_logs,
