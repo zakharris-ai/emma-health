@@ -354,8 +354,8 @@ const DEFAULT_LOGS = [
     displayDate: "21st August 2026",
     month: "august",
     cycleDay: 3,
-    phase: "reset",
-    phaseLabel: "Cycle Reset / Phantom Menstruation",
+    phase: "menstrual_follicular",
+    phaseLabel: "Menstrual Follicular (Silent Period Reset)",
     temp: 35.86,
     movement: "Small bit in morning then little bits throughout day, felt stuck",
     bristol: "hard",
@@ -374,8 +374,8 @@ const DEFAULT_LOGS = [
     displayDate: "19th August 2026",
     month: "august",
     cycleDay: 1,
-    phase: "reset",
-    phaseLabel: "Cycle Reset Transition",
+    phase: "menstrual_follicular",
+    phaseLabel: "Menstrual Follicular (Silent Period Reset)",
     temp: 36.07,
     movement: "Barely anything, felt very uncomfortable in morning",
     bristol: "none",
@@ -1767,8 +1767,8 @@ function getCycleInfoForDate(targetDateStr) {
   let estHrv = 41;
 
   if (dayNum >= 1 && dayNum <= 4) {
-    phase = "reset";
-    phaseLabel = "Silent Period • Days 1–4 (Mirena Menses Window)";
+    phase = "menstrual_follicular";
+    phaseLabel = "Menstrual Follicular • Days 1–4 (Silent Period Reset)";
     isSilentPeriod = true;
     tempDev = -0.28;
     estTemp = 36.15;
@@ -1776,7 +1776,7 @@ function getCycleInfoForDate(targetDateStr) {
     estHrv = 55;
   } else if (dayNum >= 5 && dayNum <= 13) {
     phase = "follicular";
-    phaseLabel = "Follicular Phase (Estrogen Ramp)";
+    phaseLabel = "Rising Follicular • Days 5–13 (Estrogen Ramp)";
     tempDev = -0.15;
     estTemp = 36.20;
     estRhr = 63;
@@ -1862,8 +1862,8 @@ function getCycleInfoForDate(targetDateStr) {
     rhr: estRhr,
     hrv: estHrv,
     movement: "Pending morning movement",
-    diaphragmBloat: phase === 'luteal' ? 7 : (phase === 'reset' ? 5 : (phase === 'ovulation' ? 5 : 3)),
-    emotions: phase === 'reset' ? "Gentle cocoon / low dopamine" : (phase === 'luteal' ? "Low dopamine / tired" : "Good energy"),
+    diaphragmBloat: phase === 'luteal' ? 7 : ((phase === 'menstrual_follicular' || phase === 'reset') ? 5 : (phase === 'ovulation' ? 5 : 3)),
+    emotions: (phase === 'menstrual_follicular' || phase === 'reset') ? "Gentle cocoon / low dopamine" : (phase === 'luteal' ? "Low dopamine / tired" : "Good energy"),
     isLogged: false
   };
 }
@@ -1880,9 +1880,13 @@ function applyActiveDate(targetDateStr) {
 
   // Phase logo for active day
   let activePhaseLogo = '🌸';
-  if (info.phase === 'follicular') activePhaseLogo = '🌿';
-  else if (info.phase === 'ovulation') activePhaseLogo = '✨';
-  else if (info.cycleDay <= 3) activePhaseLogo = '💧';
+  if (info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
+    activePhaseLogo = '🩸';
+  } else if (info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13)) {
+    activePhaseLogo = '🌿';
+  } else if (info.phase === 'ovulation' || (info.cycleDay >= 14 && info.cycleDay <= 16)) {
+    activePhaseLogo = '✨';
+  }
 
   // Clean short phase label for headers & compact UI (strips parentheticals like "(Progesterone Peak Window)")
   const cleanPhase = (info.phaseLabel || '').replace(/\s*\([^)]*\)/g, '').trim() || (info.phase ? (info.phase.charAt(0).toUpperCase() + info.phase.slice(1)) : 'Luteal');
@@ -1928,20 +1932,22 @@ function applyActiveDate(targetDateStr) {
   if (headerCycleLogo) headerCycleLogo.innerText = activePhaseLogo;
   if (headerCycleDay) headerCycleDay.innerText = `Day ${info.cycleDay}`;
   if (headerPhaseBadge) {
-    if (info.isSilentPeriod || info.phase === 'reset') {
-      headerPhaseBadge.innerText = 'SILENT PERIOD';
-      headerPhaseBadge.title = info.phaseLabel || 'Silent Period (Mirena Menses Window)';
+    if (info.isSilentPeriod || info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
+      headerPhaseBadge.innerText = '🩸 MENSTRUAL FOLLICULAR';
+      headerPhaseBadge.title = info.phaseLabel || 'Menstrual Follicular • Days 1–4 (Silent Period Reset)';
       headerPhaseBadge.className = "text-rose-600 font-bold";
+    } else if (info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13)) {
+      headerPhaseBadge.innerText = '🌿 RISING FOLLICULAR';
+      headerPhaseBadge.title = info.phaseLabel || 'Rising Follicular • Days 5–13 (Estrogen Ramp)';
+      headerPhaseBadge.className = "text-emerald-600 font-bold";
+    } else if (info.phase === 'ovulation' || (info.cycleDay >= 14 && info.cycleDay <= 16)) {
+      headerPhaseBadge.innerText = '✨ OVULATION';
+      headerPhaseBadge.title = info.phaseLabel || 'Ovulation Window • Days 14–16';
+      headerPhaseBadge.className = "text-amber-600 font-bold";
     } else {
-      headerPhaseBadge.innerText = cleanPhase;
-      headerPhaseBadge.title = info.phaseLabel || cleanPhase;
-      if (info.phase === 'luteal') {
-        headerPhaseBadge.className = "text-brand-coral font-bold";
-      } else if (info.phase === 'follicular') {
-        headerPhaseBadge.className = "text-brand-sage font-bold";
-      } else {
-        headerPhaseBadge.className = "text-brand-amber font-bold";
-      }
+      headerPhaseBadge.innerText = '🌸 LUTEAL';
+      headerPhaseBadge.title = info.phaseLabel || 'Luteal Phase • Days 17–28';
+      headerPhaseBadge.className = "text-brand-coral font-bold";
     }
   }
 
@@ -1949,33 +1955,63 @@ function applyActiveDate(targetDateStr) {
   const heroDialDay = document.getElementById('heroDialDay');
   const heroDialPhase = document.getElementById('heroDialPhase');
   if (heroDialDay) heroDialDay.innerText = info.cycleDay;
-  if (heroDialPhase) heroDialPhase.innerText = (info.isSilentPeriod || info.phase === 'reset') ? 'RESET' : info.phase.toUpperCase();
+  if (heroDialPhase) {
+    if (info.isSilentPeriod || info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
+      heroDialPhase.innerText = 'M-FOLLICULAR';
+      heroDialPhase.className = "text-[9px] font-black text-rose-600 uppercase tracking-wide mt-0.5";
+      heroDialPhase.title = "Menstrual Follicular (Silent Period Reset • Days 1–4)";
+    } else if (info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13)) {
+      heroDialPhase.innerText = 'FOLLICULAR';
+      heroDialPhase.className = "text-[9px] font-black text-emerald-600 uppercase tracking-wide mt-0.5";
+      heroDialPhase.title = "Rising Follicular (Estrogen Ramp • Days 5–13)";
+    } else if (info.phase === 'ovulation' || (info.cycleDay >= 14 && info.cycleDay <= 16)) {
+      heroDialPhase.innerText = 'OVULATION';
+      heroDialPhase.className = "text-[9px] font-black text-amber-600 uppercase tracking-wide mt-0.5";
+      heroDialPhase.title = "Ovulation Window • Days 14–16";
+    } else {
+      heroDialPhase.innerText = 'LUTEAL';
+      heroDialPhase.className = "text-[9px] font-black text-brand-coral uppercase tracking-wide mt-0.5";
+      heroDialPhase.title = "Luteal Phase • Days 17–28";
+    }
+  }
 
   // Update SVG Arc Highlights
-  const arcLuteal = document.getElementById('dialLutealArc');
+  const arcMenstrual = document.getElementById('dialMenstrualFollicularArc');
   const arcFollicular = document.getElementById('dialFollicularArc');
   const arcOvulation = document.getElementById('dialOvulationArc');
-  if (arcLuteal && arcFollicular && arcOvulation) {
-    if (info.phase === 'reset' || info.isSilentPeriod) {
+  const arcLuteal = document.getElementById('dialLutealArc');
+
+  [arcMenstrual, arcFollicular, arcOvulation, arcLuteal].forEach(arc => {
+    if (arc) {
+      arc.classList.add('opacity-30');
+      arc.setAttribute('stroke-width', '9');
+      arc.removeAttribute('stroke-linecap');
+    }
+  });
+
+  if (info.isSilentPeriod || info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
+    if (arcMenstrual) {
+      arcMenstrual.classList.remove('opacity-30');
+      arcMenstrual.setAttribute('stroke-width', '10');
+      arcMenstrual.setAttribute('stroke-linecap', 'round');
+    }
+  } else if (info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13)) {
+    if (arcFollicular) {
       arcFollicular.classList.remove('opacity-30');
-      arcFollicular.setAttribute('stroke-width', '9');
-      arcLuteal.classList.add('opacity-30');
-      arcOvulation.classList.add('opacity-30');
-    } else if (info.phase === 'luteal') {
-      arcLuteal.classList.remove('opacity-30');
-      arcLuteal.setAttribute('stroke-width', '9');
-      arcFollicular.classList.add('opacity-30');
-      arcOvulation.classList.add('opacity-30');
-    } else if (info.phase === 'follicular') {
-      arcFollicular.classList.remove('opacity-30');
-      arcFollicular.setAttribute('stroke-width', '9');
-      arcLuteal.classList.add('opacity-30');
-      arcOvulation.classList.add('opacity-30');
-    } else {
+      arcFollicular.setAttribute('stroke-width', '10');
+      arcFollicular.setAttribute('stroke-linecap', 'round');
+    }
+  } else if (info.phase === 'ovulation' || (info.cycleDay >= 14 && info.cycleDay <= 16)) {
+    if (arcOvulation) {
       arcOvulation.classList.remove('opacity-30');
-      arcOvulation.setAttribute('stroke-width', '9');
-      arcFollicular.classList.add('opacity-30');
-      arcLuteal.classList.add('opacity-30');
+      arcOvulation.setAttribute('stroke-width', '10');
+      arcOvulation.setAttribute('stroke-linecap', 'round');
+    }
+  } else {
+    if (arcLuteal) {
+      arcLuteal.classList.remove('opacity-30');
+      arcLuteal.setAttribute('stroke-width', '10');
+      arcLuteal.setAttribute('stroke-linecap', 'round');
     }
   }
 
@@ -1987,9 +2023,9 @@ function applyActiveDate(targetDateStr) {
   const heroSilentBtn = document.getElementById('heroSilentPeriodBtn');
 
   if (heroSilentBtn) {
-    if (info.isSilentPeriod || info.phase === 'reset') {
+    if (info.isSilentPeriod || info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
       heroSilentBtn.className = "inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white border border-rose-600 text-[10px] font-extrabold transition-all shadow-xs active:scale-95 cursor-pointer ring-2 ring-rose-300";
-      heroSilentBtn.innerHTML = `<span>🩸 Active Silent Period (Day ${info.cycleDay}) ↗</span>`;
+      heroSilentBtn.innerHTML = `<span>🩸 Active Menstrual Follicular (Day ${info.cycleDay}) ↗</span>`;
     } else {
       heroSilentBtn.className = "inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-300 text-[10px] font-bold transition-all shadow-2xs active:scale-95 cursor-pointer";
       heroSilentBtn.innerHTML = `<span>🩸 Silent Period Tracker ↗</span>`;
@@ -1999,8 +2035,10 @@ function applyActiveDate(targetDateStr) {
   if (heroTempDevBadge) {
     if (existing && existing.temp) {
       heroTempDevBadge.innerText = `Recorded Temp: ${existing.temp}°C`;
-    } else if (info.isSilentPeriod || info.phase === 'reset') {
-      heroTempDevBadge.innerText = `🩸 Silent Period Active (Mirena Menses Window)`;
+    } else if (info.isSilentPeriod || info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
+      heroTempDevBadge.innerText = `🩸 Menstrual Follicular (Silent Period Reset • Days 1–4)`;
+    } else if (info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13)) {
+      heroTempDevBadge.innerText = `🌿 Rising Follicular (Estrogen Ramp • Days 5–13)`;
     } else if (info.phase === 'luteal') {
       heroTempDevBadge.innerText = `Early-Mid Luteal Ramp (Notes Verified)`;
     } else if (info.phase === 'ovulation') {
@@ -2011,28 +2049,28 @@ function applyActiveDate(targetDateStr) {
   }
 
   if (heroHeadline) {
-    if (info.isSilentPeriod || info.phase === 'reset') {
-      heroHeadline.innerText = "Biological Period Window: Rest & Reset, Emma 🩸";
+    if (info.isSilentPeriod || info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
+      heroHeadline.innerText = "Menstrual Follicular Window: Rest & Reset, Emma 🩸";
+    } else if (info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13)) {
+      heroHeadline.innerText = "Rising Follicular: High Energy & Fast Digestion, Emma! 🌿";
     } else if (info.phase === 'luteal' && info.cycleDay < 24) {
       heroHeadline.innerText = "Be gentle with yourself today, Emma.";
     } else if (info.phase === 'luteal') {
       heroHeadline.innerText = "Late Luteal Transition: Rest & Hydrate, Emma.";
-    } else if (info.phase === 'follicular') {
-      heroHeadline.innerText = "High Energy & Fast Digestion Window, Emma!";
     } else {
       heroHeadline.innerText = "Ovulation Window: Protect Your Pelvis & Rest, Emma.";
     }
   }
 
   if (heroBody) {
-    if (info.isSilentPeriod || info.phase === 'reset') {
-      heroBody.innerHTML = `Even though your <strong>Mirena IUD suppresses overt menstrual bleeding</strong>, your body is currently undergoing its biological monthly hormonal reset (progesterone withdrawal drop). Prostaglandins stimulate uterine and intestinal smooth muscle—any looser stools, lower pelvic heaviness, or low dopamine are 100% normal and temporary. Keep mornings unhurried, buffer electrolytes, and be gentle with yourself.`;
+    if (info.isSilentPeriod || info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
+      heroBody.innerHTML = `<strong>You are in your Menstrual Follicular phase (Days 1–4).</strong> Even though your <strong>Mirena IUD suppresses overt menstrual bleeding</strong>, your body is currently undergoing its biological monthly hormonal reset (progesterone withdrawal drop down to baseline). Prostaglandins stimulate uterine and intestinal smooth muscle—any looser stools, lower pelvic heaviness, or low dopamine are 100% normal and temporary. Keep mornings unhurried, buffer electrolytes, and be gentle with yourself. In ~3–4 days, your rising estrogen will kick in!`;
+    } else if (info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13)) {
+      heroBody.innerHTML = `<strong>You are in your Rising Follicular phase (Days 5–13).</strong> The menstrual reset is behind you, and your dominant ovarian follicle is actively pumping out fresh estradiol (estrogen). Dopamine turnover is high, brain fog clears, and digestive smooth muscle tone is brisk. Your APD bloating is at its cycle low point—ideal for Third Space workouts and active plans!`;
     } else if (info.phase === 'luteal' && info.cycleDay < 24) {
       heroBody.innerHTML = `Your body is currently producing natural progesterone (the body's natural "slow-down" hormone). This naturally relaxes bowel muscles and holds onto water. <strong>Any tightness in your ribs, tummy bloating, or lower dopamine is 100% biological and temporary.</strong>`;
     } else if (info.phase === 'luteal') {
       heroBody.innerHTML = `Progesterone is at the tail end of its monthly wave and will drop in ~2–4 days. Trapped air under your left ribs is common now—stick to light evening dinners (like warm congee or purees) and enjoy your 15-minute legs-up-wall relaxation.`;
-    } else if (info.phase === 'follicular') {
-      heroBody.innerHTML = `Estrogen is dominant and progesterone is low! Your digestive muscles are naturally moving at their best speed this week. Great window for Third Space workouts and enjoying wholesome low-FODMAP variety!`;
     } else {
       heroBody.innerHTML = `Your temperature shift confirms you have released an egg. Progesterone is beginning to gently tell your digestion to slow down. Stick with warm, comforting meals and avoid heavy raw salads.`;
     }
@@ -2040,14 +2078,14 @@ function applyActiveDate(targetDateStr) {
 
   if (heroResetCountdown) {
     const daysLeft = Math.max(1, 28 - info.cycleDay);
-    if (info.isSilentPeriod || info.phase === 'reset') {
-      heroResetCountdown.innerHTML = `🩸 Silent Period Active: <strong class="text-rose-700">Days 1–4 Mirena Menses Window</strong>`;
+    if (info.isSilentPeriod || info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
+      heroResetCountdown.innerHTML = `🩸 Menstrual Follicular: <strong class="text-rose-700">Days 1–4 Silent Reset Window</strong>`;
+    } else if (info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13)) {
+      heroResetCountdown.innerHTML = `🌿 Rising Follicular: <strong class="text-emerald-700">Estrogen ramp (Ovulation in ~${Math.max(1, 14 - info.cycleDay)}d)</strong>`;
     } else if (info.phase === 'luteal') {
       heroResetCountdown.innerHTML = `Predicted Cycle Reset & Drop: <strong class="text-brand-textDark">in ~${daysLeft} day${daysLeft === 1 ? '' : 's'}</strong>`;
-    } else if (info.phase === 'follicular') {
-      heroResetCountdown.innerHTML = `Next Ovulation Window: <strong class="text-brand-textDark">in ~${Math.max(1, 14 - info.cycleDay)} days</strong>`;
     } else {
-      heroResetCountdown.innerHTML = `Luteal Shift Active: <strong class="text-brand-textDark">Progesterone rising</strong>`;
+      heroResetCountdown.innerHTML = `Ovulation Window: <strong class="text-amber-700">Egg release & thermal inflection</strong>`;
     }
   }
 
@@ -2123,7 +2161,7 @@ function applyActiveDate(targetDateStr) {
   }
   const drinksGuide = document.getElementById('drinksGuideTitle');
   if (drinksGuide) {
-    drinksGuide.innerText = `Tonight’s Drinks Guide (${info.phase === 'follicular' ? 'Follicular Safe' : 'Luteal Safe'})`;
+    drinksGuide.innerText = `Tonight’s Drinks Guide (${(info.phase === 'follicular' || info.phase === 'menstrual_follicular' || info.phase === 'reset' || info.cycleDay <= 13) ? 'Follicular Safe' : 'Luteal Safe'})`;
   }
 
   // 9. Update Preset Food Buttons (Popcorn, Banana, Celery, Avocado)
@@ -2207,10 +2245,10 @@ function renderDashboardHeadspaceCard(entry, cycleInfo) {
     adhdInsight = '💜 <strong>ADHD Luteal Reality:</strong> Lower dopamine and high progesterone make messages and admin feel 10x louder. Choosing only work/nannying is a smart energy boundary!';
   } else if (cycleInfo.phase === 'ovulation') {
     adhdInsight = '✨ <strong>High Estrogen Window:</strong> Mental focus and social battery are higher. Great time to clear small admin tasks if you feel like it.';
-  } else if (cycleInfo.cycleDay <= 4) {
-    adhdInsight = '🌸 <strong>Menstrual Reset:</strong> Energy is lowest right now. Complete permission to rest, skip social texting, and keep demands minimal.';
+  } else if (cycleInfo.phase === 'menstrual_follicular' || cycleInfo.phase === 'reset' || cycleInfo.cycleDay <= 4) {
+    adhdInsight = '🩸 <strong>Menstrual Follicular Reset:</strong> Estrogen and progesterone are at baseline low. Executive energy and dopamine are in quiet reset mode. Complete permission to rest, skip social texting, and cocoon without guilt.';
   } else {
-    adhdInsight = '🌿 <strong>Rising Dopamine Window:</strong> Brain fog is lower and cognitive resilience is climbing. Trust your natural rhythm.';
+    adhdInsight = '🌿 <strong>Rising Follicular (Estrogen Ramp):</strong> Estrogen is steadily climbing and prefrontal dopamine sensitivity is surging! Brain fog is lifting and cognitive resilience is at its peak. Ride the momentum!';
   }
 
   const userThought = (entry?.headspaceNotes || entry?.notes || '').trim();
@@ -2957,7 +2995,7 @@ function renderMovementAndSpa(info) {
 }
 
 function updateFoodPresetsForPhase(info) {
-  const isFollicular = info.phase === 'follicular';
+  const isFollicular = info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13);
 
   const popcornBtn = document.getElementById('presetBtn-popcorn');
   if (popcornBtn) {
@@ -3160,22 +3198,31 @@ function renderSimplifiedCycleModal() {
   // Phase pill
   const phaseEl = document.getElementById('cycleModalPhase');
   if (phaseEl) {
-    if (info.phase === 'luteal') {
-      phaseEl.innerText = info.cycleDay >= 20 && info.cycleDay <= 23 ? "Mid-Luteal Peak" : (info.cycleDay < 20 ? "Early-Mid Luteal" : "Late Luteal");
+    if (info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
+      phaseEl.innerText = "Menstrual Follicular (Silent Reset)";
       phaseEl.className = "font-black text-sm text-rose-700";
-    } else if (info.phase === 'follicular') {
-      phaseEl.innerText = "Follicular Phase";
+    } else if (info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13)) {
+      phaseEl.innerText = "Rising Follicular (Estrogen Ramp)";
       phaseEl.className = "font-black text-sm text-emerald-700";
-    } else {
-      phaseEl.innerText = "Ovulation Window";
+    } else if (info.phase === 'ovulation' || (info.cycleDay >= 14 && info.cycleDay <= 16)) {
+      phaseEl.innerText = "Ovulation Window (Egg Release)";
       phaseEl.className = "font-black text-sm text-amber-700";
+    } else {
+      phaseEl.innerText = info.cycleDay >= 20 && info.cycleDay <= 23 ? "Mid-Luteal Peak" : (info.cycleDay < 20 ? "Early-Mid Luteal" : "Late Luteal");
+      phaseEl.className = "font-black text-sm text-purple-700";
     }
   }
 
   // Hormone pill
   const hormoneEl = document.getElementById('cycleModalHormone');
   if (hormoneEl) {
-    if (info.phase === 'luteal') {
+    if (info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
+      hormoneEl.innerText = "Baseline Low (Progesterone Withdrawn)";
+    } else if (info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13)) {
+      hormoneEl.innerText = "Estrogen Rising Steadily";
+    } else if (info.phase === 'ovulation' || (info.cycleDay >= 14 && info.cycleDay <= 16)) {
+      hormoneEl.innerText = "LH / Estrogen Surge";
+    } else {
       if (info.cycleDay >= 20 && info.cycleDay <= 23) {
         hormoneEl.innerText = "Progesterone Peak";
       } else if (info.cycleDay < 20) {
@@ -3183,35 +3230,31 @@ function renderSimplifiedCycleModal() {
       } else {
         hormoneEl.innerText = "Progesterone Dropping";
       }
-    } else if (info.phase === 'follicular') {
-      hormoneEl.innerText = "Estrogen Dominant";
-    } else {
-      hormoneEl.innerText = "LH / Estrogen Surge";
     }
   }
 
   // 4-Phase Stepper Highlights
+  const stepMenstrual = document.getElementById('cycleStepMenstrualFollicular');
   const stepFoll = document.getElementById('cycleStepFollicular');
   const stepOvu = document.getElementById('cycleStepOvulation');
   const stepLut = document.getElementById('cycleStepLuteal');
-  const stepReset = document.getElementById('cycleStepReset');
 
   // Reset base styles
-  [stepFoll, stepOvu, stepLut, stepReset].forEach(s => {
+  [stepMenstrual, stepFoll, stepOvu, stepLut].forEach(s => {
     if (s) {
       s.className = "p-2 rounded-xl bg-white/70 border border-slate-200/80 transition-all";
     }
   });
 
-  if (info.cycleDay >= 27 || info.cycleDay <= 2) {
-    if (stepReset) stepReset.className = "p-2 rounded-xl bg-sky-50 border-2 border-sky-500 shadow-xs transition-all";
-  } else if (info.phase === 'follicular') {
-    if (stepFoll) stepFoll.className = "p-2 rounded-xl bg-emerald-50 border-2 border-emerald-500 shadow-xs transition-all";
-  } else if (info.phase === 'ovulation') {
-    if (stepOvu) stepOvu.className = "p-2 rounded-xl bg-amber-50 border-2 border-amber-500 shadow-xs transition-all";
+  if (info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
+    if (stepMenstrual) stepMenstrual.className = "p-2 rounded-xl bg-rose-50 border-2 border-rose-500 shadow-xs transition-all ring-2 ring-rose-300";
+  } else if (info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13)) {
+    if (stepFoll) stepFoll.className = "p-2 rounded-xl bg-emerald-50 border-2 border-emerald-500 shadow-xs transition-all ring-2 ring-emerald-300";
+  } else if (info.phase === 'ovulation' || (info.cycleDay >= 14 && info.cycleDay <= 16)) {
+    if (stepOvu) stepOvu.className = "p-2 rounded-xl bg-amber-50 border-2 border-amber-500 shadow-xs transition-all ring-2 ring-amber-300";
   } else {
     // Luteal
-    if (stepLut) stepLut.className = "p-2 rounded-xl bg-purple-50 border-2 border-purple-500 shadow-xs transition-all";
+    if (stepLut) stepLut.className = "p-2 rounded-xl bg-purple-50 border-2 border-purple-500 shadow-xs transition-all ring-2 ring-purple-300";
   }
 
   // Reset countdown
@@ -3220,25 +3263,30 @@ function renderSimplifiedCycleModal() {
   const daysLeft = Math.max(1, 28 - info.cycleDay);
 
   if (resetBadge) {
-    if (info.phase === 'luteal') {
-      resetBadge.innerText = `~${daysLeft} Day${daysLeft === 1 ? '' : 's'} Left`;
+    if (info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
+      resetBadge.innerText = `Days 1–4 Active`;
+      resetBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-200 text-rose-900";
+    } else if (info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13)) {
+      resetBadge.innerText = `Ovulation in ~${Math.max(1, 14 - info.cycleDay)}d`;
       resetBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900";
-    } else if (info.phase === 'follicular') {
-      resetBadge.innerText = `In ~${Math.max(1, 14 - info.cycleDay)} Days`;
-      resetBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 text-blue-900";
+    } else if (info.phase === 'luteal') {
+      resetBadge.innerText = `~${daysLeft} Day${daysLeft === 1 ? '' : 's'} Left`;
+      resetBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-purple-200 text-purple-900";
     } else {
-      resetBadge.innerText = `In ~1–2 Days`;
+      resetBadge.innerText = `Luteal Shift in ~1–2 Days`;
       resetBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900";
     }
   }
 
   if (resetExp) {
-    if (info.phase === 'luteal') {
+    if (info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
+      resetExp.innerHTML = `You are in your <strong>Menstrual Follicular phase (Days 1–4)</strong>. Progesterone has dropped back to baseline, resetting your cycle. In ~3–4 days, your ovaries will transition into the Rising Follicular phase with a fresh climb of estrogen. Cocoon, keep mornings unhurried, and remember any loose stools or quiet dopamine are normal prostaglandin effects.`;
+    } else if (info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13)) {
+      resetExp.innerHTML = `You are in your <strong>Rising Follicular phase (Days 5–13)</strong>! The menstrual reset is complete, and your dominant follicle is pumping out estrogen. Dopamine turnover is elevated, gut motility is fast, and APD bloating is at its lowest monthly levels. Enjoy this high-energy window!`;
+    } else if (info.phase === 'luteal') {
       resetExp.innerHTML = `Around <strong>September 13–15</strong>, your corpus luteum naturally winds down, progesterone plunges, and your body flushes out the retained water. Remember August 21st? You woke up and wrote: <em>"Inflammation all gone, 98% back to me!"</em> That same relief will happen again. It always passes.`;
-    } else if (info.phase === 'follicular') {
-      resetExp.innerHTML = `You are currently in your high-energy follicular phase. Estrogen is supporting fast, comfortable digestion and steady dopamine. Enjoy this window!`;
     } else {
-      resetExp.innerHTML = `You are in your ovulation window. Gentle twinges or lower tummy sensitivity are normal as the follicle ruptures. Keep meals warm and soothing.`;
+      resetExp.innerHTML = `You are in your <strong>Ovulation window (Days 14–16)</strong>. Gentle twinges or lower tummy sensitivity are normal as the follicle ruptures. Keep meals warm and soothing.`;
     }
   }
 }
@@ -4418,15 +4466,15 @@ function renderCalendarDaysList() {
 
     let cycleLogo = '🌸';
     let badgeBorder = 'border-rose-200 bg-rose-50 text-rose-800';
-    if (item.phase === 'follicular') {
+    if (item.phase === 'menstrual_follicular' || item.phase === 'reset' || (item.cycleDay >= 1 && item.cycleDay <= 4)) {
+      cycleLogo = '🩸';
+      badgeBorder = 'border-rose-300 bg-rose-100 text-rose-900';
+    } else if (item.phase === 'follicular' || (item.cycleDay >= 5 && item.cycleDay <= 13)) {
       cycleLogo = '🌿';
       badgeBorder = 'border-emerald-200 bg-emerald-50 text-emerald-800';
-    } else if (item.phase === 'ovulation') {
+    } else if (item.phase === 'ovulation' || (item.cycleDay >= 14 && item.cycleDay <= 16)) {
       cycleLogo = '✨';
       badgeBorder = 'border-amber-200 bg-amber-50 text-amber-900';
-    } else if (item.cycleDay <= 3) {
-      cycleLogo = '💧';
-      badgeBorder = 'border-blue-200 bg-blue-50 text-blue-900';
     }
 
     let bloatBg = 'bg-emerald-100 text-emerald-800';
@@ -4963,10 +5011,15 @@ function renderHistoryLogs() {
   container.innerHTML = filtered.map((item, idx) => {
     // Phase Badge Color
     let phaseBadgeClass = 'bg-brand-cream text-brand-textMuted border border-brand-border';
-    if (item.phase === 'luteal') phaseBadgeClass = 'bg-brand-coralLight text-brand-coral border border-brand-coral/30';
-    if (item.phase === 'follicular') phaseBadgeClass = 'bg-brand-sageLight text-brand-sage border border-brand-sage/30';
-    if (item.phase === 'ovulation') phaseBadgeClass = 'bg-brand-amberLight text-brand-amber border border-brand-amber/30';
-    if (item.phase === 'reset') phaseBadgeClass = 'bg-brand-blueLight text-brand-blue border border-brand-blue/30';
+    if (item.phase === 'menstrual_follicular' || item.phase === 'reset' || (item.cycleDay >= 1 && item.cycleDay <= 4)) {
+      phaseBadgeClass = 'bg-rose-100 text-rose-900 border border-rose-300 font-bold';
+    } else if (item.phase === 'follicular' || (item.cycleDay >= 5 && item.cycleDay <= 13)) {
+      phaseBadgeClass = 'bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold';
+    } else if (item.phase === 'ovulation' || (item.cycleDay >= 14 && item.cycleDay <= 16)) {
+      phaseBadgeClass = 'bg-amber-100 text-amber-900 border border-amber-300 font-bold';
+    } else {
+      phaseBadgeClass = 'bg-brand-coralLight text-brand-coral border border-brand-coral/30 font-bold';
+    }
 
     // Bristol Stool Icon & Tag
     let stoolIcon = '🚫 None';
@@ -5001,18 +5054,18 @@ function renderHistoryLogs() {
     let cycleLogo = '🌸';
     let cycleBadgeClasses = 'bg-rose-50/90 text-rose-800 border-rose-200';
     let cycleSubColor = 'text-rose-500';
-    if (item.phase === 'follicular') {
+    if (item.phase === 'menstrual_follicular' || item.phase === 'reset' || (item.cycleDay >= 1 && item.cycleDay <= 4)) {
+      cycleLogo = '🩸';
+      cycleBadgeClasses = 'bg-rose-100 text-rose-900 border-rose-300';
+      cycleSubColor = 'text-rose-600';
+    } else if (item.phase === 'follicular' || (item.cycleDay >= 5 && item.cycleDay <= 13)) {
       cycleLogo = '🌿';
       cycleBadgeClasses = 'bg-emerald-50/90 text-emerald-800 border-emerald-200';
       cycleSubColor = 'text-emerald-600';
-    } else if (item.phase === 'ovulation') {
+    } else if (item.phase === 'ovulation' || (item.cycleDay >= 14 && item.cycleDay <= 16)) {
       cycleLogo = '✨';
       cycleBadgeClasses = 'bg-amber-50/90 text-amber-900 border-amber-200';
       cycleSubColor = 'text-amber-600';
-    } else if (item.cycleDay <= 3) {
-      cycleLogo = '💧';
-      cycleBadgeClasses = 'bg-blue-50/90 text-blue-900 border-blue-200';
-      cycleSubColor = 'text-blue-500';
     }
 
     const cardId = `history-card-${idx}`;
@@ -8759,14 +8812,15 @@ function renderCycleExercisePrescription() {
     ? getCycleInfoForDate(activeDateStr || getTodayISOString()) 
     : { cycleDay: 19, phase: 'luteal', phaseLabel: 'Late Luteal (Slow Motility)' };
 
-  if (dayPill) {
-    dayPill.innerText = `Cycle Day ${cycle.cycleDay} (${cycle.phase.toUpperCase()})`;
-  }
+  const isMenstrual = cycle.phase === 'menstrual_follicular' || cycle.phase === 'reset' || cycle.phase === 'menstrual' || (cycle.cycleDay >= 1 && cycle.cycleDay <= 4);
+  const isFollicular = (cycle.phase === 'follicular' || (cycle.cycleDay >= 5 && cycle.cycleDay <= 13)) && !isMenstrual;
+  const isOvulation = (cycle.phase === 'ovulation' || (cycle.cycleDay >= 14 && cycle.cycleDay <= 16));
+  const isLuteal = (cycle.phase === 'luteal' || cycle.cycleDay >= 17) && !isMenstrual && !isFollicular && !isOvulation;
 
-  const isLuteal = cycle.phase === 'luteal' || cycle.cycleDay >= 17;
-  const isFollicular = cycle.phase === 'follicular' || (cycle.cycleDay >= 6 && cycle.cycleDay <= 13);
-  const isOvulation = cycle.phase === 'ovulation' || (cycle.cycleDay >= 14 && cycle.cycleDay <= 16);
-  const isMenstrual = cycle.phase === 'menstrual' || cycle.cycleDay <= 5;
+  if (dayPill) {
+    const pName = (isMenstrual ? 'MENSTRUAL FOLLICULAR' : (isFollicular ? 'RISING FOLLICULAR' : (isOvulation ? 'OVULATION' : 'LUTEAL')));
+    dayPill.innerText = `Cycle Day ${cycle.cycleDay} (${pName})`;
+  }
 
   let targetDuration = "30–45 mins";
   let recommendedClasses = "Reformer Pilates, Low-Incline Walking";
@@ -8774,14 +8828,12 @@ function renderCycleExercisePrescription() {
   let avoidNote = "Max-effort sprint intervals / exhaustion running (shuts off mesenteric bowel perfusion).";
   let defaultLogPick = "Reformer Pilates & Mobility";
 
-  if (isLuteal) {
-    targetDuration = lutealDoubleDuration 
-      ? "60–80 mins (2x Extended Gentle Mode for Luteal)" 
-      : "30–45 mins";
-    recommendedClasses = "Reformer Stretch & Align, 60m Incline Walk, Gentle Mobility Flow";
-    gutMechanism = "High progesterone relaxes bowel smooth muscle. Twice-as-long low-intensity steady movement provides continuous lymphatic and colonic pumping with zero cortisol spike.";
-    avoidNote = "Heavy abdominal crunches or anaerobic sprint intervals (spikes APD diaphragmatic spasm and splenic flexure gas trapping).";
-    defaultLogPick = lutealDoubleDuration ? "60m Restorative Reformer & Walk" : "30m Gentle Reformer";
+  if (isMenstrual) {
+    targetDuration = "25–35 mins (Restorative Cocoon Mode)";
+    recommendedClasses = "Gentle Flat Walk, Pelvic Floor Down-Training, Legs-Up-Wall, Gentle Mobility";
+    gutMechanism = "Progesterone withdrawal reset. Down-regulates pelvic hypersensitivity and relaxes pelvic floor muscles, supporting morning Linaclotide action.";
+    avoidNote = "High impact jumping, inverted core pikes, heavy barbell lifts.";
+    defaultLogPick = "Restorative Mobility & Walk";
   } else if (isFollicular) {
     targetDuration = "45–60 mins (Peak Estrogen Power)";
     recommendedClasses = "Dynamic Reformer, Strength Training (Weights), 5km Tempo Run";
@@ -8794,12 +8846,14 @@ function renderCycleExercisePrescription() {
     gutMechanism = "Peak energy and pain tolerance. Bowel motility is at its monthly baseline peak.";
     avoidNote = "Over-straining if feeling mild ovulation twinges (Mittelschmerz).";
     defaultLogPick = "Reformer Strength & Cardio";
-  } else if (isMenstrual) {
-    targetDuration = "25–35 mins (Restorative & Gentle)";
-    recommendedClasses = "Gentle Flat Walk, Pelvic Floor Down-Training, Legs-Up-Wall, Gentle Mobility";
-    gutMechanism = "Down-regulates pelvic hypersensitivity and relaxes pelvic floor muscles, supporting morning Linaclotide action.";
-    avoidNote = "High impact jumping, inverted core pikes, heavy barbell lifts.";
-    defaultLogPick = "Restorative Mobility & Walk";
+  } else {
+    targetDuration = lutealDoubleDuration 
+      ? "60–80 mins (2x Extended Gentle Mode for Luteal)" 
+      : "30–45 mins";
+    recommendedClasses = "Reformer Stretch & Align, 60m Incline Walk, Gentle Mobility Flow";
+    gutMechanism = "High progesterone relaxes bowel smooth muscle. Twice-as-long low-intensity steady movement provides continuous lymphatic and colonic pumping with zero cortisol spike.";
+    avoidNote = "Heavy abdominal crunches or anaerobic sprint intervals (spikes APD diaphragmatic spasm and splenic flexure gas trapping).";
+    defaultLogPick = lutealDoubleDuration ? "60m Restorative Reformer & Walk" : "30m Gentle Reformer";
   }
 
   container.innerHTML = `
@@ -9069,14 +9123,14 @@ function useSuggestedCycleExercise() {
     : { cycleDay: 19, phase: 'luteal' };
 
   let pick = "Reformer Pilates";
-  if (cycle.phase === 'luteal' || cycle.cycleDay >= 17) {
-    pick = lutealDoubleDuration ? "60m Restorative Reformer & Walk" : "30m Gentle Reformer";
-  } else if (cycle.phase === 'follicular') {
+  if (cycle.phase === 'menstrual_follicular' || cycle.phase === 'reset' || (cycle.cycleDay >= 1 && cycle.cycleDay <= 4)) {
+    pick = "Restorative Mobility & Walk";
+  } else if (cycle.phase === 'follicular' || (cycle.cycleDay >= 5 && cycle.cycleDay <= 13)) {
     pick = "Dynamic Reformer & Strength";
   } else if (cycle.phase === 'ovulation') {
     pick = "Reformer Strength & Cardio";
   } else {
-    pick = "Restorative Mobility & Walk";
+    pick = lutealDoubleDuration ? "60m Restorative Reformer & Walk" : "30m Gentle Reformer";
   }
 
   setQuickLogExercise(pick);
@@ -10066,15 +10120,25 @@ function renderOuraOvulationSimulatorCard() {
   if (!container) return;
 
   const simData = {
+    menstrual_follicular: {
+      name: 'Menstrual Follicular Phase (Days 1–4)',
+      icon: '🩸',
+      tempBadge: '-0.25°C to -0.45°C (Baseline Reset)',
+      badgeClass: 'bg-rose-100 text-rose-900 border-rose-300',
+      headline: 'Silent Menstrual Reset • Progesterone Withdrawn',
+      ouraReadout: '💍 Oura shows: Core nocturnal temperature drops down to or below personal baseline (-0.25°C to -0.45°C), accompanied by lower resting HR and recovering HRV.',
+      bodySensation: 'Even without overt bleeding due to your Mirena IUD, local pelvic prostaglandins and baseline low hormones trigger the biological reset. Pelvic heaviness, looser stools ("period poops" or watery bypass), and low dopamine are 100% normal and temporary.',
+      motilityTip: 'Cocoon and rest. Keep mornings unhurried, sip warm electrolyte broths, take Linaclotide with a full glass of water, and give yourself grace. In ~3–4 days, your estrogen ramp begins!'
+    },
     follicular: {
-      name: 'Follicular Phase (Days 1–13)',
+      name: 'Rising Follicular Phase (Days 5–13)',
       icon: '🌿',
-      tempBadge: '-0.20°C to -0.40°C (Below Baseline)',
+      tempBadge: '-0.15°C to -0.30°C (Cool Baseline)',
       badgeClass: 'bg-emerald-100 text-emerald-900 border-emerald-300',
-      headline: 'Estrogen Dominance • Cool Metabolic State',
-      ouraReadout: '💍 Oura shows: Negative temperature deviation below your personal baseline.',
-      bodySensation: 'Estrogen keeps basal temperature cool and boosts brain dopamine turnover. Motivation is higher, executive tasks feel lighter, and intestinal transit is brisk.',
-      motilityTip: 'Prime time for high-focus work, physical strength training, and regular gut transit. Lower risk of APD diaphragm bloat.'
+      headline: 'Estrogen Ramp • High Dopamine & Fast Motility',
+      ouraReadout: '💍 Oura shows: Steady, cool negative temperature deviation below your personal baseline.',
+      bodySensation: 'The dominant ovarian follicle is actively maturing and secreting estradiol. Estrogen sensitizes dopamine receptors, clears brain fog, boosts executive function, and improves muscle recovery.',
+      motilityTip: 'Prime time for high-focus work, Third Space strength training, and enjoying wider food variety. Gastric emptying and colonic transit are at their fastest speeds of the cycle, with minimal APD bloating.'
     },
     ovulation: {
       name: 'Ovulation Window & The "Dip" (Days 14–16)',
@@ -10147,12 +10211,14 @@ function renderOuraOvulationSimulatorCard() {
   `;
 
   // Update pill active styles
+  const btnMenstrual = document.getElementById('simBtn-menstrual_follicular');
   const btnFollicular = document.getElementById('simBtn-follicular');
   const btnOvulation = document.getElementById('simBtn-ovulation');
   const btnThermalShift = document.getElementById('simBtn-thermal_shift');
   const btnLutealPeak = document.getElementById('simBtn-luteal_peak');
 
   const btnMap = {
+    menstrual_follicular: btnMenstrual,
     follicular: btnFollicular,
     ovulation: btnOvulation,
     thermal_shift: btnThermalShift,
@@ -10362,8 +10428,11 @@ function renderOuraOvulationSection(targetDateStr) {
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-          <button type="button" id="simBtn-follicular" onclick="selectOvulationSimulatorPhase('follicular')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white hover:bg-purple-100 text-purple-900 border border-purple-200 shadow-2xs transition-all cursor-pointer">
-            🌿 Follicular (Cool)
+          <button type="button" id="simBtn-menstrual_follicular" onclick="selectOvulationSimulatorPhase('menstrual_follicular')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white hover:bg-rose-100 text-rose-900 border border-rose-200 shadow-2xs transition-all cursor-pointer">
+            🩸 Menstrual Follicular (Reset)
+          </button>
+          <button type="button" id="simBtn-follicular" onclick="selectOvulationSimulatorPhase('follicular')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white hover:bg-emerald-100 text-emerald-900 border border-emerald-200 shadow-2xs transition-all cursor-pointer">
+            🌿 Rising Follicular (Estrogen)
           </button>
           <button type="button" id="simBtn-ovulation" onclick="selectOvulationSimulatorPhase('ovulation')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white hover:bg-purple-100 text-purple-900 border border-purple-200 shadow-2xs transition-all cursor-pointer">
             ✨ Ovulation Window
@@ -10372,7 +10441,7 @@ function renderOuraOvulationSection(targetDateStr) {
             🔥 Thermal Shift (+0.35°C)
           </button>
           <button type="button" id="simBtn-luteal_peak" onclick="selectOvulationSimulatorPhase('luteal_peak')" class="px-3 py-1.5 rounded-xl text-xs font-black bg-purple-600 text-white shadow-2xs transition-all cursor-pointer">
-            🌸 Luteal Peak (Today)
+            🌸 Luteal Peak
           </button>
         </div>
 
@@ -12795,29 +12864,29 @@ function getFutureCycleDetails(dateStr) {
   let packingTip = "Stretchy-waistband holiday outfits, chic flowy evening dresses, peppermint tea, electrolytes, Senna rescue pack.";
 
   if (dayNum >= 1 && dayNum <= 4) {
-    phase = "reset";
-    phaseLabel = "Silent Period • Days 1–4 (Mirena Menses Window)";
+    phase = "menstrual_follicular";
+    phaseLabel = "Menstrual Follicular • Days 1–4 (Silent Reset)";
     badgeColor = "rose";
     isSilentPeriod = true;
     battery = 60;
-    batteryTitle = "Gentle Reset Battery (60%)";
-    batteryNote = "Progesterone drops back to baseline. Even without overt bleeding (thanks to Mirena), Emma is in her biological period window. Expect a mild prostaglandin gut motility surge, lower sensory tolerance, and natural fatigue. Give yourself unpressured mornings and permission to cocoon.";
+    batteryTitle = "Gentle Menstrual Reset Battery (60%)";
+    batteryNote = "Progesterone and estrogen are at baseline low. Even without overt bleeding (thanks to Mirena), Emma is in her biological menstrual reset. Expect mild prostaglandin gut motility, lower sensory tolerance, and natural fatigue. Give yourself unpressured mornings and permission to cocoon. In ~3–4 days, rising estrogen will surge!";
     bloatScore = "5-6/10 (Fluid Clearing)";
     bloatLabel = "Motility Surge & Fluid Mobilization";
-    bloatNote = "Prostaglandins stimulate uterine and bowel smooth muscle, which may cause a sudden evacuation surge or looser stools, followed by rapid un-bloating as water retention drains. Keep morning Linaclotide routine with plenty of water.";
-    ouraTemp = "-0.20°C to -0.45°C (Baseline Reset Plunge)";
+    bloatNote = "Prostaglandins stimulate uterine and bowel smooth muscle, which may cause looser stools or sudden evacuation, followed by rapid un-bloating as luteal water retention drains. Keep morning Linaclotide routine with plenty of water.";
+    ouraTemp = "-0.25°C to -0.45°C (Baseline Reset Plunge)";
     packingTip = "Ultra-comfortable loose waistbands, travel heat patches, electrolyte sachets, warm socks, cozy evening layers.";
   } else if (dayNum >= 5 && dayNum <= 13) {
     phase = "follicular";
-    phaseLabel = "Follicular Phase (Estrogen Ramp)";
+    phaseLabel = "Rising Follicular • Days 5–13 (Estrogen Ramp)";
     badgeColor = "emerald";
     battery = 90;
     batteryTitle = "High & Clear Dopamine (90%)";
-    batteryNote = "High social battery, spontaneous energy, and sharp focus. Perfect for flights, active sight-seeing, exploring, and busy itineraries.";
+    batteryNote = "Transitioned from menstrual reset into the estrogen ramp! High social battery, spontaneous energy, and sharp focus. Perfect for flights, active sight-seeing, exploring, and busy itineraries.";
     bloatScore = "2/10 (Low)";
     bloatLabel = "Minimal APD Distension";
     bloatNote = "Estrogen keeps gut motility brisk and diaphragm relaxed. Lowest bloating risk of your cycle. Normal morning Linaclotide routine.";
-    ouraTemp = "-0.15°C to -0.35°C (Cooler Baseline)";
+    ouraTemp = "-0.15°C to -0.30°C (Cooler Baseline)";
     packingTip = "Fitted vacation outfits, walking shoes, adventurous plans.";
   } else if (dayNum >= 14 && dayNum <= 16) {
     phase = "ovulation";

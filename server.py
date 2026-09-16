@@ -291,10 +291,10 @@ def generate_autonomous_exercise_audit(query, cycle_day, phase, luteal_double=Tr
         c_day = 19
     p = (phase or "luteal").lower()
 
-    is_luteal = "luteal" in p or c_day >= 17
-    is_follicular = "follicular" in p or (6 <= c_day <= 13)
+    is_menstrual = "menstrual" in p or "reset" in p or (1 <= c_day <= 4)
+    is_follicular = ("follicular" in p or (5 <= c_day <= 13)) and not is_menstrual
     is_ovulation = "ovulation" in p or (14 <= c_day <= 16)
-    is_menstrual = "menstrual" in p or (1 <= c_day <= 5)
+    is_luteal = ("luteal" in p or c_day >= 17) and not is_menstrual and not is_follicular and not is_ovulation
 
     is_exhaustion_cardio = any(k in q for k in ["sprint", "crossfit", "spin", "interval", "intense run", "speed"])
     is_reformer = any(k in q for k in ["reformer", "pilates", "mat", "align"])
@@ -1560,7 +1560,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 "EMMA'S CLINICAL & EXERCISE PHYSIOLOGY PROFILE:\n"
                 "- Neurogenic slow colonic transit / colonic inertia + Abdomino-Phrenic Dyssynergia (APD).\n"
                 "- SPLANCHNIC BLOOD FLOW PHYSIOLOGY: Vigorous cardio (e.g. max-effort sprints, anaerobic interval runs, fast tempo running) triggers sympathetic vasoconstriction, diverting arterial blood away from the mesenteric gut vessels to working skeletal muscles. This temporarily paralyzes colonic motility, worsening colonic delay and triggering acute splenic flexure gas and APD diaphragmatic spasm.\n"
-                f"- CURRENT HORMONAL CONTEXT: Cycle Day {cycle_day} ({phase_label}). Remember each cycle day is physiologically distinct: follicular (Days 6–13) has peak estrogen with high exercise tolerance and faster baseline transit; ovulation (Days 14–16) has peak energy; luteal (Days 17–28) has high progesterone which acts as a systemic smooth muscle relaxant in the bowel, slowing transit and making the diaphragm hyper-reactive.\n"
+                f"- CURRENT HORMONAL CONTEXT: Cycle Day {cycle_day} ({phase_label}). Remember each cycle stage is physiologically distinct: menstrual follicular (Days 1–4) is the silent menses reset with rock-bottom hormones, progesterone withdrawal, and uterine prostaglandins requiring gentle restorative movement; rising follicular (Days 5–13) is the estrogen ramp with climbing estradiol, peak dopamine, faster baseline transit, and high strength tolerance; ovulation (Days 14–16) has peak energy; luteal (Days 17–28) has high progesterone which relaxes bowel smooth muscle, slowing transit and making the diaphragm hyper-reactive.\n"
                 f"{double_note_instruction}"
                 "- FORMAT MANDATE: Provide all recommendations strictly in NOTE FORMAT (bite-sized bullet notes). Emma has adult ADHD; avoid long paragraphs or overwhelming information about classes.\n\n"
                 "You must return ONLY a JSON object matching this schema:\n"
