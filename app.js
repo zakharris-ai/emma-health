@@ -8,6 +8,322 @@
 // ============================================================================
 const DEFAULT_LOGS = [
   {
+    "id": "2026-09-21",
+    "date": "2026-09-21",
+    "displayDate": "Monday, 21st September 2026",
+    "month": "september",
+    "cycleDay": 6,
+    "phase": "follicular",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "temp": null,
+    "ouraTempDev": 0.23,
+    "ouraSleep": 85,
+    "ouraRhr": 45,
+    "ouraHrv": 35,
+    "diaphragmBloat": 0,
+    "notes": "",
+    "sleepScore": 85,
+    "rhr": 45,
+    "hrv": 35,
+    "readinessScore": 73,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-09-20",
+    "date": "2026-09-20",
+    "displayDate": "20th September 2026",
+    "month": "september",
+    "cycleDay": 5,
+    "phase": "follicular",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "temp": null,
+    "ouraTempDev": -0.05,
+    "ouraSleep": 70,
+    "ouraRhr": 39,
+    "ouraHrv": 57,
+    "diaphragmBloat": 0,
+    "notes": "Saved via Emma's Unified Daily Check-In.",
+    "sleepScore": 70,
+    "rhr": 39,
+    "hrv": 57,
+    "readinessScore": 80,
+    "symptoms": "1x \u2022 AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "headspaceNotes": "",
+    "isManualTemp": false,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": false,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Reformer Pilates"
+    ],
+    "exercise": "Reformer Pilates",
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83e\udee7\nGassiness",
+      "\ud83e\udd42 3+ Wine/Bubbles",
+      "\ud83e\uddec EAAs Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "Reformer Pilates"
+    ],
+    "emotions": "\ud83d\ude0a Happy & Positive",
+    "moods": [
+      "happy"
+    ],
+    "mood": "happy",
+    "sexDrive": "normal",
+    "alcohol": "3+_wine",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": false,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-09-20T17:55:22.923Z",
+    "linaclotideTaken": true
+  },
+  {
+    "id": "2026-09-19",
+    "date": "2026-09-19",
+    "displayDate": "19th September 2026",
+    "month": "september",
+    "cycleDay": 4,
+    "phase": "menstrual_follicular",
+    "phaseLabel": "Menstrual Follicular \u2022 Days 1\u20134 (Silent Period Reset)",
+    "temp": null,
+    "ouraTempDev": 0.53,
+    "ouraSleep": 84,
+    "ouraRhr": 39,
+    "ouraHrv": 67,
+    "diaphragmBloat": 6,
+    "notes": "Saved via Emma's Unified Daily Check-In.",
+    "sleepScore": 84,
+    "rhr": 39,
+    "hrv": 67,
+    "readinessScore": 80,
+    "symptoms": "1x \u2022 AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "headspaceNotes": "",
+    "isManualTemp": false,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": false,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": true,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Reformer Pilates"
+    ],
+    "exercise": "Reformer Pilates",
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83c\udf88\nUpper Tummy Bloating",
+      "\ud83e\udee7\nGassiness",
+      "Headache",
+      "Brain Fog",
+      "\u2764\ufe0f Mild Libido",
+      "\ud83e\uddec EAAs Taken",
+      "\ud83c\udf75 Senna Tea Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "Reformer Pilates"
+    ],
+    "emotions": "\ud83c\udf3f Calm & Grounded \u2022 \u2601\ufe0f Flat / Low Energy",
+    "moods": [
+      "calm",
+      "flat"
+    ],
+    "mood": "calm,flat",
+    "sexDrive": "mild",
+    "alcohol": "none",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": false,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-09-19T19:10:46.704Z",
+    "linaclotideTaken": true
+  },
+  {
+    "id": "2026-09-18",
+    "date": "2026-09-18",
+    "displayDate": "18th September 2026",
+    "month": "september",
+    "cycleDay": 3,
+    "phase": "menstrual_follicular",
+    "phaseLabel": "Menstrual Follicular \u2022 Days 1\u20134 (Silent Period Reset)",
+    "temp": null,
+    "ouraTempDev": -0.07,
+    "ouraSleep": 87,
+    "ouraRhr": 37,
+    "ouraHrv": 65,
+    "diaphragmBloat": 6,
+    "notes": "Fun day at Thorpe park, but exhausted in evening, stomach not great kept it very bland on the food.",
+    "sleepScore": 87,
+    "rhr": 37,
+    "hrv": 65,
+    "readinessScore": 84,
+    "symptoms": "Fun day at Thorpe park, but exhausted in evening, stomach not great kept it very bland on the food.",
+    "headspaceNotes": "Fun day at Thorpe park, but exhausted in evening, stomach not great kept it very bland on the food.",
+    "isManualTemp": false,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "AM: None \u2022 PM: Partial \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "none",
+    "movementPmSuccess": "partial",
+    "movementFrequency": 0,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Running"
+    ],
+    "exercise": "Running",
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83c\udf88\nUpper Tummy Bloating",
+      "\ud83d\udd04\nCan't Burp (Stuck Gas)",
+      "Achy Body",
+      "\u2764\ufe0f Mild Libido",
+      "\ud83e\uddec EAAs Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Running"
+    ],
+    "emotions": "\ud83d\ude0a Happy & Positive \u2022 \u2601\ufe0f Flat / Low Energy",
+    "moods": [
+      "happy",
+      "flat"
+    ],
+    "mood": "happy,flat",
+    "sexDrive": "mild",
+    "alcohol": "none",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-09-18T17:45:57.034Z",
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
+  },
+  {
+    "id": "2026-09-17",
+    "date": "2026-09-17",
+    "displayDate": "17th September 2026",
+    "month": "september",
+    "cycleDay": 2,
+    "phase": "menstrual_follicular",
+    "phaseLabel": "Menstrual Follicular \u2022 Days 1\u20134 (Silent Period Reset)",
+    "temp": null,
+    "ouraTempDev": 0.05,
+    "ouraSleep": 73,
+    "ouraRhr": 36,
+    "ouraHrv": 71,
+    "diaphragmBloat": 7,
+    "notes": "Exhausted busy day if appts and nannying \nStill getting tight chest",
+    "sleepScore": 73,
+    "rhr": 36,
+    "hrv": 71,
+    "readinessScore": 83,
+    "symptoms": "Exhausted busy day if appts and nannying \nStill getting tight chest",
+    "headspaceNotes": "Exhausted busy day if appts and nannying \nStill getting tight chest",
+    "isManualTemp": false,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": true,
+    "electrolytesTaken": true,
+    "eaasTaken": true,
+    "sennaTea": true,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: Partial \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Reformer Pilates",
+      "Running"
+    ],
+    "exercise": "Reformer Pilates, Running",
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83c\udf88\nUpper Tummy Bloating",
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83d\udd04\nCan't Burp (Stuck Gas)",
+      "Headache",
+      "Brain Fog",
+      "Achy Body",
+      "\u2764\ufe0f Mild Libido",
+      "\u26a1 Electrolytes Taken",
+      "\ud83e\uddec EAAs Taken",
+      "\ud83c\udf75 Senna Tea Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates",
+      "Running"
+    ],
+    "emotions": "\u2601\ufe0f Flat / Low Energy",
+    "moods": [
+      "flat"
+    ],
+    "mood": "flat",
+    "sexDrive": "mild",
+    "alcohol": "none",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-09-17T17:14:10.925Z",
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
+  },
+  {
     "id": "2026-09-16",
     "date": "2026-09-16",
     "displayDate": "16th September 2026",
@@ -75,11 +391,13 @@ const DEFAULT_LOGS = [
       "warmMeals": true,
       "diaphragmRelease": false
     },
-    "updatedAt": "2026-09-16T19:43:12.594Z",
+    "updatedAt": "2026-09-16T20:23:44.666Z",
     "phaseLabel": "Follicular Phase",
     "readinessScore": 82,
     "linaclotideTaken": true,
-    "safeWarmMeals": true
+    "safeWarmMeals": true,
+    "spotting": false,
+    "pelvicCramps": false
   },
   {
     "id": "2026-09-15",
@@ -1268,6 +1586,8 @@ function initApp() {
     if (typeof renderDashboardOuraGlance === 'function') renderDashboardOuraGlance(activeDateStr);
     if (typeof renderTripPlannerUI === 'function') renderTripPlannerUI();
     renderHistoryLogs();
+    if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip();
+    if (typeof renderCalendarDaysList === 'function') renderCalendarDaysList();
     renderEmmaMeals();
     renderSpecialistTrackingUI();
     fetchServerDataOnLoad();
@@ -1706,6 +2026,8 @@ function loadLogs() {
         persistLogsToIndexedDB(logs);
         renderDashboardTrends();
         renderHistoryLogs();
+        if (typeof renderCalendarDaysList === 'function') renderCalendarDaysList();
+        if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip();
         if (typeof renderDailyFocusUI === 'function') renderDailyFocusUI(activeDateStr);
       }
     }
@@ -1737,6 +2059,9 @@ function saveLogs(immediate = false) {
 
   // Persist to IndexedDB
   persistLogsToIndexedDB(logs);
+
+  if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip();
+  if (typeof renderCalendarDaysList === 'function') renderCalendarDaysList();
 
   // Sync to server (immediate if user just saved check-in)
   syncDataToServer(immediate);
@@ -1904,9 +2229,15 @@ function fetchServerDataOnLoad() {
         }
 
         if (needsReRender) {
-          initializeUI();
+          const currentViewingDate = activeDateStr;
+          initializeUI(true);
+          if (currentViewingDate) {
+            applyActiveDate(currentViewingDate);
+          }
           renderDashboardTrends();
           renderHistoryLogs();
+          if (typeof renderCalendarDaysList === 'function') renderCalendarDaysList();
+          if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip();
           if (typeof renderTrialUI === 'function') renderTrialUI();
           if (typeof renderSpecialistTrackingUI === 'function') renderSpecialistTrackingUI();
           if (typeof renderFoodDiaryUI === 'function') renderFoodDiaryUI();
@@ -2870,6 +3201,7 @@ function applyActiveDate(targetDateStr) {
   if (typeof renderOuraOvulationSection === 'function') renderOuraOvulationSection(activeDateStr);
   if (typeof renderOuraSilentPeriodSection === 'function') renderOuraSilentPeriodSection(activeDateStr);
   if (typeof renderTripPlannerUI === 'function') renderTripPlannerUI();
+  if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip();
 
   triggerLucideIcons();
 }
@@ -5187,6 +5519,120 @@ function renderCalendarDaysList() {
   }
 }
 
+// Emma's Recent Logged Days Dashboard Look-Back Strip
+function renderRecentCheckInsStrip() {
+  const container = document.getElementById('recentCheckInsContainer');
+  if (!container) return;
+
+  const rawList = (Array.isArray(logs) && logs.length > 0) ? logs : (Array.isArray(DEFAULT_LOGS) ? DEFAULT_LOGS : []);
+  // Filter for genuine user entries with recorded notes, symptoms, movements, or ratings
+  const loggedEntries = [...rawList]
+    .filter(l => l && l.date && !isSyntheticTestEntry(l) && (
+      (l.symptoms && l.symptoms.trim().length > 0) || 
+      (l.notes && l.notes.trim().length > 0 && !l.notes.includes("Saved via Emma's Unified Daily Check-In")) || 
+      (l.movement && l.movement !== 'None' && l.movement !== 'Pending morning movement') || 
+      (l.diaphragmBloat !== undefined && l.diaphragmBloat > 0) || 
+      l.exercise || 
+      (Array.isArray(l.puffiness) && l.puffiness.length > 0) ||
+      l.temp !== null ||
+      l.fastingAdherence
+    ))
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 4);
+
+  if (loggedEntries.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="bg-white rounded-3xl border border-purple-200/90 p-4 sm:p-5 shadow-2xs space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-800 border border-purple-200 flex items-center justify-center text-sm font-bold shadow-2xs shrink-0">
+            📋
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h4 class="font-bold text-xs sm:text-sm text-brand-textDark">Emma's Recent Logged Days</h4>
+              <span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                ${loggedEntries.length} Recorded
+              </span>
+            </div>
+            <p class="text-[10px] sm:text-[11px] text-brand-textMuted">Tap any card to instantly review that day's sensations & notes</p>
+          </div>
+        </div>
+        <button type="button" onclick="switchTab('history')" class="text-[11px] font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1 cursor-pointer">
+          <span>All Diary</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
+        ${loggedEntries.map(item => {
+          const isSelected = item.date === activeDateStr;
+          let cycleLogo = '🌸';
+          let badgeBorder = 'border-rose-200 bg-rose-50 text-rose-800';
+          if (item.phase === 'menstrual_follicular' || item.phase === 'reset' || (item.cycleDay >= 1 && item.cycleDay <= 4)) {
+            cycleLogo = '🩸';
+            badgeBorder = 'border-rose-300 bg-rose-100 text-rose-900';
+          } else if (item.phase === 'follicular' || (item.cycleDay >= 5 && item.cycleDay <= 13)) {
+            cycleLogo = '🌿';
+            badgeBorder = 'border-emerald-200 bg-emerald-50 text-emerald-800';
+          }
+
+          let bloatBg = 'bg-emerald-100 text-emerald-800';
+          if (item.diaphragmBloat >= 7) bloatBg = 'bg-rose-100 text-rose-800';
+          else if (item.diaphragmBloat >= 5) bloatBg = 'bg-amber-100 text-amber-800';
+
+          const notePreview = (item.headspaceNotes || item.notes || item.symptoms || item.movement || 'Routine logged').replace(/Auto-created from Oura Ring daily sync\.+\s*/gi, '').trim();
+
+          return `
+            <div onclick="selectDayFromRecentStrip('${item.date}')" class="p-3 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-2 ${isSelected ? 'border-purple-600 bg-purple-50/70 ring-2 ring-purple-400/40 shadow-xs' : 'border-slate-200 bg-slate-50/60 hover:bg-purple-50/40 hover:border-purple-300 shadow-2xs'}">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center space-x-2 min-w-0">
+                  <span class="px-2 py-0.5 rounded-lg border text-[10px] font-black shrink-0 ${badgeBorder}">
+                    ${cycleLogo} D${item.cycleDay || '--'}
+                  </span>
+                  <div class="min-w-0">
+                    <h5 class="font-bold text-xs text-brand-textDark truncate">${item.displayDate}</h5>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  ${isSelected ? '<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-purple-700 text-white">VIEWING</span>' : ''}
+                  <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${bloatBg}">
+                    Bloat: ${item.diaphragmBloat ?? 0}/10
+                  </span>
+                </div>
+              </div>
+
+              <p class="text-[11px] text-slate-700 line-clamp-2 italic leading-snug">
+                "${escapeQuotes(notePreview)}"
+              </p>
+
+              <div class="flex items-center justify-between text-[10px] pt-1.5 border-t border-slate-200/60 text-slate-500 font-medium">
+                <span class="truncate max-w-[190px]">🚽 ${item.movement || 'Recorded'}</span>
+                <span class="text-purple-700 font-bold flex items-center gap-0.5 hover:underline">Review Day ↗</span>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
+}
+
+function selectDayFromRecentStrip(dateStr) {
+  applyActiveDate(dateStr);
+  const info = getCycleInfoForDate(dateStr);
+  showDynamicToast(`📅 Loaded ${info.displayDate} (Cycle Day ${info.cycleDay})`);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 // Close calendar or delete modal on Escape key
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
@@ -5195,7 +5641,7 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-function initializeUI() {
+function initializeUI(preserveDate = false) {
   // Clear any default active selections so check-in is 100% clean by default
   selectedBristolVal = '';
   selectedMoodVal = '';
@@ -5208,7 +5654,9 @@ function initializeUI() {
   loadTrialState();
 
   // Initialize dynamic date progression and cycle calculations
-  applyActiveDate(getTodayISOString());
+  const targetDate = (preserveDate && activeDateStr) ? activeDateStr : (activeDateStr || getTodayISOString());
+  applyActiveDate(targetDate);
+  if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip();
 }
 
 // ============================================================================
@@ -10063,6 +10511,8 @@ function handleQuickLogSubmit(e) {
   renderDashboardTrends();
   renderOuraChart();
   renderHistoryLogs();
+  if (typeof renderCalendarDaysList === 'function') renderCalendarDaysList();
+  if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip();
   if (typeof renderDailyFocusUI === 'function') renderDailyFocusUI(dateVal);
 
   closeQuickLogModal();
