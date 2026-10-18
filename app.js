@@ -8,6 +8,72 @@
 // ============================================================================
 const DEFAULT_LOGS = [
   {
+    "id": "2026-10-18",
+    "date": "2026-10-18",
+    "displayDate": "18th October 2026",
+    "month": "october",
+    "cycleDay": 5,
+    "phase": "follicular",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": null,
+    "ouraSleep": null,
+    "sleepScore": null,
+    "ouraRhr": null,
+    "rhr": null,
+    "ouraHrv": null,
+    "hrv": null,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: None \u2022 PM: Partial \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "none",
+    "movementPmSuccess": "partial",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Gentle Incline Walk"
+    ],
+    "exercise": "Gentle Incline Walk",
+    "diaphragmBloat": 2,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83e\udee7\nGassiness",
+      "\ud83e\uddec EAAs Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Gentle Incline Walk"
+    ],
+    "emotions": "\ud83d\ude0a Happy & Positive",
+    "moods": [
+      "happy"
+    ],
+    "mood": "happy",
+    "sexDrive": "",
+    "alcohol": "none",
+    "symptoms": "Drank yesterday but felt okay today",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "Drank yesterday but felt okay today",
+    "headspaceNotes": "Drank yesterday but felt okay today",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-10-18T20:11:03.120Z"
+  },
+  {
     "id": "2026-09-21",
     "date": "2026-09-21",
     "displayDate": "Monday, 21st September 2026",
@@ -1594,24 +1660,15 @@ function initApp() {
     renderMovementAndSpa();
     loadLutealDoubleSetting();
     renderCycleExercisePrescription();
+    if (localStorage.getItem('emma_oura_token') === '_0XBPWQQ_157e994c-c580-41eb-a083-869f80917326') {
+      localStorage.removeItem('emma_oura_token');
+    }
     if (typeof updateOuraConnectionUI === 'function') updateOuraConnectionUI();
-    if (typeof checkOuraOAuthCallback === 'function') checkOuraOAuthCallback();
-    if (localStorage.getItem('emma_oura_token') && typeof fetchOuraBiometrics === 'function') {
-      const savedT = localStorage.getItem('emma_oura_token');
-      if (savedT && savedT.length > 10) {
-        fetch('/api/oura/save-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: savedT })
-        }).catch(() => {});
-      }
-      setTimeout(() => fetchOuraBiometrics(true), 2500);
-    } else {
-      setTimeout(() => {
-        if (localStorage.getItem('emma_oura_token') && typeof fetchOuraBiometrics === 'function') {
-          fetchOuraBiometrics(true);
-        }
-      }, 3500);
+    const hasOAuthCode = typeof window !== 'undefined' && window.location && window.location.search && window.location.search.includes('code=');
+    if (hasOAuthCode && typeof checkOuraOAuthCallback === 'function') {
+      checkOuraOAuthCallback();
+    } else if (typeof fetchOuraBiometrics === 'function') {
+      setTimeout(() => fetchOuraBiometrics(true), 1800);
     }
   }
   triggerLucideIcons();
@@ -2216,14 +2273,19 @@ function fetchServerDataOnLoad() {
           needsReRender = true;
         }
 
-        if (data.ouraToken && typeof data.ouraToken === 'string' && data.ouraToken.trim() && data.ouraToken !== 'null' && data.ouraToken !== '""') {
+        if (localStorage.getItem('emma_oura_token') === '_0XBPWQQ_157e994c-c580-41eb-a083-869f80917326') {
+          localStorage.removeItem('emma_oura_token');
+        }
+
+        if (data.ouraToken && typeof data.ouraToken === 'string' && data.ouraToken.trim() && data.ouraToken !== 'null' && data.ouraToken !== '""' && data.ouraToken.trim() !== '_0XBPWQQ_157e994c-c580-41eb-a083-869f80917326') {
           const currentToken = localStorage.getItem('emma_oura_token');
-          if (!currentToken) {
-            console.log('💍 Restoring Oura Ring connection from cloud database');
+          if (currentToken !== data.ouraToken.trim()) {
+            console.log('💍 Restoring/updating Oura Ring connection from cloud database');
             localStorage.setItem('emma_oura_token', data.ouraToken.trim());
+            window.ouraAuthExpired = false;
             if (typeof updateOuraConnectionUI === 'function') updateOuraConnectionUI();
             if (typeof fetchOuraBiometrics === 'function') {
-              setTimeout(() => fetchOuraBiometrics(true), 1500);
+              setTimeout(() => fetchOuraBiometrics(true), 1200);
             }
           }
         }
@@ -10632,14 +10694,28 @@ function getOuraRedirectUri() {
   return 'https://emma-health.onrender.com/';
 }
 
+function getOuraAuthorizeUrl() {
+  const redirectUri = encodeURIComponent(getOuraRedirectUri());
+  return `https://cloud.ouraring.com/oauth/authorize?response_type=code&client_id=${OURA_CLIENT_ID}&redirect_uri=${redirectUri}`;
+}
+
 function updateOuraConnectionUI() {
-  const savedToken = localStorage.getItem('emma_oura_token');
+  let savedToken = localStorage.getItem('emma_oura_token');
+  if (savedToken === '_0XBPWQQ_157e994c-c580-41eb-a083-869f80917326') {
+    localStorage.removeItem('emma_oura_token');
+    savedToken = null;
+  }
+  const isExpired = Boolean(window.ouraAuthExpired) || !savedToken;
+
   const btnLabel = document.getElementById('btnConnectOuraLabel');
   const btnIcon = document.getElementById('btnConnectOuraIcon');
   if (btnLabel && btnIcon) {
-    if (savedToken) {
+    if (savedToken && !window.ouraAuthExpired) {
       btnLabel.innerText = "Oura Connected";
       btnIcon.innerText = "🟢";
+    } else if (window.ouraAuthExpired) {
+      btnLabel.innerText = "Reconnect Oura Ring";
+      btnIcon.innerText = "⚠️";
     } else {
       btnLabel.innerText = "Connect Oura Ring";
       btnIcon.innerText = "⚡";
@@ -10648,19 +10724,16 @@ function updateOuraConnectionUI() {
 
   const tabSyncBtn = document.getElementById('btnOuraTabSync');
   if (tabSyncBtn) {
-    if (savedToken) {
-      tabSyncBtn.classList.remove('hidden');
-      tabSyncBtn.classList.add('inline-flex');
-    } else {
-      tabSyncBtn.classList.add('hidden');
-      tabSyncBtn.classList.remove('inline-flex');
-    }
+    tabSyncBtn.classList.remove('hidden');
+    tabSyncBtn.classList.add('inline-flex');
   }
 
   const badge = document.getElementById('ouraSyncBadge');
   if (badge) {
-    if (savedToken) {
+    if (savedToken && !window.ouraAuthExpired) {
       badge.innerHTML = `<i data-lucide="check-circle" class="w-3.5 h-3.5 mr-1 text-emerald-400"></i> Oura: Live Cloud Connected`;
+    } else if (window.ouraAuthExpired) {
+      badge.innerHTML = `<i data-lucide="alert-triangle" class="w-3.5 h-3.5 mr-1 text-amber-400"></i> Oura: 1-Tap Reconnect Needed`;
     } else {
       badge.innerHTML = `<i data-lucide="shield-alert" class="w-3.5 h-3.5 mr-1 text-purple-400"></i> Oura: Standby`;
     }
@@ -10670,9 +10743,12 @@ function updateOuraConnectionUI() {
   const disconnectBtn = document.getElementById('btnDisconnectOura');
   const syncNowBtn = document.getElementById('btnSyncOuraNow');
   if (modalBadge) {
-    if (savedToken) {
+    if (savedToken && !window.ouraAuthExpired) {
       modalBadge.innerText = '🟢 Connected & Active';
       modalBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200';
+    } else if (window.ouraAuthExpired) {
+      modalBadge.innerText = '⚠️ 30-Day Session Expired — Tap 1-Tap Authorize';
+      modalBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300';
     } else {
       modalBadge.innerText = 'Not Connected';
       modalBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white';
@@ -10683,15 +10759,17 @@ function updateOuraConnectionUI() {
     else disconnectBtn.classList.add('hidden');
   }
   if (syncNowBtn) {
-    if (savedToken) syncNowBtn.classList.remove('hidden');
-    else syncNowBtn.classList.add('hidden');
+    syncNowBtn.classList.remove('hidden');
   }
 
   const quickLogBadge = document.getElementById('quickLogOuraBadge');
   if (quickLogBadge) {
-    if (savedToken) {
+    if (savedToken && !window.ouraAuthExpired) {
       quickLogBadge.innerText = "🟢 Live Connected";
       quickLogBadge.className = "text-[9px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200";
+    } else if (window.ouraAuthExpired) {
+      quickLogBadge.innerText = "⚠️ Tap to Reconnect";
+      quickLogBadge.className = "text-[9px] font-black text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300";
     } else {
       quickLogBadge.innerText = "💍 Ring Ready";
       quickLogBadge.className = "text-[9px] font-black text-purple-800 bg-purple-100 px-2 py-0.5 rounded-full border border-purple-200";
@@ -10836,8 +10914,12 @@ function renderOuraSection(targetDateStr) {
 
   // 1. Render Glanceable Biometrics Grid
   if (gridContainer) {
-    if (hasOuraData && readiness !== null) {
-      const devDisplay = tempDev !== null ? `${tempDev > 0 ? '+' : ''}${tempDev.toFixed(2)}°C` : '-0.25°C';
+    if (hasOuraData) {
+      const devDisplay = tempDev !== null ? `${tempDev > 0 ? '+' : ''}${tempDev.toFixed(2)}°C` : '--';
+      const rdyDisplay = readiness !== null ? readiness : '--';
+      const slpDisplay = sleep !== null ? sleep : '--';
+      const rhrDisplay = rhr !== null ? rhr : '--';
+      const hrvDisplay = hrv !== null ? hrv : '--';
       gridContainer.innerHTML = `
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           <!-- Readiness Card -->
@@ -10846,7 +10928,7 @@ function renderOuraSection(targetDateStr) {
               <span class="text-xs font-bold text-brand-textMuted uppercase tracking-wider">Readiness</span>
               <span class="text-base">🔋</span>
             </div>
-            <div class="text-xl sm:text-2xl font-black text-brand-textDark">${readiness} <span class="text-xs font-semibold text-brand-textMuted">/100</span></div>
+            <div class="text-xl sm:text-2xl font-black text-brand-textDark">${rdyDisplay} <span class="text-xs font-semibold text-brand-textMuted">/100</span></div>
             <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
               <span>● Optimal Tank</span>
             </div>
@@ -10859,7 +10941,7 @@ function renderOuraSection(targetDateStr) {
               <span class="text-xs font-bold text-brand-textMuted uppercase tracking-wider">Sleep</span>
               <span class="text-base">🌙</span>
             </div>
-            <div class="text-xl sm:text-2xl font-black text-brand-textDark">${sleep} <span class="text-xs font-semibold text-brand-textMuted">/100</span></div>
+            <div class="text-xl sm:text-2xl font-black text-brand-textDark">${slpDisplay} <span class="text-xs font-semibold text-brand-textMuted">/100</span></div>
             <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
               <span>● Restorative</span>
             </div>
@@ -10872,7 +10954,7 @@ function renderOuraSection(targetDateStr) {
               <span class="text-xs font-bold text-brand-textMuted uppercase tracking-wider">Resting HR</span>
               <span class="text-base">❤️</span>
             </div>
-            <div class="text-xl sm:text-2xl font-black text-brand-textDark">${rhr} <span class="text-xs font-semibold text-brand-textMuted">bpm</span></div>
+            <div class="text-xl sm:text-2xl font-black text-brand-textDark">${rhrDisplay} <span class="text-xs font-semibold text-brand-textMuted">bpm</span></div>
             <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
               <span>● Elite Base</span>
             </div>
@@ -10885,7 +10967,7 @@ function renderOuraSection(targetDateStr) {
               <span class="text-xs font-bold text-brand-textMuted uppercase tracking-wider">HRV Balance</span>
               <span class="text-base">〰️</span>
             </div>
-            <div class="text-xl sm:text-2xl font-black text-brand-textDark">${hrv} <span class="text-xs font-semibold text-brand-textMuted">ms</span></div>
+            <div class="text-xl sm:text-2xl font-black text-brand-textDark">${hrvDisplay} <span class="text-xs font-semibold text-brand-textMuted">ms</span></div>
             <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
               <span>● Vagus Primed</span>
             </div>
@@ -10915,30 +10997,42 @@ function renderOuraSection(targetDateStr) {
             <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-coralLight text-brand-coral">
               <span>● ${phaseLabel}</span>
             </div>
-            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">Progesterone peak window governs sensory gating & motility.</p>
+            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">Hormonal rhythm governs sensory gating & motility.</p>
           </div>
         </div>
       `;
     } else {
+      const authUrl = getOuraAuthorizeUrl();
+      const isExpired = Boolean(window.ouraAuthExpired) || !localStorage.getItem('emma_oura_token');
       gridContainer.innerHTML = `
-        <div class="bg-purple-50/70 border border-purple-200 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+        <div class="bg-gradient-to-r from-amber-50 via-purple-50 to-indigo-50 border-2 ${isExpired ? 'border-amber-300' : 'border-purple-200'} rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-lg shadow-2xs shrink-0">
-              💍
+            <div class="w-10 h-10 rounded-2xl ${isExpired ? 'bg-amber-500' : 'bg-purple-600'} text-white flex items-center justify-center text-lg shadow-2xs shrink-0">
+              ${isExpired ? '⚠️' : '💍'}
             </div>
             <div>
-              <div class="font-bold text-sm text-brand-textDark flex items-center gap-2">
-                <span>Oura Ring Live Stream Calibrated for September 8</span>
-                <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Live Active</span>
+              <div class="font-bold text-sm text-brand-textDark flex items-center gap-2 flex-wrap">
+                <span>${isExpired ? 'Oura Ring 30-Day Security Session Expired — 1-Tap Reconnect Required' : `Awaiting Oura Ring Sync for ${entry.displayDate || dStr}`}</span>
+                <span class="text-[10px] font-black px-2 py-0.5 rounded-full ${isExpired ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-purple-100 text-purple-800'}">
+                  ${isExpired ? 'Action Needed' : 'Ready to Sync'}
+                </span>
               </div>
-              <p class="text-xs text-brand-textMuted mt-0.5">
-                Viewing date: <strong>${entry.displayDate || dStr}</strong>. Continuous overnight biometrics (Readiness, Sleep, HRV) are synced on Sept 8.
+              <p class="text-xs text-brand-textMuted mt-0.5 leading-relaxed">
+                ${isExpired
+                  ? `Oura security tokens expire after 30 days. Tap <strong>"1-Tap Authorize with Oura"</strong> to automatically pull all missing sleep, HRV, and temperature data up to <strong>${entry.displayDate || dStr}</strong>.`
+                  : `Viewing date: <strong>${entry.displayDate || dStr}</strong>. Tap "Sync Ring Now" or "1-Tap Authorize" to pull your latest nocturnal biometrics.`}
               </p>
             </div>
           </div>
-          <button onclick="applyActiveDate('2026-09-08'); switchTab('oura');" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-all shadow-2xs shrink-0">
-            View Today's Oura Data (Sept 8) ↗
-          </button>
+          <div class="flex items-center gap-2 flex-wrap shrink-0">
+            <a href="${authUrl}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer">
+              <span>🔗</span>
+              <span>1-Tap Authorize with Oura</span>
+            </a>
+            <button onclick="fetchOuraBiometrics(false)" class="px-3.5 py-2 rounded-xl bg-white hover:bg-purple-50 text-purple-900 border border-purple-200 text-xs font-bold transition-all shadow-2xs cursor-pointer">
+              🔄 Sync Ring Now
+            </button>
+          </div>
         </div>
       `;
     }
@@ -11145,7 +11239,41 @@ function renderDashboardOuraGlance(targetDateStr) {
                       (dStr === '2026-09-08');
 
   if (!hasOuraData) {
-    container.innerHTML = '';
+    const authUrl = getOuraAuthorizeUrl();
+    const isExpired = Boolean(window.ouraAuthExpired) || !localStorage.getItem('emma_oura_token');
+    container.innerHTML = `
+      <div class="bg-gradient-to-r from-amber-50/90 via-purple-50/90 to-indigo-50/90 border-2 ${isExpired ? 'border-amber-300' : 'border-purple-200'} rounded-3xl p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-start sm:items-center space-x-3">
+          <div class="w-9 h-9 rounded-xl ${isExpired ? 'bg-amber-500' : 'bg-purple-600'} text-white flex items-center justify-center text-base shadow-2xs shrink-0">
+            ${isExpired ? '⚠️' : '💍'}
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h4 class="text-xs font-extrabold text-brand-textDark">
+                ${isExpired ? 'Oura Ring Session Expired — 1-Tap Reconnect Needed' : `Oura Biometrics Not Yet Synced for ${entry.displayDate || dStr}`}
+              </h4>
+              <span class="text-[9px] font-black px-2 py-0.5 rounded-full ${isExpired ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-purple-100 text-purple-800'}">
+                ${isExpired ? '30-Day Token Expired' : 'Ready to Sync'}
+              </span>
+            </div>
+            <p class="text-[11px] text-brand-textMuted mt-0.5 leading-relaxed">
+              ${isExpired
+                ? 'Your 30-day Oura Ring security token expired. Tap "1-Tap Reconnect Oura" to sync all sleep, HRV & temp shifts automatically.'
+                : 'Tap "Sync Ring" to pull your latest nocturnal Oura biometrics for today.'}
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap shrink-0">
+          <a href="${authUrl}" class="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-purple-600 hover:bg-purple-700 text-white shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer">
+            <span>🔗</span>
+            <span>1-Tap Reconnect Oura</span>
+          </a>
+          <button onclick="fetchOuraBiometrics(false)" class="px-3 py-2 rounded-xl text-xs font-bold bg-white hover:bg-purple-50 text-purple-900 border border-purple-200 transition-all cursor-pointer">
+            🔄 Sync Ring
+          </button>
+        </div>
+      </div>
+    `;
     return;
   }
 
@@ -11672,8 +11800,7 @@ function openOuraConfigModal() {
   // Dynamically set OAuth authorization link
   const oauthBtn = document.getElementById('btnOuraOAuthAuthorize');
   if (oauthBtn) {
-    const redirectUri = encodeURIComponent(getOuraRedirectUri());
-    oauthBtn.href = `https://cloud.ouraring.com/oauth/authorize?response_type=code&client_id=${OURA_CLIENT_ID}&redirect_uri=${redirectUri}`;
+    oauthBtn.href = getOuraAuthorizeUrl();
   }
 
   updateOuraConnectionUI();
@@ -11721,11 +11848,12 @@ async function checkOuraOAuthCallback() {
 
     const data = await res.json();
     if (data.ok && data.access_token) {
+      window.ouraAuthExpired = false;
       localStorage.setItem('emma_oura_token', data.access_token);
       updateOuraConnectionUI();
-      showDynamicToast("🎉 Oura Ring Connected Successfully! Fetching biometrics...", 5000);
+      showDynamicToast("🎉 Oura Ring Connected Successfully! Fetching all missing days...", 5000);
       window.history.replaceState({}, document.title, window.location.pathname);
-      setTimeout(() => fetchOuraBiometrics(), 500);
+      setTimeout(() => fetchOuraBiometrics(false), 300);
     } else {
       showDynamicToast(`⚠️ Oura authorization exchange error: ${data.error || 'Check server logs'}`, 6000);
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -11759,17 +11887,25 @@ async function fetchOuraBiometrics(silent = false) {
     const res = await fetch('/api/oura/daily-data', { headers });
     const data = await res.json();
 
-    if (!data.ok) {
+    if (!data.ok || data.auth_expired) {
+      if (data.auth_expired || (data.error && (data.error.includes("expired") || data.error.includes("No Oura") || data.error.includes("401")))) {
+        window.ouraAuthExpired = true;
+        localStorage.removeItem('emma_oura_token');
+        updateOuraConnectionUI();
+        if (typeof renderOuraSection === 'function' && typeof activeDateStr !== 'undefined') renderOuraSection(activeDateStr);
+        if (typeof renderDashboardOuraGlance === 'function' && typeof activeDateStr !== 'undefined') renderDashboardOuraGlance(activeDateStr);
+      }
       if (!silent) {
-        if (data.error && data.error.includes("No Oura")) {
-          openOuraConfigModal();
-        }
-        showDynamicToast(`⚠️ Oura sync: ${data.error || 'Unable to load biometrics'}`, 5000);
+        openOuraConfigModal();
+        showDynamicToast(`⚠️ Oura sync: ${data.error || 'Please tap 1-Tap Authorize with Oura to reconnect.'}`, 6000);
+      } else if (window.ouraAuthExpired) {
+        showDynamicToast("⚠️ Oura 30-day session expired — tap '1-Tap Reconnect Oura' on the dashboard to sync!", 6000);
       }
       return;
     }
 
-    if (data.token && !savedToken) {
+    window.ouraAuthExpired = false;
+    if (data.token) {
       savedToken = data.token;
       localStorage.setItem('emma_oura_token', data.token);
       updateOuraConnectionUI();
@@ -11899,6 +12035,7 @@ async function saveOuraToken() {
     alert("Please paste your Oura Personal Access Token or use the 1-Tap Authorize button above.");
     return;
   }
+  window.ouraAuthExpired = false;
   localStorage.setItem('emma_oura_token', token);
   updateOuraConnectionUI();
 
@@ -11962,6 +12099,7 @@ async function testOuraConnection() {
     const data = await res.json();
 
     if (data.ok && data.connected) {
+      window.ouraAuthExpired = false;
       if (data.token) {
         localStorage.setItem('emma_oura_token', data.token);
         if (input) input.value = data.token;
@@ -11990,23 +12128,26 @@ async function testOuraConnection() {
       showDynamicToast("🟢 Oura Ring verified! Connected and ready for tonight.", 4000);
       setTimeout(() => fetchOuraBiometrics(true), 1200);
     } else {
+      window.ouraAuthExpired = true;
+      localStorage.removeItem('emma_oura_token');
+      updateOuraConnectionUI();
       if (statusBadge) {
-        statusBadge.innerText = '⚠️ Connection Issue';
+        statusBadge.innerText = '⚠️ Reconnect Required';
         statusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200';
       }
       if (statusDetail) {
         statusDetail.classList.remove('hidden');
         statusDetail.innerHTML = `
-          <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs space-y-1.5 text-rose-950 shadow-2xs animate-fadeIn">
+          <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs space-y-2 text-rose-950 shadow-2xs animate-fadeIn">
             <div class="font-bold flex items-center gap-1.5 text-rose-900">
-              <span class="text-base">❌</span> <span>Connection Test Failed</span>
+              <span class="text-base">⚠️</span> <span>Oura 30-Day Session Expired</span>
             </div>
             <p class="text-[11px] text-rose-800 leading-relaxed">
               ${data.error || 'Could not verify connection with Oura.'}
             </p>
-            <p class="text-[11px] text-rose-700 leading-relaxed">
-              Tap the purple "1-Tap Authorize with Oura" button above or paste a fresh Personal Access Token.
-            </p>
+            <a href="${getOuraAuthorizeUrl()}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 text-white text-xs font-bold shadow-xs hover:bg-purple-700 transition">
+              <span>⚡</span> <span>1-Tap Authorize with Oura Now</span>
+            </a>
           </div>
         `;
       }
