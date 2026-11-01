@@ -1,8 +1,72 @@
 {
-  "version": "2.1",
-  "last_synced": "2026-11-01T19:30:23.873659+00:00",
-  "total_logs": 57,
+  "version": "2.2",
+  "last_updated": "2026-11-01T19:43:00Z",
+  "patient": "Emma Butler",
+  "total_entries": 58,
   "logs": [
+    {
+      "id": "2026-10-31",
+      "date": "2026-10-31",
+      "displayDate": "Saturday, 31st October 2026",
+      "month": "october",
+      "cycleDay": 18,
+      "phase": "luteal",
+      "temp": null,
+      "isManualTemp": false,
+      "ouraTempDev": 0.53,
+      "ouraSleep": 88,
+      "sleepScore": 88,
+      "ouraRhr": 51,
+      "rhr": 51,
+      "ouraHrv": 24,
+      "hrv": 24,
+      "fastingAdherence": "kept_40",
+      "warmTrigger": false,
+      "electrolyteBuffered": true,
+      "electrolytesTaken": true,
+      "eaasTaken": false,
+      "sennaTea": false,
+      "diaphragmResetDone": false,
+      "movement": "AM: Partial \u2022 Watery bypass (liquid around solid plug)",
+      "movementAmSuccess": "partial",
+      "movementPmSuccess": "",
+      "movementFrequency": 0,
+      "bristol": "liquid",
+      "stoolNuance": "bypass",
+      "exercises": [
+        "Running"
+      ],
+      "exercise": "Running",
+      "diaphragmBloat": 0,
+      "upperTummyBloat": false,
+      "lowerTummyBloat": false,
+      "gassiness": false,
+      "burpiness": false,
+      "spotting": false,
+      "pelvicCramps": false,
+      "puffiness": [
+        "\ud83e\udd42 3+ Wine/Bubbles",
+        "\u26a1 Electrolytes Taken",
+        "\u23f1\ufe0f 40m Fast Kept",
+        "Running"
+      ],
+      "emotions": "",
+      "moods": [],
+      "mood": "",
+      "sexDrive": "",
+      "alcohol": "3+_wine",
+      "symptoms": "AM: Partial \u2022 Watery bypass (liquid around solid plug)",
+      "medNotes": "Morning Linaclotide taken with 40-min fast",
+      "notes": "Saved via Emma's Unified Daily Check-In.",
+      "headspaceNotes": "",
+      "dailyFocus": {
+        "linaclotide": true,
+        "warmMeals": false,
+        "diaphragmRelease": false
+      },
+      "updatedAt": "2026-11-01T19:41:26.251Z",
+      "phaseLabel": "Early-Mid Luteal (Progesterone Ramp)"
+    },
     {
       "id": "2026-10-23",
       "date": "2026-10-23",
@@ -2835,118 +2899,5 @@
       "notes": "Peak estrogen and LH surge released egg with great clarity of thought.",
       "headspaceNotes": ""
     }
-  ],
-  "app_states": {
-    "chrono_trial": {
-      "morningWindow": "40-minute Linaclotide fast window",
-      "middayPeak": "Main daytime meal (12-2 PM)",
-      "eveningRest": "Light dinner (6-7:30 PM) to protect splenic flexure"
-    },
-    "specialist_tracking": {
-      "byDate": {
-        "2026-09-06": {
-          "electrolyteBuffered": true,
-          "waterMl": 0,
-          "stoolType": "formed",
-          "diaphragmDone": true
-        },
-        "2026-09-07": {
-          "electrolyteBuffered": false,
-          "waterMl": 0,
-          "stoolType": null,
-          "diaphragmDone": false
-        },
-        "2026-09-08": {
-          "electrolyteBuffered": false,
-          "waterMl": 0,
-          "stoolType": null,
-          "diaphragmDone": false
-        },
-        "2026-09-09": {
-          "electrolyteBuffered": false,
-          "waterMl": 0,
-          "stoolType": null,
-          "diaphragmDone": false
-        },
-        "2026-09-10": {
-          "electrolyteBuffered": false,
-          "waterMl": 0,
-          "stoolType": null,
-          "diaphragmDone": false
-        },
-        "2026-09-11": {
-          "electrolyteBuffered": false,
-          "waterMl": 0,
-          "stoolType": null,
-          "diaphragmDone": false
-        },
-        "2026-09-12": {
-          "electrolyteBuffered": false,
-          "waterMl": 0,
-          "stoolType": null,
-          "diaphragmDone": false
-        },
-        "2026-09-13": {
-          "electrolyteBuffered": false,
-          "waterMl": 0,
-          "stoolType": null,
-          "diaphragmDone": false
-        },
-        "2026-09-14": {
-          "electrolyteBuffered": false,
-          "waterMl": 0,
-          "stoolType": null,
-          "diaphragmDone": false
-        },
-        "2026-09-15": {
-          "electrolyteBuffered": false,
-          "waterMl": 0,
-          "stoolType": null,
-          "diaphragmDone": false
-        },
-        "2026-09-16": {
-          "electrolyteBuffered": true,
-          "waterMl": 0,
-          "stoolType": "formed",
-          "diaphragmDone": true
-        },
-        "2026-09-21": {
-          "electrolyteBuffered": false,
-          "eaasTaken": false,
-          "waterMl": 0,
-          "stoolType": null,
-          "diaphragmDone": false
-        }
-      },
-      "ouraChecklist": {
-        "step1": false,
-        "step2": false,
-        "step3": false
-      },
-      "fastingTimer": {
-        "remainingSeconds": 2400,
-        "isRunning": false,
-        "endTime": null
-      }
-    },
-    "food_diary": {
-      "2026-09-06": [
-        {
-          "id": "meal-1725610000000",
-          "slot": "breakfast",
-          "name": "Emma's Blueberry Form Protein Shake",
-          "time": "08:30",
-          "theme": "purple",
-          "badge": "Cycle-Safe \u2713",
-          "title": "Ideal Luteal Morning Fuel",
-          "summary": "100% plant-based (pea, rice, hemp) with wild blueberries. Empties stomach in under 30 minutes, preventing post-meal APD diaphragm descent.",
-          "topTip": "Sip slowly 40\u201360 mins after waking Linaclotide dose.",
-          "isSafe": true,
-          "cycleDay": 22,
-          "cyclePhase": "luteal",
-          "source": "gemini-3.8-flash"
-        }
-      ]
-    }
-  }
+  ]
 }

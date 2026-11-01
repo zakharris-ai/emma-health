@@ -8,6 +8,69 @@
 // ============================================================================
 const DEFAULT_LOGS = [
   {
+    "id": "2026-10-31",
+    "date": "2026-10-31",
+    "displayDate": "Saturday, 31st October 2026",
+    "month": "october",
+    "cycleDay": 18,
+    "phase": "luteal",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": 0.53,
+    "ouraSleep": 88,
+    "sleepScore": 88,
+    "ouraRhr": 51,
+    "rhr": 51,
+    "ouraHrv": 24,
+    "hrv": 24,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": false,
+    "electrolyteBuffered": true,
+    "electrolytesTaken": true,
+    "eaasTaken": false,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "AM: Partial \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "",
+    "movementFrequency": 0,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Running"
+    ],
+    "exercise": "Running",
+    "diaphragmBloat": 0,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83e\udd42 3+ Wine/Bubbles",
+      "\u26a1 Electrolytes Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "Running"
+    ],
+    "emotions": "",
+    "moods": [],
+    "mood": "",
+    "sexDrive": "",
+    "alcohol": "3+_wine",
+    "symptoms": "AM: Partial \u2022 Watery bypass (liquid around solid plug)",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "Saved via Emma's Unified Daily Check-In.",
+    "headspaceNotes": "",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": false,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-11-01T19:41:26.251Z",
+    "phaseLabel": "Early-Mid Luteal (Progesterone Ramp)"
+  },
+  {
     "id": "2026-10-23",
     "date": "2026-10-23",
     "displayDate": "Friday, 23rd October 2026",
@@ -11662,11 +11725,12 @@ function handleQuickLogSubmit(e) {
     if (!puffinessArr.includes(ex)) puffinessArr.push(ex);
   });
 
-  // Format date display
+  // Format date display with proper ordinal (1st, 2nd, 3rd, 31st)
   const dateObj = new Date(dateVal);
   const day = dateObj.getDate();
+  const dayOrd = (day % 10 === 1 && day !== 11) ? 'st' : ((day % 10 === 2 && day !== 12) ? 'nd' : ((day % 10 === 3 && day !== 13) ? 'rd' : 'th'));
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const displayDate = `${day}th ${monthNames[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+  const displayDate = `${day}${dayOrd} ${monthNames[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
 
   let bristolText = '';
   if (selectedBristolVal === 'liquid') {
@@ -11730,10 +11794,11 @@ function handleQuickLogSubmit(e) {
   const newEntry = {
     id: dateVal,
     date: dateVal,
-    displayDate: displayDate,
+    displayDate: cycleInfo.displayDate || displayDate,
     month: monthNames[dateObj.getMonth()].toLowerCase(),
     cycleDay: cycleInfo.cycleDay,
     phase: cycleInfo.phase,
+    phaseLabel: cycleInfo.phaseLabel,
     temp: (tempVal !== null) ? tempVal : (existing?.isManualTemp ? existing.temp : null),
     isManualTemp: (tempVal !== null) ? true : (existing?.isManualTemp ?? false),
     ouraTempDev: (existing?.ouraTempDev !== undefined && existing?.ouraTempDev !== null) ? existing.ouraTempDev : (dateVal === '2026-09-08' ? -0.25 : null),
