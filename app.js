@@ -9833,13 +9833,9 @@ function updateDashboardCheckInBadge(entry) {
     }
 
     if (dStatus) {
-      if (entry.diaphragmResetDone) {
-        dStatus.innerText = "Completed 🫁";
-        dStatus.className = "font-extrabold text-teal-700";
-      } else {
-        dStatus.innerText = `${entry.diaphragmBloat ?? 0}/10 Bloat`;
-        dStatus.className = "font-extrabold text-slate-500";
-      }
+      const bloatVal = Number(entry.diaphragmBloat ?? 0);
+      dStatus.innerText = `${bloatVal} / 10`;
+      dStatus.className = bloatVal <= 2 ? "font-extrabold text-emerald-700" : "font-extrabold text-brand-coral";
     }
   } else {
     if (badge) {
@@ -14981,9 +14977,8 @@ function showRescueGuide(type) {
     `;
     if (act) {
       act.innerHTML = `
-        <button type="button" onclick="closeRescueModal(); openDiaphragmResetModal();" class="w-full py-3 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 active:scale-98">
-          <span>🫁</span>
-          <span>Open 3-Min Audio Release (With Waves & Spa Music)</span>
+        <button type="button" onclick="closeRescueModal()" class="w-full py-2.5 rounded-2xl bg-brand-textDark hover:bg-black text-white font-bold text-xs transition-all active:scale-98">
+          Got it ✓
         </button>
       `;
     }
@@ -15983,14 +15978,11 @@ function renderEmmaMeals() {
           </div>
         </div>
 
-        <!-- Card Footer: Phase badge and quick audit button -->
+        <!-- Card Footer: Phase badge -->
         <div class="pt-2 border-t border-brand-border/60 flex items-center justify-between text-[11px]">
           <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${meal.id === 'brk-shake' ? 'bg-purple-100 text-purple-800 font-extrabold' : 'bg-slate-100 text-slate-700'}">
             ${phaseBadge}
           </span>
-          <button type="button" onclick="auditSpecificMeal('${escapeQuotes(meal.title)}', '${escapeQuotes(meal.ingredients)}')" class="px-2.5 py-1 rounded-lg bg-brand-textDark text-white hover:bg-black font-semibold text-[10px] transition-all flex items-center space-x-1 active:scale-95 shadow-2xs">
-            <span>🔍 Check Food</span>
-          </button>
         </div>
       </div>
     `;
