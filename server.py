@@ -1534,7 +1534,16 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             if days:
                 try:
                     conn = get_db_connection()
+                    is_pg = hasattr(conn, 'status')
+                    ph = "%s" if is_pg else "?"
                     cur = conn.cursor()
+                    if token and token not in EXPIRED_OURA_TOKENS:
+                        cur.execute(f"""
+                            INSERT INTO app_state (key, value, updated_at)
+                            VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
+                            ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+                        """, ('oura_token', json.dumps(token)))
+                        conn.commit()
                     cur.execute("SELECT date FROM checkins")
                     existing_dates = {r[0] for r in cur.fetchall()}
                     conn.close()

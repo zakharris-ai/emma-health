@@ -8,6 +8,27 @@
 // ============================================================================
 const DEFAULT_LOGS = [
   {
+    "id": "2026-11-01",
+    "date": "2026-11-01",
+    "displayDate": "Sunday, 1st November 2026",
+    "month": "november",
+    "cycleDay": 19,
+    "phase": "luteal",
+    "phaseLabel": "Early-Mid Luteal (Progesterone Ramp)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 80,
+    "sleepScore": 80,
+    "ouraRhr": 54,
+    "rhr": 54,
+    "ouraHrv": 20,
+    "hrv": 20,
+    "ouraTempDev": 0.88,
+    "readinessScore": 48,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
     "id": "2026-10-31",
     "date": "2026-10-31",
     "displayDate": "Saturday, 31st October 2026",
@@ -68,7 +89,155 @@ const DEFAULT_LOGS = [
       "diaphragmRelease": false
     },
     "updatedAt": "2026-11-01T19:41:26.251Z",
-    "phaseLabel": "Early-Mid Luteal (Progesterone Ramp)"
+    "phaseLabel": "Early-Mid Luteal (Progesterone Ramp)",
+    "readinessScore": 60
+  },
+  {
+    "id": "2026-10-30",
+    "date": "2026-10-30",
+    "displayDate": "Friday, 30th October 2026",
+    "month": "october",
+    "cycleDay": 17,
+    "phase": "luteal",
+    "phaseLabel": "Early-Mid Luteal (Progesterone Ramp)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 70,
+    "sleepScore": 70,
+    "ouraRhr": 39,
+    "rhr": 39,
+    "ouraHrv": 59,
+    "hrv": 59,
+    "ouraTempDev": -0.24,
+    "readinessScore": 80,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-10-29",
+    "date": "2026-10-29",
+    "displayDate": "Thursday, 29th October 2026",
+    "month": "october",
+    "cycleDay": 16,
+    "phase": "ovulation",
+    "phaseLabel": "Ovulation Window",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 73,
+    "sleepScore": 73,
+    "ouraRhr": 39,
+    "rhr": 39,
+    "ouraHrv": 65,
+    "hrv": 65,
+    "ouraTempDev": -0.14,
+    "readinessScore": 79,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-10-28",
+    "date": "2026-10-28",
+    "displayDate": "Wednesday, 28th October 2026",
+    "month": "october",
+    "cycleDay": 15,
+    "phase": "ovulation",
+    "phaseLabel": "Ovulation Window",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 69,
+    "sleepScore": 69,
+    "ouraRhr": 39,
+    "rhr": 39,
+    "ouraHrv": 62,
+    "hrv": 62,
+    "ouraTempDev": -0.22,
+    "readinessScore": 79,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-10-27",
+    "date": "2026-10-27",
+    "displayDate": "Tuesday, 27th October 2026",
+    "month": "october",
+    "cycleDay": 14,
+    "phase": "ovulation",
+    "phaseLabel": "Ovulation Window",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 74,
+    "sleepScore": 74,
+    "ouraRhr": 38,
+    "rhr": 38,
+    "ouraHrv": 60,
+    "hrv": 60,
+    "ouraTempDev": -0.11,
+    "readinessScore": 77,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-10-26",
+    "date": "2026-10-26",
+    "displayDate": "Monday, 26th October 2026",
+    "month": "october",
+    "cycleDay": 13,
+    "phase": "follicular",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 89,
+    "sleepScore": 89,
+    "ouraRhr": 37,
+    "rhr": 37,
+    "ouraHrv": 69,
+    "hrv": 69,
+    "ouraTempDev": 0.21,
+    "readinessScore": 85,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-10-25",
+    "date": "2026-10-25",
+    "displayDate": "Sunday, 25th October 2026",
+    "month": "october",
+    "cycleDay": 12,
+    "phase": "follicular",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 84,
+    "sleepScore": 84,
+    "ouraRhr": 49,
+    "rhr": 49,
+    "ouraHrv": 22,
+    "hrv": 22,
+    "ouraTempDev": 0.73,
+    "readinessScore": 61,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-10-24",
+    "date": "2026-10-24",
+    "displayDate": "Saturday, 24th October 2026",
+    "month": "october",
+    "cycleDay": 11,
+    "phase": "follicular",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 57,
+    "sleepScore": 57,
+    "ouraRhr": 46,
+    "rhr": 46,
+    "ouraHrv": 28,
+    "hrv": 28,
+    "ouraTempDev": 0.54,
+    "readinessScore": 59,
+    "symptoms": "",
+    "headspaceNotes": ""
   },
   {
     "id": "2026-10-23",
@@ -90,12 +259,97 @@ const DEFAULT_LOGS = [
     "hrv": 70,
     "readinessScore": 85,
     "symptoms": "",
+    "headspaceNotes": "",
+    "puffiness": []
+  },
+  {
+    "id": "2026-10-22",
+    "date": "2026-10-22",
+    "displayDate": "Thursday, 22nd October 2026",
+    "month": "october",
+    "cycleDay": 9,
+    "phase": "follicular",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 85,
+    "sleepScore": 85,
+    "ouraRhr": 42,
+    "rhr": 42,
+    "ouraHrv": 51,
+    "hrv": 51,
+    "ouraTempDev": 0.03,
+    "readinessScore": 81,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-10-21",
+    "date": "2026-10-21",
+    "displayDate": "Wednesday, 21st October 2026",
+    "month": "october",
+    "cycleDay": 8,
+    "phase": "follicular",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 82,
+    "sleepScore": 82,
+    "ouraRhr": 39,
+    "rhr": 39,
+    "ouraHrv": 67,
+    "hrv": 67,
+    "ouraTempDev": -0.14,
+    "readinessScore": 85,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-10-20",
+    "date": "2026-10-20",
+    "displayDate": "Tuesday, 20th October 2026",
+    "month": "october",
+    "cycleDay": 7,
+    "phase": "follicular",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 78,
+    "sleepScore": 78,
+    "ouraRhr": 41,
+    "rhr": 41,
+    "ouraHrv": 52,
+    "hrv": 52,
+    "ouraTempDev": -0.01,
+    "readinessScore": 77,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-10-19",
+    "date": "2026-10-19",
+    "displayDate": "Monday, 19th October 2026",
+    "month": "october",
+    "cycleDay": 6,
+    "phase": "follicular",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 90,
+    "sleepScore": 90,
+    "ouraRhr": 39,
+    "rhr": 39,
+    "ouraHrv": 68,
+    "hrv": 68,
+    "ouraTempDev": -0.23,
+    "readinessScore": 91,
+    "symptoms": "",
     "headspaceNotes": ""
   },
   {
     "id": "2026-10-18",
     "date": "2026-10-18",
-    "displayDate": "18th October 2026",
+    "displayDate": "Sunday, 18th October 2026",
     "month": "october",
     "cycleDay": 5,
     "phase": "follicular",
@@ -161,9 +415,174 @@ const DEFAULT_LOGS = [
     "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)"
   },
   {
+    "id": "2026-10-17",
+    "date": "2026-10-17",
+    "displayDate": "Saturday, 17th October 2026",
+    "month": "october",
+    "cycleDay": 4,
+    "phase": "menstrual_follicular",
+    "phaseLabel": "Menstrual Follicular \u2022 Days 1\u20134 (Silent Period Reset)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 82,
+    "sleepScore": 82,
+    "ouraRhr": 41,
+    "rhr": 41,
+    "ouraHrv": 57,
+    "hrv": 57,
+    "ouraTempDev": -0.29,
+    "readinessScore": 80,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-10-16",
+    "date": "2026-10-16",
+    "displayDate": "Friday, 16th October 2026",
+    "month": "october",
+    "cycleDay": 3,
+    "phase": "menstrual_follicular",
+    "phaseLabel": "Menstrual Follicular \u2022 Days 1\u20134 (Silent Period Reset)",
+    "diaphragmBloat": 6,
+    "notes": "Still bad bloating \nHeadspace fine just tired",
+    "ouraSleep": 79,
+    "sleepScore": 79,
+    "ouraRhr": 41,
+    "rhr": 41,
+    "ouraHrv": 63,
+    "hrv": 63,
+    "ouraTempDev": 0,
+    "readinessScore": 85,
+    "symptoms": "Still bad bloating \nHeadspace fine just tired",
+    "headspaceNotes": "Still bad bloating \nHeadspace fine just tired",
+    "isManualTemp": false,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": true,
+    "diaphragmResetDone": false,
+    "movement": "2x \u2022 AM: Partial \u2022 PM: Partial \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "partial",
+    "movementFrequency": 2,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Reformer Pilates"
+    ],
+    "exercise": "Reformer Pilates",
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83c\udf88\nUpper Tummy Bloating",
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83e\udee7\nGassiness",
+      "Muscle Twitches",
+      "Achy Body",
+      "Puffy Arms",
+      "\ud83e\udd0d Low/No Libido",
+      "\ud83e\uddec EAAs Taken",
+      "\ud83c\udf75 Senna Tea Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates"
+    ],
+    "emotions": "\u2601\ufe0f Flat / Low Energy \u2022 \ud83d\ude0a Happy & Positive",
+    "moods": [
+      "flat",
+      "happy"
+    ],
+    "mood": "flat,happy",
+    "sexDrive": "low",
+    "alcohol": "none",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-10-16T16:56:02.438Z"
+  },
+  {
+    "id": "2026-10-15",
+    "date": "2026-10-15",
+    "displayDate": "Thursday, 15th October 2026",
+    "month": "october",
+    "cycleDay": 2,
+    "phase": "menstrual_follicular",
+    "phaseLabel": "Menstrual Follicular \u2022 Days 1\u20134 (Silent Period Reset)",
+    "diaphragmBloat": 10,
+    "notes": "Really bad bloating and horrible back end pain\nFelt super sicky first thing\nDrank a lot the night before",
+    "ouraSleep": 67,
+    "sleepScore": 67,
+    "ouraRhr": 50,
+    "rhr": 50,
+    "ouraHrv": 26,
+    "hrv": 26,
+    "ouraTempDev": 0.81,
+    "readinessScore": 49,
+    "symptoms": "Really bad bloating and horrible back end pain\nFelt super sicky first thing\nDrank a lot the night before",
+    "headspaceNotes": "Really bad bloating and horrible back end pain\nFelt super sicky first thing\nDrank a lot the night before",
+    "isManualTemp": false,
+    "fastingAdherence": "",
+    "warmTrigger": false,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": false,
+    "diaphragmResetDone": false,
+    "movement": "None",
+    "movementAmSuccess": "",
+    "movementPmSuccess": "",
+    "movementFrequency": 0,
+    "bristol": "none",
+    "stoolNuance": "",
+    "exercises": [
+      "Reformer Pilates"
+    ],
+    "exercise": "Reformer Pilates",
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83c\udf88\nUpper Tummy Bloating",
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83e\udee7\nGassiness",
+      "\ud83d\udca8\nTrapped Wind",
+      "Headache",
+      "Brain Fog",
+      "\ud83e\udd0d Low/No Libido",
+      "Reformer Pilates"
+    ],
+    "emotions": "\ud83c\udf2a\ufe0f Anxious / Nervous \u2022 \u26a1 Edgy / Irritable \u2022 \u2601\ufe0f Flat / Low Energy",
+    "moods": [
+      "anxious",
+      "edgy",
+      "flat"
+    ],
+    "mood": "anxious,edgy,flat",
+    "sexDrive": "low",
+    "alcohol": "none",
+    "medNotes": "",
+    "dailyFocus": {
+      "linaclotide": false,
+      "warmMeals": false,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-10-15T12:30:42.384Z"
+  },
+  {
     "id": "2026-10-14",
     "date": "2026-10-14",
-    "displayDate": "14th October 2026",
+    "displayDate": "Wednesday, 14th October 2026",
     "month": "october",
     "cycleDay": 1,
     "phase": "menstrual_follicular",
@@ -224,12 +643,13 @@ const DEFAULT_LOGS = [
     },
     "updatedAt": "2026-10-15T12:29:48.120Z",
     "readinessScore": 72,
-    "phaseLabel": "Menstrual Follicular \u2022 Days 1\u20134 (Silent Period Reset)"
+    "phaseLabel": "Menstrual Follicular \u2022 Days 1\u20134 (Silent Period Reset)",
+    "linaclotideTaken": true
   },
   {
     "id": "2026-10-13",
     "date": "2026-10-13",
-    "displayDate": "13th October 2026",
+    "displayDate": "Tuesday, 13th October 2026",
     "month": "october",
     "cycleDay": 28,
     "phase": "luteal",
@@ -296,7 +716,9 @@ const DEFAULT_LOGS = [
     },
     "updatedAt": "2026-10-13T13:43:41.999Z",
     "readinessScore": 78,
-    "phaseLabel": "Late Luteal (Silent Period Eve)"
+    "phaseLabel": "Late Luteal (Silent Period Eve)",
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
   },
   {
     "id": "2026-10-12",
@@ -323,7 +745,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-10-11",
     "date": "2026-10-11",
-    "displayDate": "11th October 2026",
+    "displayDate": "Sunday, 11th October 2026",
     "month": "october",
     "cycleDay": 26,
     "phase": "luteal",
@@ -380,12 +802,151 @@ const DEFAULT_LOGS = [
     },
     "updatedAt": "2026-10-11T05:16:22.793Z",
     "readinessScore": 52,
-    "phaseLabel": "Late Luteal (Pre-Reset Transition)"
+    "phaseLabel": "Late Luteal (Pre-Reset Transition)",
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
+  },
+  {
+    "id": "2026-10-10",
+    "date": "2026-10-10",
+    "displayDate": "Saturday, 10th October 2026",
+    "month": "october",
+    "cycleDay": 25,
+    "phase": "luteal",
+    "phaseLabel": "Late Luteal (Pre-Reset Transition)",
+    "diaphragmBloat": 2,
+    "notes": "Lovely day celebrating Maddie , tummy okay but very unwell with cold/flu  bug",
+    "ouraSleep": 79,
+    "sleepScore": 79,
+    "ouraRhr": 40,
+    "rhr": 40,
+    "ouraHrv": 65,
+    "hrv": 65,
+    "ouraTempDev": -0.06,
+    "readinessScore": 85,
+    "symptoms": "Lovely day celebrating Maddie , tummy okay but very unwell with cold/flu  bug",
+    "headspaceNotes": "Lovely day celebrating Maddie , tummy okay but very unwell with cold/flu  bug",
+    "isManualTemp": false,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": false,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Reformer Pilates",
+      "Gentle Incline Walk"
+    ],
+    "exercise": "Reformer Pilates, Gentle Incline Walk",
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83e\udd42 3+ Wine/Bubbles",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates",
+      "Gentle Incline Walk"
+    ],
+    "emotions": "\ud83d\ude0a Happy & Positive",
+    "moods": [
+      "happy"
+    ],
+    "mood": "happy",
+    "sexDrive": "",
+    "alcohol": "3+_wine",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-10-11T05:15:41.500Z"
+  },
+  {
+    "id": "2026-10-09",
+    "date": "2026-10-09",
+    "displayDate": "Friday, 9th October 2026",
+    "month": "october",
+    "cycleDay": 24,
+    "phase": "luteal",
+    "phaseLabel": "Late Luteal (Pre-Reset Transition)",
+    "diaphragmBloat": 2,
+    "notes": "feeling poorly , so tired\nSore throat",
+    "ouraSleep": 82,
+    "sleepScore": 82,
+    "ouraRhr": 47,
+    "rhr": 47,
+    "ouraHrv": 38,
+    "hrv": 38,
+    "ouraTempDev": -0.02,
+    "readinessScore": 69,
+    "symptoms": "feeling poorly , so tired\nSore throat",
+    "headspaceNotes": "feeling poorly , so tired\nSore throat",
+    "isManualTemp": false,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": false,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Reformer Pilates"
+    ],
+    "exercise": "Reformer Pilates",
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83c\udf88\nUpper Tummy Bloating",
+      "\ud83d\udde3\ufe0f\nBurpiness",
+      "Brain Fog",
+      "Achy Body",
+      "\ud83e\udd0d Low/No Libido",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates"
+    ],
+    "emotions": "\u2601\ufe0f Flat / Low Energy",
+    "moods": [
+      "flat"
+    ],
+    "mood": "flat",
+    "sexDrive": "low",
+    "alcohol": "none",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-10-09T17:38:06.461Z"
   },
   {
     "id": "2026-10-08",
     "date": "2026-10-08",
-    "displayDate": "8th October 2026",
+    "displayDate": "Thursday, 8th October 2026",
     "month": "october",
     "cycleDay": 23,
     "phase": "luteal",
@@ -450,12 +1011,14 @@ const DEFAULT_LOGS = [
     },
     "updatedAt": "2026-10-08T14:57:13.837Z",
     "readinessScore": 80,
-    "phaseLabel": "Mid-Luteal (Progesterone Peak Window)"
+    "phaseLabel": "Mid-Luteal (Progesterone Peak Window)",
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
   },
   {
     "id": "2026-10-07",
     "date": "2026-10-07",
-    "displayDate": "7th October 2026",
+    "displayDate": "Wednesday, 7th October 2026",
     "month": "october",
     "cycleDay": 22,
     "phase": "luteal",
@@ -523,9 +1086,83 @@ const DEFAULT_LOGS = [
     "safeWarmMeals": true
   },
   {
+    "id": "2026-10-06",
+    "date": "2026-10-06",
+    "displayDate": "Tuesday, 6th October 2026",
+    "month": "october",
+    "cycleDay": 21,
+    "phase": "luteal",
+    "phaseLabel": "Mid-Luteal (Progesterone Peak Window)",
+    "diaphragmBloat": 2,
+    "notes": "Loving all the planning but felt a little edgy and overwhelmed in evening \nStill a bit of bleeding and bloating was okay",
+    "ouraSleep": 69,
+    "sleepScore": 69,
+    "ouraRhr": 38,
+    "rhr": 38,
+    "ouraHrv": 69,
+    "hrv": 69,
+    "ouraTempDev": -0.36,
+    "readinessScore": 77,
+    "symptoms": "Loving all the planning but felt a little edgy and overwhelmed in evening \nStill a bit of bleeding and bloating was okay",
+    "headspaceNotes": "Loving all the planning but felt a little edgy and overwhelmed in evening \nStill a bit of bleeding and bloating was okay",
+    "isManualTemp": false,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "2x \u2022 AM: Full \u2022 PM: None \u2022 Watery liquid purge",
+    "movementAmSuccess": "complete",
+    "movementPmSuccess": "none",
+    "movementFrequency": 2,
+    "bristol": "liquid",
+    "stoolNuance": "loose",
+    "exercises": [
+      "Reformer Pilates"
+    ],
+    "exercise": "Reformer Pilates",
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83e\udee7\nGassiness",
+      "\ud83d\udde3\ufe0f\nBurpiness",
+      "\ud83e\udd0d Low/No Libido",
+      "\ud83e\uddec EAAs Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates"
+    ],
+    "emotions": "\ud83d\ude0a Happy & Positive \u2022 \ud83c\udf3f Calm & Grounded \u2022 \u26a1 Edgy / Irritable \u2022 \u2601\ufe0f Flat / Low Energy",
+    "moods": [
+      "happy",
+      "calm",
+      "edgy",
+      "flat"
+    ],
+    "mood": "happy,calm,edgy,flat",
+    "sexDrive": "low",
+    "alcohol": "none",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-10-07T13:12:09.875Z",
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
+  },
+  {
     "id": "2026-10-05",
     "date": "2026-10-05",
-    "displayDate": "5th October 2026",
+    "displayDate": "Monday, 5th October 2026",
     "month": "october",
     "cycleDay": 20,
     "phase": "luteal",
@@ -614,12 +1251,34 @@ const DEFAULT_LOGS = [
     "hrv": 23,
     "readinessScore": 51,
     "symptoms": "",
+    "headspaceNotes": "",
+    "puffiness": []
+  },
+  {
+    "id": "2026-10-03",
+    "date": "2026-10-03",
+    "displayDate": "Saturday, 3rd October 2026",
+    "month": "october",
+    "cycleDay": 18,
+    "phase": "luteal",
+    "phaseLabel": "Early-Mid Luteal (Progesterone Ramp)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 87,
+    "sleepScore": 87,
+    "ouraRhr": 48,
+    "rhr": 48,
+    "ouraHrv": 28,
+    "hrv": 28,
+    "ouraTempDev": 0.05,
+    "readinessScore": 68,
+    "symptoms": "",
     "headspaceNotes": ""
   },
   {
     "id": "2026-10-02",
     "date": "2026-10-02",
-    "displayDate": "2th October 2026",
+    "displayDate": "Friday, 2nd October 2026",
     "month": "october",
     "cycleDay": 17,
     "phase": "luteal",
@@ -693,7 +1352,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-10-01",
     "date": "2026-10-01",
-    "displayDate": "1th October 2026",
+    "displayDate": "Thursday, 1st October 2026",
     "month": "october",
     "cycleDay": 16,
     "phase": "ovulation",
@@ -774,7 +1433,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-30",
     "date": "2026-09-30",
-    "displayDate": "30th September 2026",
+    "displayDate": "Wednesday, 30th September 2026",
     "month": "september",
     "cycleDay": 15,
     "phase": "ovulation",
@@ -846,7 +1505,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-29",
     "date": "2026-09-29",
-    "displayDate": "29th September 2026",
+    "displayDate": "Tuesday, 29th September 2026",
     "month": "september",
     "cycleDay": 14,
     "phase": "ovulation",
@@ -919,6 +1578,77 @@ const DEFAULT_LOGS = [
     "safeWarmMeals": true
   },
   {
+    "id": "2026-09-28",
+    "date": "2026-09-28",
+    "displayDate": "Monday, 28th September 2026",
+    "month": "september",
+    "cycleDay": 13,
+    "phase": "follicular",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "diaphragmBloat": 6,
+    "notes": "Really really bad headache in night and in morning but eased after paracetamol and ibuprofen and a morning shake. Managed class.\nBloating bad post lunch around 1.45pm, upper diagphragm. No senna tea",
+    "ouraSleep": 74,
+    "sleepScore": 74,
+    "ouraRhr": 38,
+    "rhr": 38,
+    "ouraHrv": 59,
+    "hrv": 59,
+    "ouraTempDev": -0.24,
+    "readinessScore": 81,
+    "symptoms": "Really really bad headache in night and in morning but eased after paracetamol and ibuprofen and a morning shake. Managed class.\nBloating bad post lunch around 1.45pm, upper diagphragm. No senna tea",
+    "headspaceNotes": "Really really bad headache in night and in morning but eased after paracetamol and ibuprofen and a morning shake. Managed class.\nBloating bad post lunch around 1.45pm, upper diagphragm. No senna tea",
+    "isManualTemp": false,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Reformer Pilates"
+    ],
+    "exercise": "Reformer Pilates",
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83c\udf88\nUpper Tummy Bloating",
+      "Headache",
+      "\ud83e\udd0d Low/No Libido",
+      "\ud83e\uddec EAAs Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates"
+    ],
+    "emotions": "\u2601\ufe0f Flat / Low Energy \u2022 \ud83c\udf3f Calm & Grounded",
+    "moods": [
+      "flat",
+      "calm"
+    ],
+    "mood": "flat,calm",
+    "sexDrive": "low",
+    "alcohol": "none",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-09-28T12:52:13.930Z",
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
+  },
+  {
     "id": "2026-09-27",
     "date": "2026-09-27",
     "displayDate": "Sunday, 27th September 2026",
@@ -938,12 +1668,13 @@ const DEFAULT_LOGS = [
     "hrv": 21,
     "readinessScore": 73,
     "symptoms": "",
-    "headspaceNotes": ""
+    "headspaceNotes": "",
+    "puffiness": []
   },
   {
     "id": "2026-09-26",
     "date": "2026-09-26",
-    "displayDate": "26th September 2026",
+    "displayDate": "Saturday, 26th September 2026",
     "month": "september",
     "cycleDay": 11,
     "phase": "follicular",
@@ -1010,7 +1741,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-25",
     "date": "2026-09-25",
-    "displayDate": "25th September 2026",
+    "displayDate": "Friday, 25th September 2026",
     "month": "september",
     "cycleDay": 10,
     "phase": "follicular",
@@ -1081,7 +1812,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-24",
     "date": "2026-09-24",
-    "displayDate": "24th September 2026",
+    "displayDate": "Thursday, 24th September 2026",
     "month": "september",
     "cycleDay": 9,
     "phase": "follicular",
@@ -1155,7 +1886,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-23",
     "date": "2026-09-23",
-    "displayDate": "23th September 2026",
+    "displayDate": "Wednesday, 23rd September 2026",
     "month": "september",
     "cycleDay": 8,
     "phase": "follicular",
@@ -1232,7 +1963,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-22",
     "date": "2026-09-22",
-    "displayDate": "22th September 2026",
+    "displayDate": "Tuesday, 22nd September 2026",
     "month": "september",
     "cycleDay": 7,
     "phase": "follicular",
@@ -1307,7 +2038,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-21",
     "date": "2026-09-21",
-    "displayDate": "21th September 2026",
+    "displayDate": "Monday, 21st September 2026",
     "month": "september",
     "cycleDay": 6,
     "phase": "follicular",
@@ -1386,7 +2117,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-20",
     "date": "2026-09-20",
-    "displayDate": "20th September 2026",
+    "displayDate": "Sunday, 20th September 2026",
     "month": "september",
     "cycleDay": 5,
     "phase": "follicular",
@@ -1455,7 +2186,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-19",
     "date": "2026-09-19",
-    "displayDate": "19th September 2026",
+    "displayDate": "Saturday, 19th September 2026",
     "month": "september",
     "cycleDay": 4,
     "phase": "menstrual_follicular",
@@ -1528,7 +2259,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-18",
     "date": "2026-09-18",
-    "displayDate": "18th September 2026",
+    "displayDate": "Friday, 18th September 2026",
     "month": "september",
     "cycleDay": 3,
     "phase": "menstrual_follicular",
@@ -1601,7 +2332,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-17",
     "date": "2026-09-17",
-    "displayDate": "17th September 2026",
+    "displayDate": "Thursday, 17th September 2026",
     "month": "september",
     "cycleDay": 2,
     "phase": "menstrual_follicular",
@@ -1680,7 +2411,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-16",
     "date": "2026-09-16",
-    "displayDate": "16th September 2026",
+    "displayDate": "Wednesday, 16th September 2026",
     "month": "september",
     "cycleDay": 1,
     "phase": "menstrual_follicular",
@@ -1756,7 +2487,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-15",
     "date": "2026-09-15",
-    "displayDate": "15th September 2026",
+    "displayDate": "Tuesday, 15th September 2026",
     "month": "september",
     "cycleDay": 28,
     "phase": "luteal",
@@ -1823,7 +2554,7 @@ const DEFAULT_LOGS = [
       "diaphragmRelease": false
     },
     "updatedAt": "2026-09-15T17:31:24.617Z",
-    "phaseLabel": "Late Luteal (Pre-Reset Transition)",
+    "phaseLabel": "Late Luteal (Silent Period Eve)",
     "readinessScore": 77,
     "linaclotideTaken": true,
     "safeWarmMeals": true
@@ -1831,7 +2562,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-14",
     "date": "2026-09-14",
-    "displayDate": "14th September 2026",
+    "displayDate": "Monday, 14th September 2026",
     "month": "september",
     "cycleDay": 27,
     "phase": "luteal",
@@ -1905,7 +2636,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-13",
     "date": "2026-09-13",
-    "displayDate": "13th September 2026",
+    "displayDate": "Sunday, 13th September 2026",
     "month": "september",
     "cycleDay": 26,
     "phase": "luteal",
@@ -1972,7 +2703,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-12",
     "date": "2026-09-12",
-    "displayDate": "12th September 2026",
+    "displayDate": "Saturday, 12th September 2026",
     "month": "september",
     "cycleDay": 25,
     "phase": "luteal",
@@ -2042,7 +2773,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-11",
     "date": "2026-09-11",
-    "displayDate": "11th September 2026",
+    "displayDate": "Friday, 11th September 2026",
     "month": "september",
     "cycleDay": 24,
     "phase": "luteal",
@@ -2113,7 +2844,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-10",
     "date": "2026-09-10",
-    "displayDate": "10th September 2026",
+    "displayDate": "Thursday, 10th September 2026",
     "month": "september",
     "cycleDay": 23,
     "phase": "luteal",
@@ -2185,7 +2916,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-09",
     "date": "2026-09-09",
-    "displayDate": "9th September 2026",
+    "displayDate": "Wednesday, 9th September 2026",
     "month": "september",
     "cycleDay": 22,
     "phase": "luteal",
@@ -2252,7 +2983,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-08",
     "date": "2026-09-08",
-    "displayDate": "8th September 2026",
+    "displayDate": "Tuesday, 8th September 2026",
     "month": "september",
     "cycleDay": 21,
     "phase": "luteal",
@@ -2332,7 +3063,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-07",
     "date": "2026-09-07",
-    "displayDate": "7th September 2026",
+    "displayDate": "Monday, 7th September 2026",
     "month": "september",
     "cycleDay": 20,
     "phase": "luteal",
@@ -2392,7 +3123,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-06",
     "date": "2026-09-06",
-    "displayDate": "6th September 2026",
+    "displayDate": "Sunday, 6th September 2026",
     "month": "september",
     "cycleDay": 19,
     "phase": "luteal",
@@ -2417,11 +3148,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-05",
     "date": "2026-09-05",
-    "displayDate": "5th September 2026",
+    "displayDate": "Saturday, 5th September 2026",
     "month": "september",
     "cycleDay": 18,
     "phase": "luteal",
-    "phaseLabel": "Early Luteal",
+    "phaseLabel": "Early-Mid Luteal (Progesterone Ramp)",
     "temp": 36.48,
     "movement": "A bit early morning just watery liquid",
     "bristol": "liquid",
@@ -2440,11 +3171,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-04",
     "date": "2026-09-04",
-    "displayDate": "4th September 2026",
+    "displayDate": "Friday, 4th September 2026",
     "month": "september",
     "cycleDay": 17,
     "phase": "luteal",
-    "phaseLabel": "Early Luteal (Ovulation Confirmed)",
+    "phaseLabel": "Early-Mid Luteal (Progesterone Ramp)",
     "temp": 36.85,
     "movement": "A bit in morning",
     "bristol": "hard",
@@ -2464,11 +3195,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-03",
     "date": "2026-09-03",
-    "displayDate": "3rd September 2026",
+    "displayDate": "Thursday, 3rd September 2026",
     "month": "september",
     "cycleDay": 16,
-    "phase": "luteal",
-    "phaseLabel": "Early Luteal Shift",
+    "phase": "ovulation",
+    "phaseLabel": "Ovulation Window",
     "temp": 36.51,
     "movement": "A bit around 5:30am then intense liquid around 8:15am all undigested, then nothing",
     "bristol": "liquid",
@@ -2487,11 +3218,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-02",
     "date": "2026-09-02",
-    "displayDate": "2nd September 2026",
+    "displayDate": "Wednesday, 2nd September 2026",
     "month": "september",
     "cycleDay": 15,
     "phase": "ovulation",
-    "phaseLabel": "Ovulation Day (Temp Nadir)",
+    "phaseLabel": "Ovulation Window",
     "temp": 36.45,
     "movement": "A small bit in morning but not satisfying",
     "bristol": "hard",
@@ -2512,7 +3243,7 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-09-01",
     "date": "2026-09-01",
-    "displayDate": "1st September 2026",
+    "displayDate": "Tuesday, 1st September 2026",
     "month": "september",
     "cycleDay": 14,
     "phase": "ovulation",
@@ -2535,11 +3266,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-08-31",
     "date": "2026-08-31",
-    "displayDate": "31st August 2026",
+    "displayDate": "Monday, 31st August 2026",
     "month": "august",
     "cycleDay": 13,
     "phase": "follicular",
-    "phaseLabel": "Late Follicular (Pre-Ovulatory)",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
     "temp": 36.62,
     "movement": "Watery liquid in morning",
     "bristol": "liquid",
@@ -2559,11 +3290,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-08-30",
     "date": "2026-08-30",
-    "displayDate": "30th August 2026",
+    "displayDate": "Sunday, 30th August 2026",
     "month": "august",
     "cycleDay": 12,
     "phase": "follicular",
-    "phaseLabel": "Follicular Peak",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
     "temp": 36.38,
     "movement": "Tiny bit early morning not satisfying",
     "bristol": "hard",
@@ -2582,11 +3313,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-08-28",
     "date": "2026-08-28",
-    "displayDate": "28th August 2026",
+    "displayDate": "Friday, 28th August 2026",
     "month": "august",
     "cycleDay": 10,
     "phase": "follicular",
-    "phaseLabel": "Mid Follicular",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
     "temp": 36.32,
     "movement": "A bit in morning, less hard more scattered",
     "bristol": "normal",
@@ -2603,11 +3334,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-08-27",
     "date": "2026-08-27",
-    "displayDate": "27th August 2026",
+    "displayDate": "Thursday, 27th August 2026",
     "month": "august",
     "cycleDay": 9,
     "phase": "follicular",
-    "phaseLabel": "Mid Follicular",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
     "temp": 36.57,
     "movement": "A bit around 6:30am then nothing (was hard)",
     "bristol": "hard",
@@ -2628,11 +3359,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-08-24",
     "date": "2026-08-24",
-    "displayDate": "24th August 2026",
+    "displayDate": "Monday, 24th August 2026",
     "month": "august",
     "cycleDay": 6,
     "phase": "follicular",
-    "phaseLabel": "Early Follicular",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
     "temp": 36.62,
     "movement": "A bit in morning, then post dinner sudden intense liquid expulsion (7:30-8:30pm)",
     "bristol": "liquid",
@@ -2652,11 +3383,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-08-21",
     "date": "2026-08-21",
-    "displayDate": "21st August 2026",
+    "displayDate": "Friday, 21st August 2026",
     "month": "august",
     "cycleDay": 3,
-    "phase": "reset",
-    "phaseLabel": "Cycle Reset / Phantom Menstruation",
+    "phase": "menstrual_follicular",
+    "phaseLabel": "Menstrual Follicular \u2022 Days 1\u20134 (Silent Period Reset)",
     "temp": 35.86,
     "movement": "Small bit in morning then little bits throughout day, felt stuck",
     "bristol": "hard",
@@ -2673,11 +3404,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-08-19",
     "date": "2026-08-19",
-    "displayDate": "19th August 2026",
+    "displayDate": "Wednesday, 19th August 2026",
     "month": "august",
     "cycleDay": 1,
-    "phase": "reset",
-    "phaseLabel": "Cycle Reset Transition",
+    "phase": "menstrual_follicular",
+    "phaseLabel": "Menstrual Follicular \u2022 Days 1\u20134 (Silent Period Reset)",
     "temp": 36.07,
     "movement": "Barely anything, felt very uncomfortable in morning",
     "bristol": "none",
@@ -2699,11 +3430,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-08-15",
     "date": "2026-08-15",
-    "displayDate": "15th August 2026",
+    "displayDate": "Saturday, 15th August 2026",
     "month": "august",
     "cycleDay": 25,
     "phase": "luteal",
-    "phaseLabel": "Late Luteal (Adrenaline Shakes)",
+    "phaseLabel": "Late Luteal (Pre-Reset Transition)",
     "temp": 36.55,
     "movement": "None (post drinking day)",
     "bristol": "none",
@@ -2726,11 +3457,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-08-12",
     "date": "2026-08-12",
-    "displayDate": "12th August 2026",
+    "displayDate": "Wednesday, 12th August 2026",
     "month": "august",
     "cycleDay": 22,
     "phase": "luteal",
-    "phaseLabel": "Mid Luteal Crash",
+    "phaseLabel": "Mid-Luteal (Progesterone Peak Window)",
     "temp": 36.53,
     "movement": "A bit in morning / gas",
     "bristol": "hard",
@@ -2751,11 +3482,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-07-26",
     "date": "2026-07-26",
-    "displayDate": "26th July 2026",
+    "displayDate": "Sunday, 26th July 2026",
     "month": "july",
-    "cycleDay": 8,
+    "cycleDay": 5,
     "phase": "follicular",
-    "phaseLabel": "Follicular (Greece Holiday)",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
     "temp": 37.39,
     "movement": "A bit in morning",
     "bristol": "normal",
@@ -2772,11 +3503,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-07-20",
     "date": "2026-07-20",
-    "displayDate": "20th July 2026",
+    "displayDate": "Monday, 20th July 2026",
     "month": "july",
-    "cycleDay": 26,
-    "phase": "reset",
-    "phaseLabel": "Late Luteal / Reset Dumping",
+    "cycleDay": 27,
+    "phase": "luteal",
+    "phaseLabel": "Late Luteal (Pre-Reset Transition)",
     "temp": 36.36,
     "movement": "Not much, then intense load of liquid in evening",
     "bristol": "liquid",
@@ -2795,11 +3526,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-07-13",
     "date": "2026-07-13",
-    "displayDate": "13th July 2026",
+    "displayDate": "Monday, 13th July 2026",
     "month": "july",
-    "cycleDay": 19,
+    "cycleDay": 20,
     "phase": "luteal",
-    "phaseLabel": "Early Luteal Post-Run Crash",
+    "phaseLabel": "Mid-Luteal (Progesterone Peak Window)",
     "temp": 36.5,
     "movement": "Intense in morning",
     "bristol": "liquid",
@@ -2819,11 +3550,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-06-12",
     "date": "2026-06-12",
-    "displayDate": "12th June 2026",
+    "displayDate": "Friday, 12th June 2026",
     "month": "june",
-    "cycleDay": 15,
-    "phase": "ovulation",
-    "phaseLabel": "Ovulation Complete",
+    "cycleDay": 17,
+    "phase": "luteal",
+    "phaseLabel": "Early-Mid Luteal (Progesterone Ramp)",
     "temp": 37.04,
     "movement": "Quite a bit in morning, very painful cramping all morning",
     "bristol": "hard",
@@ -2842,11 +3573,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-06-03",
     "date": "2026-06-03",
-    "displayDate": "3rd June 2026",
+    "displayDate": "Wednesday, 3rd June 2026",
     "month": "june",
-    "cycleDay": 6,
+    "cycleDay": 8,
     "phase": "follicular",
-    "phaseLabel": "Follicular Rise",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
     "temp": 36.27,
     "movement": "A bit in morning and throughout day",
     "bristol": "normal",
@@ -2863,11 +3594,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-05-26",
     "date": "2026-05-26",
-    "displayDate": "26th May 2026",
+    "displayDate": "Tuesday, 26th May 2026",
     "month": "may",
-    "cycleDay": 27,
-    "phase": "reset",
-    "phaseLabel": "Cycle Reset / Temp Drop",
+    "cycleDay": 28,
+    "phase": "luteal",
+    "phaseLabel": "Late Luteal (Silent Period Eve)",
     "temp": 35.97,
     "movement": "Rock hard / bloody in morning. Taking strong meds",
     "bristol": "hard",
@@ -2884,11 +3615,11 @@ const DEFAULT_LOGS = [
   {
     "id": "2026-05-15",
     "date": "2026-05-15",
-    "displayDate": "15th May 2026",
+    "displayDate": "Friday, 15th May 2026",
     "month": "may",
-    "cycleDay": 15,
-    "phase": "ovulation",
-    "phaseLabel": "Ovulation Thermal Spike",
+    "cycleDay": 17,
+    "phase": "luteal",
+    "phaseLabel": "Early-Mid Luteal (Progesterone Ramp)",
     "temp": 36.81,
     "movement": "Quite a lot in morning",
     "bristol": "normal",
@@ -2903,7 +3634,6 @@ const DEFAULT_LOGS = [
     "headspaceNotes": ""
   }
 ];
-
 // ============================================================================
 // 2. STATE MANAGEMENT
 // ============================================================================
@@ -11897,12 +12627,17 @@ function handleQuickLogSubmit(e) {
 }
 
 function updateDashboardStats(entry) {
-  if (entry.temp) {
-    document.getElementById('statTemp').innerText = `${entry.temp}°C`;
+  if (!entry) return;
+  const statTemp = document.getElementById('statTemp');
+  const statMovement = document.getElementById('statMovement');
+  const statBloat = document.getElementById('statBloat');
+  const statMood = document.getElementById('statMood');
+  if (entry.temp && statTemp) {
+    statTemp.innerText = `${entry.temp}°C`;
   }
-  document.getElementById('statMovement').innerText = entry.movement;
-  document.getElementById('statBloat').innerText = `${entry.diaphragmBloat} / 10`;
-  document.getElementById('statMood').innerText = entry.emotions;
+  if (statMovement) statMovement.innerText = entry.movement || '';
+  if (statBloat) statBloat.innerText = `${entry.diaphragmBloat ?? 0} / 10`;
+  if (statMood) statMood.innerText = entry.emotions || '';
 }
 
 // ============================================================================
@@ -12194,10 +12929,200 @@ function generateOuraAdhdNotes(entry, cycleInfo) {
   };
 }
 
+function getHonestOuraBadges(readiness, sleep, rhr, hrv, tempDev) {
+  const rdy = readiness !== null ? readiness : 80;
+  const slp = sleep !== null ? sleep : 80;
+  const hr = rhr !== null ? rhr : 40;
+  const hv = hrv !== null ? hrv : 55;
+  const td = tempDev !== null ? tempDev : 0;
+
+  const rdyBadge = rdy >= 80
+    ? { pill: '● Strong Tank', pillClass: 'bg-emerald-100 text-emerald-800', short: 'Strong Tank', desc: 'Body battery well recharged today.' }
+    : (rdy >= 65
+      ? { pill: '● Steady Pace', pillClass: 'bg-amber-100 text-amber-900', short: 'Steady Pace', desc: 'Moderate energy — pace yourself gently.' }
+      : { pill: '● Recovery Day', pillClass: 'bg-rose-100 text-rose-900', short: 'Recovery Day', desc: 'Low tank — hydrate, rest & go gently today.' });
+
+  const slpBadge = slp >= 80
+    ? { pill: '● Restorative', pillClass: 'bg-purple-100 text-purple-800', short: 'Restorative', desc: 'Solid overnight sleep recovery.' }
+    : (slp >= 65
+      ? { pill: '● Fair Sleep', pillClass: 'bg-amber-100 text-amber-900', short: 'Fair Sleep', desc: 'Lighter sleep — take mornings unhurried.' }
+      : { pill: '● Disrupted', pillClass: 'bg-rose-100 text-rose-900', short: 'Rest Needed', desc: 'Fragmented night — extra water & warmth help.' });
+
+  const rhrBadge = hr <= 41
+    ? { pill: '● Clean Baseline', pillClass: 'bg-emerald-50 text-emerald-800 border border-emerald-200', short: 'Clean Baseline', desc: 'Calm resting heart rate with zero strain.' }
+    : (hr <= 45
+      ? { pill: '● Mild Luteal Lift', pillClass: 'bg-amber-50 text-amber-900 border border-amber-200', short: 'Slightly Warm', desc: 'Slightly above your 37–41 bpm baseline.' }
+      : { pill: '● Elevated (Drinks/Strain)', pillClass: 'bg-rose-50 text-rose-900 border border-rose-200', short: 'Elevated HR', desc: 'Raised overnight HR (drinks, late meal, or stress).' });
+
+  const hrvBadge = hv >= 55
+    ? { pill: '● Vagus Calm', pillClass: 'bg-indigo-100 text-indigo-800', short: 'Vagus Calm', desc: 'Strong rest-and-digest tone for gut motility.' }
+    : (hv >= 38
+      ? { pill: '● Moderate Tone', pillClass: 'bg-amber-100 text-amber-900', short: 'Moderate Tone', desc: 'Nervous system balancing — gentle breaths help.' }
+      : { pill: '● Recovering', pillClass: 'bg-rose-100 text-rose-900', short: 'Recovering', desc: 'Dipped HRV (common after drinks or poor sleep).' });
+
+  let tempBadge;
+  if (hr >= 46 && td >= 0.35) {
+    tempBadge = { pill: '● Masked by HR Spike', pillClass: 'bg-amber-100 text-amber-900 border border-amber-300', short: 'Drinks/Strain Spike', desc: 'Warm spike alongside high HR — not pure hormone heat.' };
+  } else if (td >= 0.10) {
+    tempBadge = { pill: '● Warm (+ Luteal)', pillClass: 'bg-rose-50 text-rose-900 border border-rose-200', short: 'Warm Shift', desc: 'Above baseline — typical post-ovulation warmth.' };
+  } else if (td <= -0.10) {
+    tempBadge = { pill: '● Cool Follicular', pillClass: 'bg-emerald-50 text-emerald-800 border border-emerald-200', short: 'Cool Baseline', desc: 'Cool below baseline — low-progesterone state.' };
+  } else {
+    tempBadge = { pill: '● Neutral Baseline', pillClass: 'bg-slate-100 text-slate-800 border border-slate-200', short: 'Neutral (±)', desc: 'Right around your personal sleeping baseline.' };
+  }
+
+  return { rdyBadge, slpBadge, rhrBadge, hrvBadge, tempBadge };
+}
+
+function renderOuraCycleSummaryCard(targetDateStr) {
+  const container = document.getElementById('ouraCycleSummarySection');
+  if (!container) return;
+
+  const dStr = targetDateStr || activeDateStr || getTodayISOString();
+  const cycleInfo = typeof getCycleInfoForDate === 'function' ? getCycleInfoForDate(dStr) : { cycleDay: 19, phase: 'luteal' };
+  const cycleDay = cycleInfo.cycleDay || 19;
+
+  const targetDateObj = new Date(`${dStr}T12:00:00Z`);
+  const cycleStartObj = new Date(targetDateObj.getTime() - (cycleDay - 1) * 86400000);
+  const nextResetStartObj = new Date(cycleStartObj.getTime() + 28 * 86400000);
+  const nextResetEndObj = new Date(cycleStartObj.getTime() + 31 * 86400000);
+
+  const fmtShort = (dt) => dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  const cycleStartIso = cycleStartObj.toISOString().slice(0, 10);
+  const cycleStartLabel = fmtShort(cycleStartObj);
+  const nextResetLabel = `${fmtShort(nextResetStartObj)} – ${fmtShort(nextResetEndObj)}`;
+
+  // Gather all logs in this cycle up to the viewed date (or today if viewing current cycle)
+  const todayIso = getTodayISOString();
+  const maxDateIso = dStr >= cycleStartIso ? (dStr > todayIso ? dStr : (cycleStartIso === '2026-10-14' && dStr >= '2026-10-14' ? (dStr > todayIso ? dStr : todayIso) : dStr)) : dStr;
+  const cycleLogs = (Array.isArray(logs) ? logs : [])
+    .filter(l => l.date >= cycleStartIso && l.date <= maxDateIso)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const day1Entry = logs.find(l => l.date === cycleStartIso);
+  const day1TempStr = (day1Entry && day1Entry.ouraTempDev !== undefined && day1Entry.ouraTempDev !== null)
+    ? `${Number(day1Entry.ouraTempDev) > 0 ? '+' : ''}${Number(day1Entry.ouraTempDev).toFixed(2)}°C Oura drop`
+    : '28-day rhythm anchor';
+
+  const isNightConfounded = (l) => {
+    const hr = Number(l.rhr ?? l.ouraRhr ?? 0);
+    const hv = Number(l.hrv ?? l.ouraHrv ?? 99);
+    const alc = (l.alcohol && l.alcohol !== 'none') || (Array.isArray(l.puffiness) && l.puffiness.some(p => /wine|tequila|drink|prosecco|beer|alcohol|bubbles/i.test(p)));
+    return (hr >= 46) || (hv > 0 && hv <= 34) || Boolean(alc);
+  };
+
+  const nightsWithTemp = cycleLogs
+    .filter(l => l.ouraTempDev !== undefined && l.ouraTempDev !== null)
+    .map(l => {
+      const cd = Math.round((new Date(`${l.date}T12:00:00Z`) - cycleStartObj) / 86400000) + 1;
+      return {
+        date: l.date,
+        shortDate: fmtShort(new Date(`${l.date}T12:00:00Z`)),
+        cd,
+        temp: Number(l.ouraTempDev),
+        rhr: Number(l.rhr ?? l.ouraRhr ?? 0),
+        confounded: isNightConfounded(l)
+      };
+    });
+
+  const cleanMidCycle = nightsWithTemp.filter(n => !n.confounded && n.cd >= 12 && n.cd <= 21);
+  const deepestDip = cleanMidCycle.length > 0
+    ? cleanMidCycle.reduce((min, cur) => (cur.temp < min.temp ? cur : min), cleanMidCycle[0])
+    : null;
+
+  const cleanWarmPost14 = nightsWithTemp.filter(n => !n.confounded && n.cd >= 15 && n.temp >= 0.08);
+  const confoundedWarmPost15 = nightsWithTemp.filter(n => n.confounded && n.cd >= 16 && n.temp >= 0.30);
+  const cleanCoolLate = nightsWithTemp.filter(n => !n.confounded && n.cd >= 19 && n.temp <= -0.05);
+
+  let ovuBadge = '';
+  let ovuBadgeClass = '';
+  let ovuTitle = '';
+  let ovuSummary = '';
+
+  if (cycleStartIso === '2026-08-19') {
+    ovuBadge = '✅ Ovulated (~2 Sep • Day 15)';
+    ovuBadgeClass = 'bg-emerald-100 text-emerald-900 border-emerald-300';
+    ovuTitle = 'Confirmed (~2 Sep)';
+    ovuSummary = 'Confirmed via sustained luteal warmth before your 16 Sep Oura Cycle Day 1 reset.';
+  } else if (cleanWarmPost14.length >= 2) {
+    const estDay = deepestDip ? deepestDip.cd : Math.max(14, cleanWarmPost14[0].cd - 1);
+    const estDateObj = new Date(cycleStartObj.getTime() + (estDay - 1) * 86400000);
+    ovuBadge = `✅ Confirmed (~${fmtShort(estDateObj)} • Day ${estDay})`;
+    ovuBadgeClass = 'bg-emerald-100 text-emerald-900 border-emerald-300';
+    ovuTitle = `Yes (~${fmtShort(estDateObj)}, Day ${estDay})`;
+    ovuSummary = `Verified by ${cleanWarmPost14.length} clean alcohol-free warm nights above baseline${deepestDip ? ` after your ${deepestDip.temp.toFixed(2)}°C dip on ${deepestDip.shortDate}` : ''}.`;
+  } else if (cycleDay <= 13) {
+    ovuBadge = '🌿 Follicular Window (Pre-Ovulation)';
+    ovuBadgeClass = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+    ovuTitle = 'Not Yet (Days 14–17 Window Ahead)';
+    ovuSummary = `Currently in your cool follicular phase (Day ${cycleDay}). Expected ovulation window is Days 14–17.`;
+  } else if (confoundedWarmPost15.length > 0 && cleanCoolLate.length === 0) {
+    const dipNote = deepestDip ? `Clean nights stayed cool right through <strong>${deepestDip.shortDate} (Day ${deepestDip.cd}: ${deepestDip.temp.toFixed(2)}°C dip)</strong>.` : 'Clean weekday temperatures stayed below baseline.';
+    const spikeDates = confoundedWarmPost15.map(n => `${n.shortDate} (+${n.temp.toFixed(2)}°C, ${n.rhr} bpm)`).join(' & ');
+    ovuBadge = '⏳ Unconfirmed (Masked by Drinks)';
+    ovuBadgeClass = 'bg-amber-100 text-amber-900 border-amber-300';
+    ovuTitle = 'Pending 2 Clean Nights';
+    ovuSummary = `${dipNote} The warm jump on <strong>${spikeDates}</strong> had high heart rate from social drinks — <strong>2–3 alcohol-free sleeps</strong> will confirm if you ovulated around Day 17–18 or if your <strong>5 Oct Mirena</strong> gently paused ovulation this month.`;
+  } else if (cleanCoolLate.length >= 2 || cycleDay >= 21) {
+    ovuBadge = '🌸 Gently Paused (New Mirena Cushion)';
+    ovuBadgeClass = 'bg-purple-100 text-purple-900 border-purple-300';
+    ovuTitle = 'No Thermal Shift Yet';
+    ovuSummary = `Clean temperatures have stayed cool below baseline past Day ${cycleDay}. With your new <strong>5th Oct Mirena coil</strong>, a delayed or skipped ovulation in Months 1–3 is 100% healthy and keeps tummy bloat much flatter!`;
+  } else {
+    ovuBadge = '🔍 Watching Ovulation Window';
+    ovuBadgeClass = 'bg-amber-50 text-amber-900 border-amber-200';
+    ovuTitle = 'In Window Now (Days 14–18)';
+    ovuSummary = `Clean temperatures are still cool${deepestDip ? ` (lowest ${deepestDip.temp.toFixed(2)}°C on ${deepestDip.shortDate})` : ''}. Oura looks for 3 clean warm nights (+0.10°C to +0.35°C) to confirm ovulation.`;
+  }
+
+  container.innerHTML = `
+    <div class="bg-white rounded-3xl border border-brand-border p-5 shadow-xs space-y-3.5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-2xl bg-purple-100 text-purple-800 flex items-center justify-center text-base shrink-0">
+            🌡️
+          </div>
+          <div>
+            <h4 class="font-bold text-sm text-brand-textDark">This Cycle & Ovulation Check</h4>
+            <p class="text-[11px] text-brand-textMuted">Calculated automatically from your clean overnight Oura temperatures</p>
+          </div>
+        </div>
+        <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border ${ovuBadgeClass} self-start sm:self-auto">
+          ${ovuBadge}
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+        <div class="p-3 rounded-2xl bg-brand-cream/70 border border-brand-border space-y-0.5">
+          <span class="text-[10px] font-bold uppercase text-brand-textMuted">Cycle Day 1 Reset</span>
+          <div class="font-extrabold text-sm text-brand-textDark">${cycleStartLabel} 2026</div>
+          <span class="text-[10px] text-emerald-800 font-semibold">${day1TempStr}</span>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-purple-50/70 border border-purple-200/80 space-y-0.5">
+          <span class="text-[10px] font-bold uppercase text-purple-800">Did Emma Ovulate?</span>
+          <div class="font-extrabold text-sm text-purple-950">${ovuTitle}</div>
+          <span class="text-[10px] text-purple-800 font-medium">New Mirena fitted 5 Oct</span>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-brand-cream/70 border border-brand-border space-y-0.5">
+          <span class="text-[10px] font-bold uppercase text-brand-textMuted">Next Silent Reset</span>
+          <div class="font-extrabold text-sm text-brand-textDark">${nextResetLabel}</div>
+          <span class="text-[10px] text-brand-textMuted font-medium">Watch for -0.20°C Oura drop</span>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/80 text-xs text-brand-textDark leading-relaxed">
+        ${ovuSummary}
+      </div>
+    </div>
+  `;
+}
+
 function renderOuraSection(targetDateStr) {
   const gridContainer = document.getElementById('ouraBiometricsGrid');
-  const notesContainer = document.getElementById('ouraAdhdNotesContainer');
-  if (!gridContainer && !notesContainer) return;
+  const summaryContainer = document.getElementById('ouraCycleSummarySection');
+  if (!gridContainer && !summaryContainer) return;
 
   const dStr = targetDateStr || activeDateStr || getTodayISOString();
   const entry = logs.find(l => l.date === dStr) || { date: dStr };
@@ -12209,17 +13134,14 @@ function renderOuraSection(targetDateStr) {
                       (entry.ouraHrv !== undefined && entry.ouraHrv !== null) ||
                       (dStr === '2026-09-08');
 
-  // Exact metrics
   const readiness = (entry.readinessScore !== undefined && entry.readinessScore !== null) ? Number(entry.readinessScore) : (dStr === '2026-09-08' ? 90 : null);
   const sleep = (entry.sleepScore !== undefined && entry.sleepScore !== null) ? Number(entry.sleepScore) : ((entry.ouraSleep !== undefined && entry.ouraSleep !== null) ? Number(entry.ouraSleep) : (dStr === '2026-09-08' ? 86 : null));
   const rhr = (entry.rhr !== undefined && entry.rhr !== null) ? Number(entry.rhr) : ((entry.ouraRhr !== undefined && entry.ouraRhr !== null) ? Number(entry.ouraRhr) : (dStr === '2026-09-08' ? 37 : null));
   const hrv = (entry.hrv !== undefined && entry.hrv !== null) ? Number(entry.hrv) : ((entry.ouraHrv !== undefined && entry.ouraHrv !== null) ? Number(entry.ouraHrv) : (dStr === '2026-09-08' ? 61 : null));
-  const temp = (entry.temp !== undefined && entry.temp !== null && entry.isManualTemp) ? entry.temp : null;
   const tempDev = (entry.ouraTempDev !== undefined && entry.ouraTempDev !== null) ? Number(entry.ouraTempDev) : (dStr === '2026-09-08' ? -0.25 : null);
   const cycleDay = cycleInfo?.cycleDay || entry.cycleDay || 21;
   const phaseLabel = (cycleInfo?.phaseLabel || entry.phaseLabel || 'Mid-Luteal').replace(/\s*\([^)]*\)/g, '').trim();
 
-  // 1. Render Glanceable Biometrics Grid
   if (gridContainer) {
     if (hasOuraData) {
       const devDisplay = tempDev !== null ? `${tempDev > 0 ? '+' : ''}${tempDev.toFixed(2)}°C` : '--';
@@ -12227,75 +13149,71 @@ function renderOuraSection(targetDateStr) {
       const slpDisplay = sleep !== null ? sleep : '--';
       const rhrDisplay = rhr !== null ? rhr : '--';
       const hrvDisplay = hrv !== null ? hrv : '--';
+      const badges = getHonestOuraBadges(readiness, sleep, rhr, hrv, tempDev);
+
       gridContainer.innerHTML = `
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <!-- Readiness Card -->
-          <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-brand-border shadow-2xs space-y-1.5 transition-all hover:border-emerald-300">
+          <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-brand-border shadow-2xs space-y-1.5">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-brand-textMuted uppercase tracking-wider">Readiness</span>
               <span class="text-base">🔋</span>
             </div>
             <div class="text-xl sm:text-2xl font-black text-brand-textDark">${rdyDisplay} <span class="text-xs font-semibold text-brand-textMuted">/100</span></div>
-            <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-              <span>● Optimal Tank</span>
+            <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${badges.rdyBadge.pillClass}">
+              <span>${badges.rdyBadge.pill}</span>
             </div>
-            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">Cardiovascular & muscular systems fully recharged.</p>
+            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">${badges.rdyBadge.desc}</p>
           </div>
 
-          <!-- Sleep Score Card -->
-          <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-brand-border shadow-2xs space-y-1.5 transition-all hover:border-purple-300">
+          <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-brand-border shadow-2xs space-y-1.5">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-brand-textMuted uppercase tracking-wider">Sleep</span>
               <span class="text-base">🌙</span>
             </div>
             <div class="text-xl sm:text-2xl font-black text-brand-textDark">${slpDisplay} <span class="text-xs font-semibold text-brand-textMuted">/100</span></div>
-            <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
-              <span>● Restorative</span>
+            <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${badges.slpBadge.pillClass}">
+              <span>${badges.slpBadge.pill}</span>
             </div>
-            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">Deep sleep efficiency protected neurological recovery.</p>
+            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">${badges.slpBadge.desc}</p>
           </div>
 
-          <!-- Resting Heart Rate -->
-          <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-brand-border shadow-2xs space-y-1.5 transition-all hover:border-brand-sage">
+          <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-brand-border shadow-2xs space-y-1.5">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-brand-textMuted uppercase tracking-wider">Resting HR</span>
               <span class="text-base">❤️</span>
             </div>
             <div class="text-xl sm:text-2xl font-black text-brand-textDark">${rhrDisplay} <span class="text-xs font-semibold text-brand-textMuted">bpm</span></div>
-            <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-              <span>● Elite Base</span>
+            <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${badges.rhrBadge.pillClass}">
+              <span>${badges.rhrBadge.pill}</span>
             </div>
-            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">Quiet nocturnal heart rate confirms zero systemic strain.</p>
+            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">${badges.rhrBadge.desc}</p>
           </div>
 
-          <!-- HRV -->
-          <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-brand-border shadow-2xs space-y-1.5 transition-all hover:border-indigo-300">
+          <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-brand-border shadow-2xs space-y-1.5">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-brand-textMuted uppercase tracking-wider">HRV Balance</span>
               <span class="text-base">〰️</span>
             </div>
             <div class="text-xl sm:text-2xl font-black text-brand-textDark">${hrvDisplay} <span class="text-xs font-semibold text-brand-textMuted">ms</span></div>
-            <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
-              <span>● Vagus Primed</span>
+            <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${badges.hrvBadge.pillClass}">
+              <span>${badges.hrvBadge.pill}</span>
             </div>
-            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">High parasympathetic tone ready to stimulate colon motility.</p>
+            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">${badges.hrvBadge.desc}</p>
           </div>
 
-          <!-- Oura Temp Shift -->
-          <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-brand-border shadow-2xs space-y-1.5 transition-all hover:border-amber-300">
+          <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-brand-border shadow-2xs space-y-1.5">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-brand-textMuted uppercase tracking-wider">Oura Temp Shift</span>
+              <span class="text-xs font-bold text-brand-textMuted uppercase tracking-wider">Temp Shift</span>
               <span class="text-base">🌡️</span>
             </div>
             <div class="text-xl sm:text-2xl font-black text-brand-textDark">${devDisplay}</div>
-            <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-              <span>● Stable Baseline Shift (±)</span>
+            <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${badges.tempBadge.pillClass}">
+              <span>${badges.tempBadge.pill}</span>
             </div>
-            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">Oura tracks ± shifts from your baseline, not a 36°C oral reading. Zero morning alarms needed!</p>
+            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">${badges.tempBadge.desc}</p>
           </div>
 
-          <!-- Cycle Phase -->
-          <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-brand-border shadow-2xs space-y-1.5 transition-all hover:border-brand-coral">
+          <div class="bg-white p-3.5 sm:p-4 rounded-3xl border border-brand-border shadow-2xs space-y-1.5">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-brand-textMuted uppercase tracking-wider">Cycle Day</span>
               <span class="text-base">🌸</span>
@@ -12304,7 +13222,7 @@ function renderOuraSection(targetDateStr) {
             <div class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-coralLight text-brand-coral">
               <span>● ${phaseLabel}</span>
             </div>
-            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">Hormonal rhythm governs sensory gating & motility.</p>
+            <p class="text-[10px] text-brand-textMuted leading-tight pt-1">28-day rhythm tracked automatically.</p>
           </div>
         </div>
       `;
@@ -12319,211 +13237,49 @@ function renderOuraSection(targetDateStr) {
             </div>
             <div>
               <div class="font-bold text-sm text-brand-textDark flex items-center gap-2 flex-wrap">
-                <span>${isExpired ? 'Oura Ring 30-Day Security Session Expired — 1-Tap Reconnect Required' : `Awaiting Oura Ring Sync for ${entry.displayDate || dStr}`}</span>
-                <span class="text-[10px] font-black px-2 py-0.5 rounded-full ${isExpired ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-purple-100 text-purple-800'}">
-                  ${isExpired ? 'Action Needed' : 'Ready to Sync'}
-                </span>
+                <span>${isExpired ? 'Oura Ring Session Expired — 1-Tap Reconnect Required' : `No Oura Data Yet for ${entry.displayDate || dStr}`}</span>
               </div>
               <p class="text-xs text-brand-textMuted mt-0.5 leading-relaxed">
-                ${isExpired
-                  ? `Oura security tokens expire after 30 days. Tap <strong>"1-Tap Authorize with Oura"</strong> to automatically pull all missing sleep, HRV, and temperature data up to <strong>${entry.displayDate || dStr}</strong>.`
-                  : `Viewing date: <strong>${entry.displayDate || dStr}</strong>. Tap "Sync Ring Now" or "1-Tap Authorize" to pull your latest nocturnal biometrics.`}
+                Tap <strong>"Sync Ring Now"</strong> (or <strong>"1-Tap Authorize"</strong> if expired) to pull your latest overnight sleep, HRV & temperature shifts.
               </p>
             </div>
           </div>
           <div class="flex items-center gap-2 flex-wrap shrink-0">
-            <a href="${authUrl}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer">
-              <span>🔗</span>
-              <span>1-Tap Authorize with Oura</span>
-            </a>
-            <button onclick="fetchOuraBiometrics(false)" class="px-3.5 py-2 rounded-xl bg-white hover:bg-purple-50 text-purple-900 border border-purple-200 text-xs font-bold transition-all shadow-2xs cursor-pointer">
+            <button onclick="fetchOuraBiometrics(false)" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-2xs cursor-pointer">
               🔄 Sync Ring Now
             </button>
+            <a href="${authUrl}" class="px-3.5 py-2 rounded-xl bg-white hover:bg-purple-50 text-purple-900 border border-purple-200 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer">
+              <span>🔗</span>
+              <span>1-Tap Authorize</span>
+            </a>
           </div>
         </div>
       `;
     }
   }
 
-  // 2. Render Emma's ADHD Mind & Body Translation Card
-  if (notesContainer) {
-    const translation = generateOuraAdhdNotes(entry, cycleInfo);
-    if (translation) {
-      notesContainer.innerHTML = `
-        <div class="bg-gradient-to-br from-purple-50/90 via-white to-purple-50/90 border-2 border-purple-300 rounded-3xl p-5 sm:p-6 shadow-sm space-y-5 animate-fadeIn">
-          
-          <!-- Header Banner -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-purple-100 pb-4">
-            <div class="flex items-center space-x-3">
-              <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center text-xl shadow-xs shrink-0">
-                🧠
-              </div>
-              <div>
-                <div class="flex items-center space-x-2 flex-wrap gap-y-1">
-                  <h3 class="font-extrabold text-base text-brand-textDark">Emma's ADHD Mind & Body Translation</h3>
-                  <span class="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-300">
-                    Day ${translation.cycleDay} • ${translation.cleanPhase}
-                  </span>
-                </div>
-                <p class="text-xs text-brand-textMuted mt-0.5">
-                  Auto-calibrated from Oura Ring biometrics, cycle rhythm & your symptoms.
-                </p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 self-start sm:self-auto">
-              <span class="text-[11px] font-bold text-purple-800 bg-white px-3 py-1 rounded-xl border border-purple-200 shadow-2xs">
-                ✨ Zero-Guilt Zone
-              </span>
-            </div>
-          </div>
+  renderOuraCycleSummaryCard(dStr);
 
-          <!-- The 10-Second Bottom Line (ADHD High-Contrast Banner) -->
-          <div class="p-4 rounded-2xl bg-gradient-to-r from-purple-100/90 to-indigo-50 border border-purple-200 text-purple-950 space-y-1.5 shadow-2xs">
-            <div class="flex items-center gap-2 font-black text-sm text-purple-950">
-              <span class="text-base">⚡</span>
-              <span>The 10-Second Takeaway: ${translation.bottomLineHeadline}</span>
-            </div>
-            <p class="text-xs leading-relaxed text-purple-900 font-medium">
-              ${translation.bottomLineText}
-            </p>
-          </div>
-
-          <!-- ADHD Temperature Reassurance Banner -->
-          <div class="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-950 space-y-1.5 shadow-2xs">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2 font-extrabold text-xs text-amber-950">
-                <span class="text-base">🌡️</span>
-                <span>Why your temp says ${translation.tempExplanation?.val || '-0.25°C'} (± shift) instead of 36.x°C</span>
-              </div>
-              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 shrink-0">
-                ADHD Friendly
-              </span>
-            </div>
-            <p class="text-xs leading-relaxed text-amber-900">
-              ${translation.tempExplanation?.quickTakeaway || 'Oura measures nocturnal skin temperature deviation relative to your personal baseline, not a single fragile oral reading. Your reading confirms your basal temp is calm, stable, and healthy.'}
-            </p>
-            <p class="text-[11px] text-amber-800 font-medium leading-relaxed">
-              💡 <em>${translation.tempExplanation?.adhdCalm || 'Traditional cycle tracking forces you to take an oral thermometer temp at 6:00 AM before moving — a recipe for ADHD morning stress. Oura tracks it passively while you sleep. Zero guilt, zero alarms!'}</em>
-            </p>
-          </div>
-
-          <!-- Dual Battery Comparison: Physical vs. Sensory -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            <!-- Physical Tank Card -->
-            <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-2">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <span class="text-lg">🔋</span>
-                  <span class="font-bold text-xs text-emerald-950 uppercase tracking-wider">Physical Body Tank</span>
-                </div>
-                <span class="text-xs font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300">
-                  ${translation.readiness}% • ${translation.physicalStatus}
-                </span>
-              </div>
-              <div class="flex items-center gap-3 text-xs text-emerald-900 font-semibold pt-0.5">
-                <span>🌙 Sleep: ${translation.sleep}</span>
-                <span>•</span>
-                <span>❤️ RHR: ${translation.rhr} bpm</span>
-                <span>•</span>
-                <span>〰️ HRV: ${translation.hrv} ms</span>
-              </div>
-              <p class="text-xs text-emerald-900 leading-relaxed font-normal">
-                ${translation.physicalDesc}
-              </p>
-            </div>
-
-            <!-- Sensory & Dopamine Battery Card -->
-            <div class="p-4 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-2">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <span class="text-lg">🧠</span>
-                  <span class="font-bold text-xs text-purple-950 uppercase tracking-wider">Sensory & Social Battery</span>
-                </div>
-                <span class="text-xs font-black px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-300">
-                  Quiet Mode • Low Bandwidth
-                </span>
-              </div>
-              <div class="text-xs text-purple-900 font-semibold pt-0.5">
-                <span>🌸 Progesterone Peak Window (Day ${translation.cycleDay})</span>
-              </div>
-              <p class="text-xs text-purple-900 leading-relaxed font-normal">
-                ${translation.sensoryDesc}
-              </p>
-            </div>
-
-          </div>
-
-          <!-- Gut Motility & Diaphragm APD Connection -->
-          <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="text-lg">🌊</span>
-                <span class="font-bold text-xs text-amber-950 uppercase tracking-wider">Gut Motility & Diaphragm (APD) Connection</span>
-              </div>
-              <span class="text-xs font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-                Bloat: ${translation.bloat}/10 • Watery Bypass
-              </span>
-            </div>
-            <p class="text-xs text-amber-950 leading-relaxed font-normal">
-              ${translation.motilityInsight}
-            </p>
-          </div>
-
-          <!-- Emma's ADHD Permission Slip & 3 Low-Effort Actions -->
-          <div class="space-y-2.5 pt-1">
-            <h4 class="text-xs font-extrabold text-brand-textDark uppercase tracking-wider flex items-center gap-1.5">
-              <span>📋</span>
-              <span>Emma's Low-Effort Daily Actions (No Overwhelm)</span>
-            </h4>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              ${translation.actions.map(act => `
-                <div class="p-3.5 bg-white rounded-2xl border border-purple-100 shadow-2xs space-y-1.5">
-                  <div class="flex items-center gap-2">
-                    <span class="text-base">${act.icon}</span>
-                    <h5 class="text-xs font-bold text-brand-textDark">${act.title}</h5>
-                  </div>
-                  <p class="text-[11px] text-brand-textMuted leading-relaxed">${act.text}</p>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-
-        </div>
-      `;
-    }
-  }
-
-  // 3. Update Chart Stat Pills
+  // Update Chart Stat Pills
   const chartBloatStat = document.getElementById('chartBloatStat');
   const chartTempStat = document.getElementById('chartTempStat');
   const chartRecoveryStat = document.getElementById('chartRecoveryStat');
-  if (chartBloatStat) chartBloatStat.innerText = `${entry.diaphragmBloat !== undefined && entry.diaphragmBloat !== null ? entry.diaphragmBloat : 8} / 10`;
+  const chartHeartStat = document.getElementById('chartHeartStat');
+  if (chartBloatStat) chartBloatStat.innerText = `${entry.diaphragmBloat !== undefined && entry.diaphragmBloat !== null ? entry.diaphragmBloat : 0} / 10`;
   if (chartTempStat) {
     if (entry.isManualTemp && entry.temp) {
       chartTempStat.innerText = `${entry.temp}°C`;
+    } else if (tempDev !== null) {
+      chartTempStat.innerText = `${tempDev > 0 ? '+' : ''}${tempDev.toFixed(2)}°C`;
     } else {
-      const devVal = (entry.ouraTempDev !== undefined && entry.ouraTempDev !== null)
-        ? Number(entry.ouraTempDev)
-        : (dStr === '2026-09-08' ? -0.25 : null);
-      if (devVal !== null) {
-        chartTempStat.innerText = `${devVal > 0 ? '+' : ''}${devVal.toFixed(2)}°C`;
-      } else {
-        chartTempStat.innerText = '-0.25°C';
-      }
+      chartTempStat.innerText = '--';
     }
   }
   if (chartRecoveryStat) {
-    const slp = (entry.sleepScore !== undefined && entry.sleepScore !== null) ? entry.sleepScore : ((entry.ouraSleep !== undefined && entry.ouraSleep !== null) ? entry.ouraSleep : 86);
-    const rdy = (entry.readinessScore !== undefined && entry.readinessScore !== null) ? entry.readinessScore : 90;
-    chartRecoveryStat.innerText = `${slp} Sleep • ${rdy} Ready`;
+    chartRecoveryStat.innerText = `${sleep !== null ? sleep : '--'} Sleep • ${readiness !== null ? readiness : '--'} Ready`;
   }
-
-  if (typeof renderOuraOvulationSection === 'function') {
-    renderOuraOvulationSection(dStr);
-  }
-  if (typeof renderOuraSilentPeriodSection === 'function') {
-    renderOuraSilentPeriodSection(dStr);
+  if (chartHeartStat) {
+    chartHeartStat.innerText = `${hrv !== null ? hrv : '--'} ms HRV • ${rhr !== null ? rhr : '--'} bpm`;
   }
 
   if (window.lucide && typeof lucide.createIcons === 'function') {
@@ -12589,9 +13345,23 @@ function renderDashboardOuraGlance(targetDateStr) {
   const rhr = (entry.rhr !== undefined && entry.rhr !== null) ? Number(entry.rhr) : ((entry.ouraRhr !== undefined && entry.ouraRhr !== null) ? Number(entry.ouraRhr) : (dStr === '2026-09-08' ? 37 : 45));
   const hrv = (entry.hrv !== undefined && entry.hrv !== null) ? Number(entry.hrv) : ((entry.ouraHrv !== undefined && entry.ouraHrv !== null) ? Number(entry.ouraHrv) : (dStr === '2026-09-08' ? 61 : 55));
   const tempDev = (entry.ouraTempDev !== undefined && entry.ouraTempDev !== null) ? Number(entry.ouraTempDev) : (dStr === '2026-09-08' ? -0.25 : null);
-  const devDisplay = tempDev !== null ? `${tempDev > 0 ? '+' : ''}${tempDev.toFixed(2)}°C` : '-0.25°C';
+  const devDisplay = tempDev !== null ? `${tempDev > 0 ? '+' : ''}${tempDev.toFixed(2)}°C` : '--';
   const cycleDay = cycleInfo?.cycleDay || entry.cycleDay || 21;
   const cleanPhase = (cycleInfo?.phaseLabel || entry.phaseLabel || 'Mid-Luteal').replace(/\s*\([^)]*\)/g, '').trim();
+  const badges = getHonestOuraBadges(readiness, sleep, rhr, hrv, tempDev);
+  const topPillClass = readiness >= 80
+    ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+    : (readiness >= 65 ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-rose-100 text-rose-900 border-rose-300');
+  const topPillDot = readiness >= 80 ? '🟢' : (readiness >= 65 ? '🟡' : '🟠');
+
+  let oneLineSummary = '';
+  if (rhr >= 46 || readiness < 65) {
+    oneLineSummary = `Gentle recovery day (<strong>${readiness}% battery</strong>, <strong>${rhr} bpm RHR</strong>) — sip extra electrolytes, stick to warm easy meals, and take today at a calm pace.`;
+  } else if (readiness >= 80) {
+    oneLineSummary = `Calm, recharged base today (<strong>${readiness}% battery</strong>, <strong>${rhr} bpm RHR</strong>, <strong>${hrv} ms HRV</strong>) — Oura tracked your overnight temp (<strong>${devDisplay}</strong>) automatically.`;
+  } else {
+    oneLineSummary = `Steady energy reserve today (<strong>${readiness}% battery</strong>, <strong>${rhr} bpm RHR</strong>, <strong>${devDisplay}</strong> overnight temp) — pace yourself gently on Cycle Day ${cycleDay}.`;
+  }
 
   container.innerHTML = `
     <div class="bg-gradient-to-r from-purple-50/90 via-white to-purple-50/90 border border-purple-200 rounded-3xl p-4 sm:p-5 shadow-2xs space-y-3">
@@ -12602,16 +13372,16 @@ function renderDashboardOuraGlance(targetDateStr) {
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h4 class="text-xs font-bold text-purple-950 uppercase tracking-wider">Morning Oura & ADHD Translation</h4>
-              <span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                🟢 ${readiness}% Body Battery
+              <h4 class="text-xs font-bold text-purple-950 uppercase tracking-wider">Morning Oura Snapshot</h4>
+              <span class="text-[9px] font-black px-2 py-0.5 rounded-full border ${topPillClass}">
+                ${topPillDot} ${readiness}% Battery
               </span>
             </div>
             <p class="text-[11px] text-brand-textMuted">Cycle Day ${cycleDay} • ${cleanPhase}</p>
           </div>
         </div>
         <button onclick="switchTab('oura')" class="self-start sm:self-auto px-3 py-1 rounded-xl text-[11px] font-bold bg-purple-100 hover:bg-purple-200 text-purple-900 border border-purple-300 transition-all flex items-center gap-1 active:scale-95 cursor-pointer">
-          <span>Explain My Biometrics</span>
+          <span>Cycle & Oura Tab</span>
           <span>↗</span>
         </button>
       </div>
@@ -12622,49 +13392,42 @@ function renderDashboardOuraGlance(targetDateStr) {
           <span class="text-lg">🔋</span>
           <div>
             <div class="text-xs font-extrabold text-brand-textDark">${readiness} / 100</div>
-            <div class="text-[10px] text-emerald-700 font-semibold">Physical Tank Full</div>
+            <div class="text-[10px] text-brand-textMuted font-semibold">${badges.rdyBadge.short}</div>
           </div>
         </div>
         <div class="bg-white/90 p-2.5 rounded-2xl border border-purple-100 flex items-center gap-2.5">
           <span class="text-lg">🌙</span>
           <div>
             <div class="text-xs font-extrabold text-brand-textDark">${sleep} / 100</div>
-            <div class="text-[10px] text-purple-700 font-semibold">Deep Sleep Base</div>
+            <div class="text-[10px] text-purple-700 font-semibold">${badges.slpBadge.short}</div>
           </div>
         </div>
         <div class="bg-white/90 p-2.5 rounded-2xl border border-purple-100 flex items-center gap-2.5">
           <span class="text-lg">〰️</span>
           <div>
             <div class="text-xs font-extrabold text-brand-textDark">${hrv} ms</div>
-            <div class="text-[10px] text-indigo-700 font-semibold">Vagus Primed</div>
+            <div class="text-[10px] text-indigo-700 font-semibold">${badges.hrvBadge.short}</div>
           </div>
         </div>
         <div class="bg-white/90 p-2.5 rounded-2xl border border-purple-100 flex items-center gap-2.5">
           <span class="text-lg">❤️</span>
           <div>
             <div class="text-xs font-extrabold text-brand-textDark">${rhr} bpm</div>
-            <div class="text-[10px] text-brand-sage font-semibold">Quiet Baseline</div>
+            <div class="text-[10px] text-brand-sage font-semibold">${badges.rhrBadge.short}</div>
           </div>
         </div>
         <div class="bg-white/90 p-2.5 rounded-2xl border border-purple-100 flex items-center gap-2.5">
           <span class="text-lg">🌡️</span>
           <div>
             <div class="text-xs font-extrabold text-brand-textDark">${devDisplay}</div>
-            <div class="text-[10px] text-amber-700 font-semibold">Temp Shift (±)</div>
+            <div class="text-[10px] text-amber-700 font-semibold">${badges.tempBadge.short}</div>
           </div>
         </div>
       </div>
 
-      <!-- The 10-Second ADHD Bottom Line Pill -->
-      <div class="p-3 bg-purple-100/50 rounded-2xl border border-purple-200 text-xs text-purple-950 space-y-1">
-        <div class="font-bold flex items-center gap-1.5 text-purple-900">
-          <span>💡</span>
-          <span>The 10-Second Takeaway:</span>
-        </div>
-        <p class="text-[11px] leading-relaxed text-purple-900/90">
-          Your physical body battery is <strong>${readiness}% charged</strong> and nocturnal temp is calm (<strong>${devDisplay}</strong>, no thermometer needed!), but your <strong>sensory battery is in quiet mode</strong> due to the Day ${cycleDay} progesterone peak. Overwhelm or zero social bandwidth is <strong>100% biological</strong> — not an ADHD failure.
-        </p>
-      </div>
+      <p class="text-[11px] leading-relaxed text-purple-950/90 bg-purple-100/40 px-3 py-2 rounded-xl border border-purple-200/70">
+        💡 ${oneLineSummary}
+      </p>
     </div>
   `;
 
@@ -14310,6 +15073,33 @@ function showRescueGuide(type) {
         <div class="p-2 rounded-xl bg-brand-cream/80 border border-brand-border">
           <strong class="text-brand-textDark block">3. Steep & Sip:</strong>
           <span class="text-brand-textMuted">Pour boiling water, cover with a saucer for 8 minutes to trap essential oils, then sip warm.</span>
+        </div>
+      </div>
+    `;
+    if (act) {
+      act.innerHTML = `
+        <button type="button" onclick="closeRescueModal()" class="w-full py-2.5 rounded-2xl bg-brand-textDark hover:bg-black text-white font-bold text-xs transition-all active:scale-98">
+          Got it ✓
+        </button>
+      `;
+    }
+  } else if (type === 'drinks') {
+    if (icon) icon.innerHTML = '🥂';
+    if (title) title.textContent = 'Safe Social Drinks Swaps';
+    if (sub) sub.textContent = 'Zero guilt • Easiest choices for a flat, comfortable tummy';
+    body.innerHTML = `
+      <div class="space-y-2 text-[11px]">
+        <div class="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-200">
+          <strong class="text-emerald-900 block font-bold">🥇 #1 Easiest: Tequila, Soda & Fresh Lime</strong>
+          <span class="text-emerald-950">100% blue agave tequila with sparkling water & lime — zero sugar, zero gluten, zero fermentation bloat.</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200">
+          <strong class="text-amber-900 block font-bold">🥈 Good Choice: Crisp Dry Rosé, White or Fizz</strong>
+          <span class="text-amber-950">Let fizz breathe a minute first, and alternate 1 glass of water + electrolytes between drinks.</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-rose-50/80 border border-rose-200">
+          <strong class="text-rose-900 block font-bold">🚫 Skip: Beer, Cider & Sugary Mixers</strong>
+          <span class="text-rose-950">Ferments quickly in slow-transit bowels and pushes against your ribs. Keep Linaclotide for waking tomorrow morning (never late at night after drinks).</span>
         </div>
       </div>
     `;
