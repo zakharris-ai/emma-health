@@ -8,6 +8,28 @@
 // ============================================================================
 const DEFAULT_LOGS = [
   {
+    "id": "2026-10-23",
+    "date": "2026-10-23",
+    "displayDate": "Friday, 23rd October 2026",
+    "month": "october",
+    "cycleDay": 10,
+    "phase": "follicular",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "temp": null,
+    "ouraTempDev": -0.1,
+    "ouraSleep": 81,
+    "ouraRhr": 39,
+    "ouraHrv": 70,
+    "diaphragmBloat": 0,
+    "notes": "",
+    "sleepScore": 81,
+    "rhr": 39,
+    "hrv": 70,
+    "readinessScore": 85,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
     "id": "2026-10-18",
     "date": "2026-10-18",
     "displayDate": "18th October 2026",
@@ -16,13 +38,13 @@ const DEFAULT_LOGS = [
     "phase": "follicular",
     "temp": null,
     "isManualTemp": false,
-    "ouraTempDev": null,
-    "ouraSleep": null,
-    "sleepScore": null,
-    "ouraRhr": null,
-    "rhr": null,
-    "ouraHrv": null,
-    "hrv": null,
+    "ouraTempDev": 0.63,
+    "ouraSleep": 74,
+    "sleepScore": 74,
+    "ouraRhr": 51,
+    "rhr": 51,
+    "ouraHrv": 24,
+    "hrv": 24,
     "fastingAdherence": "kept_40",
     "warmTrigger": true,
     "electrolyteBuffered": false,
@@ -71,12 +93,1158 @@ const DEFAULT_LOGS = [
       "warmMeals": true,
       "diaphragmRelease": false
     },
-    "updatedAt": "2026-10-18T20:11:03.120Z"
+    "updatedAt": "2026-10-18T20:11:03.120Z",
+    "readinessScore": 52,
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)"
+  },
+  {
+    "id": "2026-10-14",
+    "date": "2026-10-14",
+    "displayDate": "14th October 2026",
+    "month": "october",
+    "cycleDay": 1,
+    "phase": "menstrual_follicular",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": -0.68,
+    "ouraSleep": 78,
+    "sleepScore": 78,
+    "ouraRhr": 39,
+    "rhr": 39,
+    "ouraHrv": 64,
+    "hrv": 64,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": false,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": false,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Running"
+    ],
+    "exercise": "Running",
+    "diaphragmBloat": 0,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "Facial Spots",
+      "\ud83e\udd42 3+ Wine/Bubbles",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "Running"
+    ],
+    "emotions": "\ud83d\ude0a Happy & Positive",
+    "moods": [
+      "happy"
+    ],
+    "mood": "happy",
+    "sexDrive": "",
+    "alcohol": "3+_wine",
+    "symptoms": "Good social battery\nExcited re wedding\nBloating fine \nDrank a lot of proseco",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "Good social battery\nExcited re wedding\nBloating fine \nDrank a lot of proseco",
+    "headspaceNotes": "Good social battery\nExcited re wedding\nBloating fine \nDrank a lot of proseco",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": false,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-10-15T12:29:48.120Z",
+    "readinessScore": 72,
+    "phaseLabel": "Menstrual Follicular \u2022 Days 1\u20134 (Silent Period Reset)"
+  },
+  {
+    "id": "2026-10-13",
+    "date": "2026-10-13",
+    "displayDate": "13th October 2026",
+    "month": "october",
+    "cycleDay": 28,
+    "phase": "luteal",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": -0.03,
+    "ouraSleep": 75,
+    "sleepScore": 75,
+    "ouraRhr": 40,
+    "rhr": 40,
+    "ouraHrv": 62,
+    "hrv": 62,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": true,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Reformer Pilates"
+    ],
+    "exercise": "Reformer Pilates",
+    "diaphragmBloat": 2,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83c\udf88\nUpper Tummy Bloating",
+      "Puffy Arms",
+      "Facial Spots",
+      "\ud83e\udd0d Low/No Libido",
+      "\ud83e\uddec EAAs Taken",
+      "\ud83c\udf75 Senna Tea Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates"
+    ],
+    "emotions": "\u2601\ufe0f Flat / Low Energy",
+    "moods": [
+      "flat"
+    ],
+    "mood": "flat",
+    "sexDrive": "low",
+    "alcohol": "none",
+    "symptoms": "But appetite\nTired / drained",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "But appetite\nTired / drained",
+    "headspaceNotes": "But appetite\nTired / drained",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-10-13T13:43:41.999Z",
+    "readinessScore": 78,
+    "phaseLabel": "Late Luteal (Silent Period Eve)"
+  },
+  {
+    "id": "2026-10-12",
+    "date": "2026-10-12",
+    "displayDate": "Monday, 12th October 2026",
+    "month": "october",
+    "cycleDay": 27,
+    "phase": "luteal",
+    "phaseLabel": "Late Luteal (Pre-Reset Transition)",
+    "temp": null,
+    "ouraTempDev": 0.02,
+    "ouraSleep": 92,
+    "ouraRhr": 38,
+    "ouraHrv": 66,
+    "diaphragmBloat": 0,
+    "notes": "",
+    "sleepScore": 92,
+    "rhr": 38,
+    "hrv": 66,
+    "readinessScore": 85,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-10-11",
+    "date": "2026-10-11",
+    "displayDate": "11th October 2026",
+    "month": "october",
+    "cycleDay": 26,
+    "phase": "luteal",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": 0.44,
+    "ouraSleep": 56,
+    "sleepScore": 56,
+    "ouraRhr": 50,
+    "rhr": 50,
+    "ouraHrv": 24,
+    "hrv": 24,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": null,
+    "diaphragmResetDone": false,
+    "movement": "2x \u2022 AM: Partial \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "",
+    "movementFrequency": 2,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [],
+    "exercise": "Gentle",
+    "diaphragmBloat": 0,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83e\uddec EAAs Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger"
+    ],
+    "emotions": "",
+    "moods": [],
+    "mood": "",
+    "sexDrive": "",
+    "alcohol": "none",
+    "symptoms": "Still very unwell, only slept about 5hrs",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "Still very unwell, only slept about 5hrs",
+    "headspaceNotes": "Still very unwell, only slept about 5hrs",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-10-11T05:16:22.793Z",
+    "readinessScore": 52,
+    "phaseLabel": "Late Luteal (Pre-Reset Transition)"
+  },
+  {
+    "id": "2026-10-08",
+    "date": "2026-10-08",
+    "displayDate": "8th October 2026",
+    "month": "october",
+    "cycleDay": 23,
+    "phase": "luteal",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": -0.28,
+    "ouraSleep": 75,
+    "sleepScore": 75,
+    "ouraRhr": 40,
+    "rhr": 40,
+    "ouraHrv": 65,
+    "hrv": 65,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": true,
+    "electrolytesTaken": true,
+    "eaasTaken": false,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Reformer Pilates"
+    ],
+    "exercise": "Reformer Pilates",
+    "diaphragmBloat": 1,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83e\udd42 3+ Wine/Bubbles",
+      "\u26a1 Electrolytes Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates"
+    ],
+    "emotions": "\ud83c\udf3f Calm & Grounded \u2022 \ud83c\udf2a\ufe0f Anxious / Nervous \u2022 \u2601\ufe0f Flat / Low Energy \u2022 \ud83d\ude0a Happy & Positive",
+    "moods": [
+      "calm",
+      "anxious",
+      "flat",
+      "happy"
+    ],
+    "mood": "calm,anxious,flat,happy",
+    "sexDrive": "",
+    "alcohol": "3+_wine",
+    "symptoms": "Chest tightness , cold / achy\nQuite tired in after noon\nBloating fine despite luteal etc.\nBleeding and cramps stopped",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "Chest tightness , cold / achy\nQuite tired in after noon\nBloating fine despite luteal etc.\nBleeding and cramps stopped",
+    "headspaceNotes": "Chest tightness , cold / achy\nQuite tired in after noon\nBloating fine despite luteal etc.\nBleeding and cramps stopped",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-10-08T14:57:13.837Z",
+    "readinessScore": 80,
+    "phaseLabel": "Mid-Luteal (Progesterone Peak Window)"
+  },
+  {
+    "id": "2026-10-07",
+    "date": "2026-10-07",
+    "displayDate": "7th October 2026",
+    "month": "october",
+    "cycleDay": 22,
+    "phase": "luteal",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": 0.15,
+    "ouraSleep": 73,
+    "sleepScore": 73,
+    "ouraRhr": 40,
+    "rhr": 40,
+    "ouraHrv": 64,
+    "hrv": 64,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": true,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Reformer Pilates"
+    ],
+    "exercise": "Reformer Pilates",
+    "diaphragmBloat": 1,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\u2764\ufe0f Mild Libido",
+      "\ud83e\uddec EAAs Taken",
+      "\ud83c\udf75 Senna Tea Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates"
+    ],
+    "emotions": "\ud83d\ude0a Happy & Positive",
+    "moods": [
+      "happy"
+    ],
+    "mood": "happy",
+    "sexDrive": "mild",
+    "alcohol": "none",
+    "symptoms": "Lots of change re mind set, very busy all the time\nCut down on exercise due to coil fitting on Monday\nBloating has been fine!",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "Lots of change re mind set, very busy all the time\nCut down on exercise due to coil fitting on Monday\nBloating has been fine!",
+    "headspaceNotes": "Lots of change re mind set, very busy all the time\nCut down on exercise due to coil fitting on Monday\nBloating has been fine!",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-10-07T13:09:24.870Z",
+    "phaseLabel": "Mid-Luteal (Progesterone Peak Window)",
+    "readinessScore": 76,
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
+  },
+  {
+    "id": "2026-10-05",
+    "date": "2026-10-05",
+    "displayDate": "5th October 2026",
+    "month": "october",
+    "cycleDay": 20,
+    "phase": "luteal",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": 0.18,
+    "ouraSleep": 83,
+    "sleepScore": 83,
+    "ouraRhr": 46,
+    "rhr": 46,
+    "ouraHrv": 34,
+    "hrv": 34,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Reformer Pilates"
+    ],
+    "exercise": "Reformer Pilates",
+    "diaphragmBloat": 3,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83e\udee7\nGassiness",
+      "\ud83e\udd0d Low/No Libido",
+      "\ud83e\uddec EAAs Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates"
+    ],
+    "emotions": "\ud83c\udf2a\ufe0f Anxious / Nervous \u2022 \ud83d\ude0a Happy & Positive",
+    "moods": [
+      "anxious",
+      "happy"
+    ],
+    "mood": "anxious,happy",
+    "sexDrive": "low",
+    "alcohol": "none",
+    "symptoms": "Had coil out and NEW MIRENA FITTED\nA bit of light spotting and abdominal pain but mixture of x3 days of drinking, coil fitting, medications etc. but over all okay and not like usual luteal symptoms at all",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "Had coil out and NEW MIRENA FITTED\nA bit of light spotting and abdominal pain but mixture of x3 days of drinking, coil fitting, medications etc. but over all okay and not like usual luteal symptoms at all",
+    "headspaceNotes": "Had coil out and NEW MIRENA FITTED\nA bit of light spotting and abdominal pain but mixture of x3 days of drinking, coil fitting, medications etc. but over all okay and not like usual luteal symptoms at all",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-10-07T13:11:07.881Z",
+    "phaseLabel": "Mid-Luteal (Progesterone Peak Window)",
+    "readinessScore": 70,
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
+  },
+  {
+    "id": "2026-10-04",
+    "date": "2026-10-04",
+    "displayDate": "Sunday, 4th October 2026",
+    "month": "october",
+    "cycleDay": 19,
+    "phase": "luteal",
+    "phaseLabel": "Early-Mid Luteal (Progesterone Ramp)",
+    "temp": null,
+    "ouraTempDev": 0.69,
+    "ouraSleep": 79,
+    "ouraRhr": 55,
+    "ouraHrv": 23,
+    "diaphragmBloat": 0,
+    "notes": "",
+    "sleepScore": 79,
+    "rhr": 55,
+    "hrv": 23,
+    "readinessScore": 51,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-10-02",
+    "date": "2026-10-02",
+    "displayDate": "2th October 2026",
+    "month": "october",
+    "cycleDay": 17,
+    "phase": "luteal",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": -0.22,
+    "ouraSleep": 66,
+    "sleepScore": 66,
+    "ouraRhr": 38,
+    "rhr": 38,
+    "ouraHrv": 58,
+    "hrv": 58,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": false,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "5x \u2022 AM: Partial \u2022 PM: None \u2022 Hard / small pellet",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 5,
+    "bristol": "hard",
+    "stoolNuance": "hard",
+    "exercises": [
+      "Reformer Pilates"
+    ],
+    "exercise": "Reformer Pilates",
+    "diaphragmBloat": 4,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83c\udf88\nUpper Tummy Bloating",
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83e\udd42 3+ Wine/Bubbles",
+      "\u2764\ufe0f Mild Libido",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates"
+    ],
+    "emotions": "\ud83c\udf3f Calm & Grounded \u2022 \ud83d\ude0a Happy & Positive \u2022 \u26a1 Edgy / Irritable \u2022 \ud83c\udf2a\ufe0f Anxious / Nervous",
+    "moods": [
+      "calm",
+      "happy",
+      "edgy",
+      "anxious"
+    ],
+    "mood": "calm,happy,edgy,anxious",
+    "sexDrive": "mild",
+    "alcohol": "3+_wine",
+    "symptoms": "5x \u2022 AM: Partial \u2022 PM: None \u2022 Hard / small pellet",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "Saved via Emma's Unified Daily Check-In.",
+    "headspaceNotes": "",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-10-02T19:58:15.471Z",
+    "phaseLabel": "Early-Mid Luteal (Progesterone Ramp)",
+    "readinessScore": 76,
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
+  },
+  {
+    "id": "2026-10-01",
+    "date": "2026-10-01",
+    "displayDate": "1th October 2026",
+    "month": "october",
+    "cycleDay": 16,
+    "phase": "ovulation",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": -0.44,
+    "ouraSleep": 80,
+    "sleepScore": 80,
+    "ouraRhr": 38,
+    "rhr": 38,
+    "ouraHrv": 64,
+    "hrv": 64,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": true,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: None \u2022 PM: None",
+    "movementAmSuccess": "none",
+    "movementPmSuccess": "none",
+    "movementFrequency": 1,
+    "bristol": "none",
+    "stoolNuance": "",
+    "exercises": [
+      "Reformer Pilates",
+      "Running"
+    ],
+    "exercise": "Reformer Pilates, Running",
+    "diaphragmBloat": 8,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": true,
+    "puffiness": [
+      "\ud83c\udf88\nUpper Tummy Bloating",
+      "\ud83d\udde3\ufe0f\nBurpiness",
+      "\ud83d\udca8\nTrapped Wind",
+      "\ud83d\udd04\nCan't Burp (Stuck Gas)",
+      "\ud83e\udee7\nGassiness",
+      "Muscle Twitches",
+      "\u26a1 Period-Type Pelvic Cramps",
+      "Tight Chest",
+      "\ud83e\udd0d Low/No Libido",
+      "\ud83e\uddec EAAs Taken",
+      "\ud83c\udf75 Senna Tea Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates",
+      "Running"
+    ],
+    "emotions": "\ud83c\udf3f Calm & Grounded \u2022 \u2601\ufe0f Flat / Low Energy",
+    "moods": [
+      "calm",
+      "flat"
+    ],
+    "mood": "calm,flat",
+    "sexDrive": "low",
+    "alcohol": "none",
+    "symptoms": "Social battery completely at zero, need quiet. Literally only have energy to go nannying today. Very gassy and burpy today, tummy feeling uncomfortable and distended",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "Social battery completely at zero, need quiet. Literally only have energy to go nannying today. Very gassy and burpy today, tummy feeling uncomfortable and distended",
+    "headspaceNotes": "Social battery completely at zero, need quiet. Literally only have energy to go nannying today. Very gassy and burpy today, tummy feeling uncomfortable and distended",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-10-01T17:29:12.768Z",
+    "phaseLabel": "Ovulation Window",
+    "readinessScore": 85,
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
+  },
+  {
+    "id": "2026-09-30",
+    "date": "2026-09-30",
+    "displayDate": "30th September 2026",
+    "month": "september",
+    "cycleDay": 15,
+    "phase": "ovulation",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": -0.29,
+    "ouraSleep": 64,
+    "sleepScore": 64,
+    "ouraRhr": 39,
+    "rhr": 39,
+    "ouraHrv": 62,
+    "hrv": 62,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": true,
+    "electrolytesTaken": true,
+    "eaasTaken": false,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [],
+    "exercise": "Gentle",
+    "diaphragmBloat": 7,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83c\udf88\nUpper Tummy Bloating",
+      "\ud83d\udde3\ufe0f\nBurpiness",
+      "Achy Body",
+      "Brain Fog",
+      "\u2764\ufe0f Mild Libido",
+      "\u26a1 Electrolytes Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger"
+    ],
+    "emotions": "\u26a1 Edgy / Irritable \u2022 \u2601\ufe0f Flat / Low Energy \u2022 \ud83d\udcad Overthinking / Mind Racing",
+    "moods": [
+      "edgy",
+      "flat",
+      "overthinking"
+    ],
+    "mood": "edgy,flat,overthinking",
+    "sexDrive": "mild",
+    "alcohol": "none",
+    "symptoms": "- Symptoms/Bloating: bad pain first thing. Bloating got bad in afternoon , very upper diaphragm focused \n- Emotions: quite up and down, felt very edgy and like I had to sort everything out so was very go go go all day but achieved a lot.. Mind racing and overthinking today",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "- Symptoms/Bloating: bad pain first thing. Bloating got bad in afternoon , very upper diaphragm focused \n- Emotions: quite up and down, felt very edgy and like I had to sort everything out so was very go go go all day but achieved a lot.. Mind racing and overthinking today",
+    "headspaceNotes": "- Symptoms/Bloating: bad pain first thing. Bloating got bad in afternoon , very upper diaphragm focused \n- Emotions: quite up and down, felt very edgy and like I had to sort everything out so was very go go go all day but achieved a lot.. Mind racing and overthinking today",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-09-30T17:31:31.569Z",
+    "phaseLabel": "Ovulation Window",
+    "readinessScore": 73,
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
+  },
+  {
+    "id": "2026-09-29",
+    "date": "2026-09-29",
+    "displayDate": "29th September 2026",
+    "month": "september",
+    "cycleDay": 14,
+    "phase": "ovulation",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": -0.16,
+    "ouraSleep": 77,
+    "sleepScore": 77,
+    "ouraRhr": 37,
+    "rhr": 37,
+    "ouraHrv": 68,
+    "hrv": 68,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": true,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Reformer Pilates",
+      "Running"
+    ],
+    "exercise": "Reformer Pilates, Running",
+    "diaphragmBloat": 5,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83c\udf88\nUpper Tummy Bloating",
+      "\ud83d\udca8\nTrapped Wind",
+      "Muscle Twitches",
+      "\ud83e\uddec EAAs Taken",
+      "\ud83c\udf75 Senna Tea Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates",
+      "Running"
+    ],
+    "emotions": "\ud83d\ude0a Happy & Positive \u2022 \ud83c\udf3f Calm & Grounded",
+    "moods": [
+      "happy",
+      "calm"
+    ],
+    "mood": "happy,calm",
+    "sexDrive": "",
+    "alcohol": "none",
+    "symptoms": "Started positive lots of energy went for it and then crashed afternoon / nannying but over all okay",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "Started positive lots of energy went for it and then crashed afternoon / nannying but over all okay",
+    "headspaceNotes": "Started positive lots of energy went for it and then crashed afternoon / nannying but over all okay",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-09-29T20:44:03.442Z",
+    "phaseLabel": "Ovulation Window",
+    "readinessScore": 83,
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
+  },
+  {
+    "id": "2026-09-27",
+    "date": "2026-09-27",
+    "displayDate": "Sunday, 27th September 2026",
+    "month": "september",
+    "cycleDay": 12,
+    "phase": "follicular",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "temp": null,
+    "ouraTempDev": 0.25,
+    "ouraSleep": 82,
+    "ouraRhr": 50,
+    "ouraHrv": 21,
+    "diaphragmBloat": 0,
+    "notes": "",
+    "sleepScore": 82,
+    "rhr": 50,
+    "hrv": 21,
+    "readinessScore": 73,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-09-26",
+    "date": "2026-09-26",
+    "displayDate": "26th September 2026",
+    "month": "september",
+    "cycleDay": 11,
+    "phase": "follicular",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": 0.85,
+    "ouraSleep": 87,
+    "sleepScore": 87,
+    "ouraRhr": 47,
+    "rhr": 47,
+    "ouraHrv": 17,
+    "hrv": 17,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": false,
+    "electrolyteBuffered": true,
+    "electrolytesTaken": true,
+    "eaasTaken": false,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "AM: Partial",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "",
+    "movementFrequency": 0,
+    "bristol": "",
+    "stoolNuance": "",
+    "exercises": [],
+    "exercise": "Gentle",
+    "diaphragmBloat": 4,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83d\udde3\ufe0f\nBurpiness",
+      "\ud83e\udd42 3+ Wine/Bubbles",
+      "\u26a1 Electrolytes Taken",
+      "\u23f1\ufe0f 40m Fast Kept"
+    ],
+    "emotions": "\ud83d\ude0a Happy & Positive \u2022 \u2601\ufe0f Flat / Low Energy",
+    "moods": [
+      "happy",
+      "flat"
+    ],
+    "mood": "happy,flat",
+    "sexDrive": "normal",
+    "alcohol": "3+_wine",
+    "symptoms": "Post wedding\nday 2 of drinking",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "Post wedding\nday 2 of drinking",
+    "headspaceNotes": "Post wedding\nday 2 of drinking",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": false,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-09-27T07:35:15.957Z",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "readinessScore": 61,
+    "linaclotideTaken": true
+  },
+  {
+    "id": "2026-09-25",
+    "date": "2026-09-25",
+    "displayDate": "25th September 2026",
+    "month": "september",
+    "cycleDay": 10,
+    "phase": "follicular",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": -0.09,
+    "ouraSleep": 67,
+    "sleepScore": 67,
+    "ouraRhr": 39,
+    "rhr": 39,
+    "ouraHrv": 60,
+    "hrv": 60,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": false,
+    "electrolyteBuffered": true,
+    "electrolytesTaken": true,
+    "eaasTaken": false,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 0,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Running"
+    ],
+    "exercise": "Running",
+    "diaphragmBloat": 2,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "Achy Body",
+      "Muscle Twitches",
+      "\ud83e\udd42 3+ Wine/Bubbles",
+      "\u2764\ufe0f Mild Libido",
+      "\u26a1 Electrolytes Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "Running"
+    ],
+    "emotions": "\ud83d\ude0a Happy & Positive \u2022 \ud83c\udf2a\ufe0f Anxious / Nervous",
+    "moods": [
+      "happy",
+      "anxious"
+    ],
+    "mood": "happy,anxious",
+    "sexDrive": "mild",
+    "alcohol": "3+_wine",
+    "symptoms": "Wedding day for Loz n John",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "Wedding day for Loz n John",
+    "headspaceNotes": "Wedding day for Loz n John",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": false,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-09-26T08:57:50.762Z",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "readinessScore": 76,
+    "linaclotideTaken": true
+  },
+  {
+    "id": "2026-09-24",
+    "date": "2026-09-24",
+    "displayDate": "24th September 2026",
+    "month": "september",
+    "cycleDay": 9,
+    "phase": "follicular",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": -0.38,
+    "ouraSleep": 84,
+    "sleepScore": 84,
+    "ouraRhr": 38,
+    "rhr": 38,
+    "ouraHrv": 70,
+    "hrv": 70,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": false,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": false,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: Partial \u2022 PM: None \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Cycling"
+    ],
+    "exercise": "Cycling",
+    "diaphragmBloat": 2,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83d\udde3\ufe0f\nBurpiness",
+      "\ud83c\udf77 1-2 Wine",
+      "\u2764\ufe0f Mild Libido",
+      "\ud83e\uddec EAAs Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "Cycling"
+    ],
+    "emotions": "\ud83c\udf2a\ufe0f Anxious / Nervous \u2022 \ud83d\ude0a Happy & Positive \u2022 \u2601\ufe0f Flat / Low Energy \u2022 \ud83d\udcad Overthinking / Mind Racing \u2022 \u26a1 Edgy / Irritable",
+    "moods": [
+      "anxious",
+      "happy",
+      "flat",
+      "overthinking",
+      "edgy"
+    ],
+    "mood": "anxious,happy,flat,overthinking,edgy",
+    "sexDrive": "mild",
+    "alcohol": "1-2_wine",
+    "symptoms": "Very emotional and anxious re wedding but turned it round, spoke it out, had a nice chat and then bike ride. Spontenous x1 Prosecco in airport, nice sushi. Flight this day and timmy a bit iffy in evening",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "Very emotional and anxious re wedding but turned it round, spoke it out, had a nice chat and then bike ride. Spontenous x1 Prosecco in airport, nice sushi. Flight this day and timmy a bit iffy in evening",
+    "headspaceNotes": "Very emotional and anxious re wedding but turned it round, spoke it out, had a nice chat and then bike ride. Spontenous x1 Prosecco in airport, nice sushi. Flight this day and timmy a bit iffy in evening",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": false,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-09-24T16:44:20.998Z",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "readinessScore": 89,
+    "linaclotideTaken": true
+  },
+  {
+    "id": "2026-09-23",
+    "date": "2026-09-23",
+    "displayDate": "23th September 2026",
+    "month": "september",
+    "cycleDay": 8,
+    "phase": "follicular",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": -0.1,
+    "ouraSleep": 76,
+    "sleepScore": 76,
+    "ouraRhr": 40,
+    "rhr": 40,
+    "ouraHrv": 55,
+    "hrv": 55,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": true,
+    "diaphragmResetDone": false,
+    "movement": "1x \u2022 AM: Partial \u2022 Watery bypass (liquid around solid plug)",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "",
+    "movementFrequency": 1,
+    "bristol": "liquid",
+    "stoolNuance": "bypass",
+    "exercises": [
+      "Reformer Pilates"
+    ],
+    "exercise": "Reformer Pilates",
+    "diaphragmBloat": 5,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83c\udf88\nUpper Tummy Bloating",
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83e\udee7\nGassiness",
+      "\ud83d\udde3\ufe0f\nBurpiness",
+      "Brain Fog",
+      "\u2764\ufe0f Mild Libido",
+      "\ud83e\uddec EAAs Taken",
+      "\ud83c\udf75 Senna Tea Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates"
+    ],
+    "emotions": "\ud83c\udf2a\ufe0f Anxious / Nervous \u2022 \u26a1 Edgy / Irritable \u2022 \u2601\ufe0f Flat / Low Energy",
+    "moods": [
+      "anxious",
+      "edgy",
+      "flat"
+    ],
+    "mood": "anxious,edgy,flat",
+    "sexDrive": "mild",
+    "alcohol": "none",
+    "symptoms": "Okay in morning energy wise but then dipped and very edgy late afternoon. But otherwise okay, just anxious re wedding",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "Okay in morning energy wise but then dipped and very edgy late afternoon. But otherwise okay, just anxious re wedding",
+    "headspaceNotes": "Okay in morning energy wise but then dipped and very edgy late afternoon. But otherwise okay, just anxious re wedding",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-09-23T19:46:49.335Z",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "readinessScore": 82,
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
+  },
+  {
+    "id": "2026-09-22",
+    "date": "2026-09-22",
+    "displayDate": "22th September 2026",
+    "month": "september",
+    "cycleDay": 7,
+    "phase": "follicular",
+    "temp": null,
+    "isManualTemp": false,
+    "ouraTempDev": -0.12,
+    "ouraSleep": 76,
+    "sleepScore": 76,
+    "ouraRhr": 37,
+    "rhr": 37,
+    "ouraHrv": 67,
+    "hrv": 67,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": true,
+    "diaphragmResetDone": false,
+    "movement": "2x \u2022 AM: Partial \u2022 PM: None \u2022 Watery liquid purge",
+    "movementAmSuccess": "partial",
+    "movementPmSuccess": "none",
+    "movementFrequency": 2,
+    "bristol": "liquid",
+    "stoolNuance": "loose",
+    "exercises": [
+      "Reformer Pilates",
+      "Running"
+    ],
+    "exercise": "Reformer Pilates, Running",
+    "diaphragmBloat": 6,
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83c\udf88\nUpper Tummy Bloating",
+      "\u2764\ufe0f Mild Libido",
+      "\ud83e\uddec EAAs Taken",
+      "\ud83c\udf75 Senna Tea Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates",
+      "Running"
+    ],
+    "emotions": "\ud83c\udf3f Calm & Grounded \u2022 \u2601\ufe0f Flat / Low Energy",
+    "moods": [
+      "calm",
+      "flat"
+    ],
+    "mood": "calm,flat",
+    "sexDrive": "mild",
+    "alcohol": "none",
+    "symptoms": "More energy than yesterday\nBloating not great. Very gassy and burpy today, tummy feeling uncomfortable and distended",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "notes": "More energy than yesterday\nBloating not great. Very gassy and burpy today, tummy feeling uncomfortable and distended",
+    "headspaceNotes": "More energy than yesterday\nBloating not great. Very gassy and burpy today, tummy feeling uncomfortable and distended",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-09-22T11:54:58.094Z",
+    "phaseLabel": "Rising Follicular \u2022 Days 5\u201313 (Estrogen Ramp)",
+    "readinessScore": 85,
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
   },
   {
     "id": "2026-09-21",
     "date": "2026-09-21",
-    "displayDate": "Monday, 21st September 2026",
+    "displayDate": "21th September 2026",
     "month": "september",
     "cycleDay": 6,
     "phase": "follicular",
@@ -86,14 +1254,71 @@ const DEFAULT_LOGS = [
     "ouraSleep": 85,
     "ouraRhr": 45,
     "ouraHrv": 35,
-    "diaphragmBloat": 0,
-    "notes": "",
+    "diaphragmBloat": 10,
+    "notes": "Very gassy and burpy today, tummy feeling uncomfortable and distended\nReally sore tummy / not good \nFelt very jaded and tired and unmotivated",
     "sleepScore": 85,
     "rhr": 45,
     "hrv": 35,
     "readinessScore": 73,
-    "symptoms": "",
-    "headspaceNotes": ""
+    "symptoms": "Very gassy and burpy today, tummy feeling uncomfortable and distended\nReally sore tummy / not good \nFelt very jaded and tired and unmotivated",
+    "headspaceNotes": "Very gassy and burpy today, tummy feeling uncomfortable and distended\nReally sore tummy / not good \nFelt very jaded and tired and unmotivated",
+    "isManualTemp": false,
+    "fastingAdherence": "kept_40",
+    "warmTrigger": true,
+    "electrolyteBuffered": false,
+    "electrolytesTaken": false,
+    "eaasTaken": true,
+    "sennaTea": true,
+    "diaphragmResetDone": false,
+    "movement": "AM: None \u2022 PM: None",
+    "movementAmSuccess": "none",
+    "movementPmSuccess": "none",
+    "movementFrequency": 0,
+    "bristol": "none",
+    "stoolNuance": "",
+    "exercises": [
+      "Reformer Pilates"
+    ],
+    "exercise": "Reformer Pilates",
+    "upperTummyBloat": false,
+    "lowerTummyBloat": false,
+    "gassiness": false,
+    "burpiness": false,
+    "spotting": false,
+    "pelvicCramps": false,
+    "puffiness": [
+      "\ud83c\udf88\nUpper Tummy Bloating",
+      "\ud83e\udee7\nLower Tummy Bloating",
+      "\ud83e\udee7\nGassiness",
+      "\ud83d\udca8\nTrapped Wind",
+      "\ud83d\udd04\nCan't Burp (Stuck Gas)",
+      "Left Rib Pressure",
+      "All Trousers/Bottoms Feeling Tight",
+      "Brain Fog",
+      "Puffy Arms",
+      "\u2764\ufe0f Mild Libido",
+      "\ud83e\uddec EAAs Taken",
+      "\ud83c\udf75 Senna Tea Taken",
+      "\u23f1\ufe0f 40m Fast Kept",
+      "\u2615 Warm Gastrocolic Trigger",
+      "Reformer Pilates"
+    ],
+    "emotions": "\u2601\ufe0f Flat / Low Energy",
+    "moods": [
+      "flat"
+    ],
+    "mood": "flat",
+    "sexDrive": "mild",
+    "alcohol": "none",
+    "medNotes": "Morning Linaclotide taken with 40-min fast",
+    "dailyFocus": {
+      "linaclotide": true,
+      "warmMeals": true,
+      "diaphragmRelease": false
+    },
+    "updatedAt": "2026-09-21T14:15:19.462Z",
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
   },
   {
     "id": "2026-09-20",
@@ -395,7 +1620,7 @@ const DEFAULT_LOGS = [
     "displayDate": "16th September 2026",
     "month": "september",
     "cycleDay": 1,
-    "phase": "follicular",
+    "phase": "menstrual_follicular",
     "temp": null,
     "isManualTemp": false,
     "ouraTempDev": -0.09,
@@ -458,7 +1683,7 @@ const DEFAULT_LOGS = [
       "diaphragmRelease": false
     },
     "updatedAt": "2026-09-16T20:23:44.666Z",
-    "phaseLabel": "Follicular Phase",
+    "phaseLabel": "Menstrual Follicular \u2022 Days 1\u20134 (Silent Period Reset)",
     "readinessScore": 82,
     "linaclotideTaken": true,
     "safeWarmMeals": true,
@@ -2811,22 +4036,24 @@ function getCycleInfoForDate(targetDateStr) {
   // Check if there is an existing log for this exact date
   const existing = logs.find(l => l.date === targetDateStr);
   
-  const anchorDate = new Date("2026-09-06T12:00:00Z");
+  // Verified Cycle Day 1 anchor: 2026-10-14 (-0.68°C Oura temp plunge, RHR 39, HRV 64, 0/10 bloat; exact 28d from 2026-09-16 & 2026-08-19)
+  const anchorDate = new Date("2026-10-14T12:00:00Z");
   const targetDate = new Date(`${targetDateStr}T12:00:00Z`);
   const diffDays = Math.round((targetDate - anchorDate) / (1000 * 60 * 60 * 24));
+  const mirenaFittedDateObj = new Date("2026-10-05T12:00:00Z");
+  const daysSinceMirena = Math.round((targetDate - mirenaFittedDateObj) / (1000 * 60 * 60 * 24));
   
-  const cycleLength = 28; // Emma's average ovulatory cycle
-  let dayNum = 19 + diffDays;
-  while (dayNum > cycleLength) dayNum -= cycleLength;
-  while (dayNum < 1) dayNum += cycleLength;
+  const cycleLength = 28; // Emma's verified 28-day ovulatory cycle
+  let dayNum = ((diffDays % cycleLength) + cycleLength) % cycleLength + 1;
 
   let phase = "luteal";
   let phaseLabel = "Late Luteal (Progesterone Peak)";
   let isSilentPeriod = false;
-  let tempDev = +0.33;
+  let tempDev = +0.22;
   let estTemp = 36.71;
-  let estRhr = 69;
-  let estHrv = 41;
+  // Emma's true athletic Oura baselines (clean follicular RHR 36-39 bpm, HRV 64-76 ms; luteal RHR 40-43 bpm, HRV 52-62 ms)
+  let estRhr = 41;
+  let estHrv = 56;
 
   if (dayNum >= 1 && dayNum <= 4) {
     phase = "menstrual_follicular";
@@ -2834,50 +4061,50 @@ function getCycleInfoForDate(targetDateStr) {
     isSilentPeriod = true;
     tempDev = -0.28;
     estTemp = 36.15;
-    estRhr = 62;
-    estHrv = 55;
+    estRhr = 38;
+    estHrv = 66;
   } else if (dayNum >= 5 && dayNum <= 13) {
     phase = "follicular";
     phaseLabel = "Rising Follicular • Days 5–13 (Estrogen Ramp)";
     tempDev = -0.15;
     estTemp = 36.20;
-    estRhr = 63;
-    estHrv = 54;
+    estRhr = 38;
+    estHrv = 68;
   } else if (dayNum >= 14 && dayNum <= 16) {
     phase = "ovulation";
     phaseLabel = "Ovulation Window";
-    tempDev = +0.05;
+    tempDev = -0.05;
     estTemp = 36.45;
-    estRhr = 65;
-    estHrv = 49;
+    estRhr = 39;
+    estHrv = 64;
   } else {
     // Days 17-28
     phase = "luteal";
     if (dayNum >= 17 && dayNum <= 19) {
       phaseLabel = "Early-Mid Luteal (Progesterone Ramp)";
-      tempDev = +0.28;
+      tempDev = +0.20;
       estTemp = 36.65;
-      estRhr = 68;
-      estHrv = 42;
+      estRhr = 40;
+      estHrv = 60;
     } else if (dayNum >= 20 && dayNum <= 23) {
       phaseLabel = "Mid-Luteal (Progesterone Peak Window)";
-      tempDev = +0.35;
+      tempDev = +0.30;
       estTemp = 36.72;
-      estRhr = 69;
-      estHrv = 40;
+      estRhr = 41;
+      estHrv = 56;
     } else if (dayNum >= 24 && dayNum <= 27) {
       phaseLabel = "Late Luteal (Pre-Reset Transition)";
-      tempDev = +0.20;
+      tempDev = +0.15;
       estTemp = 36.52;
-      estRhr = 66;
-      estHrv = 45;
+      estRhr = 40;
+      estHrv = 58;
     } else {
       phaseLabel = "Late Luteal (Silent Period Eve)";
       isSilentPeriod = true;
-      tempDev = +0.10;
+      tempDev = -0.03;
       estTemp = 36.35;
-      estRhr = 65;
-      estHrv = 48;
+      estRhr = 39;
+      estHrv = 62;
     }
   }
 
@@ -2900,12 +4127,14 @@ function getCycleInfoForDate(targetDateStr) {
       phase: existing.phase || phase,
       phaseLabel: existing.phaseLabel || phaseLabel,
       isSilentPeriod: (existing.isSilentPeriod !== undefined) ? existing.isSilentPeriod : isSilentPeriod,
+      mirenaFittedDate: "2026-10-05",
+      daysSinceMirena: daysSinceMirena,
       temp: (existing.temp !== undefined && existing.temp !== null && existing.isManualTemp) ? existing.temp : null,
       ouraTempDev: (existing.ouraTempDev !== undefined && existing.ouraTempDev !== null) ? existing.ouraTempDev : (targetDateStr === '2026-09-08' ? -0.25 : null),
-      rhr: existing.rhr || estRhr,
-      hrv: existing.hrv || estHrv,
+      rhr: existing.rhr || existing.ouraRhr || estRhr,
+      hrv: existing.hrv || existing.ouraHrv || estHrv,
       movement: existing.movement || "Watery trickle",
-      diaphragmBloat: existing.diaphragmBloat !== undefined ? existing.diaphragmBloat : 7,
+      diaphragmBloat: existing.diaphragmBloat !== undefined ? existing.diaphragmBloat : 5,
       emotions: existing.emotions || "Tired / flat",
       isLogged: true
     };
@@ -2919,12 +4148,14 @@ function getCycleInfoForDate(targetDateStr) {
     phase: phase,
     phaseLabel: phaseLabel,
     isSilentPeriod: isSilentPeriod,
+    mirenaFittedDate: "2026-10-05",
+    daysSinceMirena: daysSinceMirena,
     temp: null,
     ouraTempDev: targetDateStr === '2026-09-08' ? -0.25 : null,
     rhr: estRhr,
     hrv: estHrv,
     movement: "Pending morning movement",
-    diaphragmBloat: phase === 'luteal' ? 7 : ((phase === 'menstrual_follicular' || phase === 'reset') ? 5 : (phase === 'ovulation' ? 5 : 3)),
+    diaphragmBloat: phase === 'luteal' ? (daysSinceMirena >= 0 ? 4 : 7) : ((phase === 'menstrual_follicular' || phase === 'reset') ? 4 : (phase === 'ovulation' ? 4 : 2)),
     emotions: (phase === 'menstrual_follicular' || phase === 'reset') ? "Gentle cocoon / low dopamine" : (phase === 'luteal' ? "Low dopamine / tired" : "Good energy"),
     isLogged: false
   };
@@ -4323,7 +5554,16 @@ function renderSimplifiedCycleModal() {
   // Reset countdown
   const resetBadge = document.getElementById('cycleModalResetBadge');
   const resetExp = document.getElementById('cycleModalResetExplanation');
-  const daysLeft = Math.max(1, 28 - info.cycleDay);
+  const daysToDay1 = Math.max(1, 29 - info.cycleDay);
+  const resetStartObj = new Date(`${activeDateStr}T12:00:00Z`);
+  resetStartObj.setUTCDate(resetStartObj.getUTCDate() + Math.max(0, 28 - info.cycleDay));
+  const resetDay1Obj = new Date(`${activeDateStr}T12:00:00Z`);
+  resetDay1Obj.setUTCDate(resetDay1Obj.getUTCDate() + daysToDay1);
+  const modalMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const fmtOrd = (n) => `${n}${(n % 10 === 1 && n !== 11) ? 'st' : ((n % 10 === 2 && n !== 12) ? 'nd' : ((n % 10 === 3 && n !== 13) ? 'rd' : 'th'))}`;
+  const resetWindowStr = resetStartObj.getUTCMonth() === resetDay1Obj.getUTCMonth()
+    ? `${fmtOrd(resetStartObj.getUTCDate())}–${fmtOrd(resetDay1Obj.getUTCDate())} ${modalMonths[resetDay1Obj.getUTCMonth()]}`
+    : `${fmtOrd(resetStartObj.getUTCDate())} ${modalMonths[resetStartObj.getUTCMonth()]} – ${fmtOrd(resetDay1Obj.getUTCDate())} ${modalMonths[resetDay1Obj.getUTCMonth()]}`;
 
   if (resetBadge) {
     if (info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
@@ -4333,7 +5573,7 @@ function renderSimplifiedCycleModal() {
       resetBadge.innerText = `Ovulation in ~${Math.max(1, 14 - info.cycleDay)}d`;
       resetBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900";
     } else if (info.phase === 'luteal') {
-      resetBadge.innerText = `~${daysLeft} Day${daysLeft === 1 ? '' : 's'} Left`;
+      resetBadge.innerText = `~${daysToDay1} Day${daysToDay1 === 1 ? '' : 's'} to Reset`;
       resetBadge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-purple-200 text-purple-900";
     } else {
       resetBadge.innerText = `Luteal Shift in ~1–2 Days`;
@@ -4347,9 +5587,9 @@ function renderSimplifiedCycleModal() {
     } else if (info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13)) {
       resetExp.innerHTML = `You are in your <strong>Rising Follicular phase (Days 5–13)</strong>! The menstrual reset is complete, and your dominant follicle is pumping out estrogen. Dopamine turnover is elevated, gut motility is fast, and APD bloating is at its lowest monthly levels. Enjoy this high-energy window!`;
     } else if (info.phase === 'luteal') {
-      resetExp.innerHTML = `Around <strong>September 13–15</strong>, your corpus luteum naturally winds down, progesterone plunges, and your body flushes out the retained water. Remember August 21st? You woke up and wrote: <em>"Inflammation all gone, 98% back to me!"</em> That same relief will happen again. It always passes.`;
+      resetExp.innerHTML = `Around <strong>${resetWindowStr}</strong>, your corpus luteum naturally winds down, progesterone plunges, and your body flushes out retained fluid. Just like on <strong>14th October</strong> (when your Oura temperature plunged <strong>-0.68°C</strong>, bloat dropped to <strong>0/10</strong>, and mood flipped to <em>"Happy & Positive"</em> — plus your <strong>new 5th October Mirena coil</strong> already softened mid-luteal bloat!), that same clean reset is on its way.`;
     } else {
-      resetExp.innerHTML = `You are in your <strong>Ovulation window (Days 14–16)</strong>. Gentle twinges or lower tummy sensitivity are normal as the follicle ruptures. Keep meals warm and soothing.`;
+      resetExp.innerHTML = `You are in your <strong>Ovulation window (Days 14–16)</strong>. Gentle twinges or lower tummy sensitivity (like your 1st October Day 16 ovulation dip) are normal as the follicle ruptures. Keep meals warm and soothing.`;
     }
   }
 }
@@ -10606,26 +11846,28 @@ function updateDashboardStats(entry) {
 function openDoctorExportModal() {
   const modal = document.getElementById('doctorExportModal');
   const reportContainer = document.getElementById('doctorReportContent');
+  const todayIso = getTodayISOString();
+  const cInfo = getCycleInfoForDate(todayIso);
   
   const report = `
 CLINICAL SUMMARY & SPECIALIST REVIEW REPORT
 PATIENT: Emma Butler | DOB: 1998 (Age 28) | NHS/Ref: EB-28-COLONIC
 PRIMARY DIAGNOSIS: Severe Slow-Transit Colonic Inertia / Abdominophrenic Dyssynergia (APD)
-ENDOCRINE STATUS: Mirena 52mg IUS in situ (Inserted: 19 April 2021, 5.4 Years Duration)
+ENDOCRINE STATUS: New Mirena 52mg IUS in situ (Fitted: 05 October 2026; replaced April 2021 IUS after 5.4 years)
 NEUROLOGICAL: Diagnosed ADHD (Adult Presentation)
-REPORT COMPILED: 06 September 2026
+REPORT COMPILED: ${cInfo.displayDate} (Cycle Day ${cInfo.cycleDay} — ${cInfo.phaseLabel})
 
 1. CLINICAL SYNOPSIS & PHENOTYPE:
-Patient exhibits profound cycle-correlated motility arrest and severe visceral distress. 
-Despite Mirena-induced amenorrhea (absence of menses), longitudinal basal thermal 
-tracking demonstrates persistent, high-amplitude biphasic ovulatory cycles (24-29 day periodicity).
-During the Luteal Phase (post-ovulatory progesterone peak, cycle days 16-28), patient suffers:
-- Profound colonic inertia and near-total transit standstill.
+Patient exhibits cycle-correlated motility slowing and visceral hypersensitivity. 
+Despite Mirena-induced amenorrhea (absence of overt menses), longitudinal Oura Ring nocturnal skin 
+temperature & basal thermal tracking demonstrate a remarkably punctual 28-day biphasic ovulatory cycle 
+(verified Cycle Day 1 resets on 19 Aug 2026, 16 Sep 2026, and 14 Oct 2026).
+Historically during the Luteal Phase (post-ovulatory progesterone peak, cycle days 17-28), patient suffered:
+- Colonic transit delay and smooth muscle relaxation.
 - Abdominophrenic Dyssynergia (APD): Paradoxical diaphragmatic descent and anterior abdominal 
-  wall relaxation in response to trapped fermentation gas and fluid in the splenic flexure.
-- Intercostal chest wall hyperinflation mimicking acute asthma and upper ribcage restriction.
-- Secondary aldosterone-mediated systemic fluid retention (loss of clavicular definition, arm edema).
-- Autonomic vagal irritation symptoms (nausea, cold sweats, reactive tachycardia, dizziness).
+  wall protrusion in response to trapped fermentation gas and fluid in the splenic flexure.
+- Intercostal chest wall hyperinflation and upper ribcage restriction.
+- Secondary aldosterone-mediated systemic fluid retention (puffiness, pre-reset facial spots).
 - Accelerated dopamine clearance exacerbating adult ADHD executive dysfunction and sensory overwhelm.
 
 2. ACTIVE MULTI-AGENT MOTILITY REGIMEN & POLYPHARMACY AUDIT:
@@ -10635,31 +11877,31 @@ During the Luteal Phase (post-ovulatory progesterone peak, cycle days 16-28), pa
 - Movicol (PEG 3350 + electrolytes) x4 sachets daily (osmotic bulk hydration)
 - Ursodeoxycholic Acid (UDCA) 250 mg daily (bile acid secretagogue)
 - Senna tea: anthraquinone stimulant (rescue only)
-[CLINICAL AUDIT NOTE]: Multi-secretagogue therapy (Linaclotide + Movicol + UDCA) draws immense fluid 
-volumes into a dyssynergic bowel. If splenic or pelvic transit is blocked, this fluid pools and 
-distends the colonic wall, paradoxically aggravating APD diaphragmatic reflex spasms.
+[CLINICAL AUDIT NOTE]: Multi-secretagogue therapy (Linaclotide + Movicol + UDCA) draws high fluid 
+volumes into a slow-transit bowel. Strict morning fasting (30-45 min post-Linaclotide) prevents 
+paradoxical liquid bypass around retained distal stool.
 
 3. CHRONOTHERAPY & LIFESTYLE INTERVENTIONS:
 - Morning Linaclotide Protocol: Strictly upon awakening on an empty stomach, 
-  with 350-400ml room-temp water and a 30-45 minute delay before morning caloric intake.
-- Mon-Thu Chrono-Nutrition Trial: Shifting main caloric/nutrient load to midday lunch (12:00-14:00) 
-  to align with peak colonic migrating motor complexes (MMC) and nanny activity, coupled with 
-  a light evening digestive anchor (18:00-19:30) to eliminate nocturnal horizontal fermentation.
+  with 350-400ml water and a 30-45 minute delay before morning caloric intake.
+- Mon-Thu Chrono-Nutrition Trial: Shifting main nutrient load to midday lunch (12:00-14:00) 
+  to align with peak colonic migrating motor complexes (MMC), coupled with a warm, light evening meal.
 - APD Diaphragmatic Biofeedback: 360-degree lateral costal breathing and left-lateral splenic 
-  flexure drainage exercises post-prandially to break the paradoxical diaphragmatic descent reflex.
-- Vagal Nerve & Trauma Recalibration: Weekly EMDR and somatic therapy with Amanda (Lion's Yard, Clapham) 
-  paired with Third Space cold plunge immersion.
+  flexure release post-prandially to interrupt paradoxical diaphragmatic descent.
+- Vagal Nerve & Trauma Recalibration: Weekly EMDR and somatic therapy with Amanda (Clapham).
 
-4. MIRENA 5.4-YEAR DURATION ADVISORY:
-Inserted 19 April 2021. Intrauterine levonorgestrel release rate has declined by >50% 
-(from ~20mcg/day to <8-10mcg/day). This unmasks endogenous ovulatory surges, driving the marked 
-escalation in luteal symptom severity in 2026. Gynecological review recommended for planned replacement.
+4. NEW MIRENA 52MG IUS REPLACEMENT UPDATE (05 OCTOBER 2026):
+Previous Mirena IUS (inserted 19 April 2021, 5.4 years duration) was removed and replaced with a new 
+52mg Mirena IUS on 05 October 2026 (Cycle Day 20). Restoring peak intrauterine levonorgestrel release 
+(~20 mcg/day) produced an immediate improvement in mid-luteal GI tolerance: on 07-08 October (Cycle Days 
+22-23), diaphragm bloat remained 1/10 ("not like usual luteal symptoms at all"). Corpus luteum involution 
+occurred cleanly on schedule on 14 October 2026 (Cycle Day 1), confirmed by a -0.68°C Oura temperature plunge.
 
-5. BIOMETRIC SIGNATURE (OURA RING ALGORITHM):
-- Follicular baseline temperature: 36.15°C - 36.38°C
-- Ovulation thermal nadir & surge: 36.85°C (Sep 4), 37.04°C (Jun 12), 36.81°C (May 15)
-- Luteal Resting Heart Rate elevation: +4 to +6 bpm
-- Luteal Heart Rate Variability drop: -12 to -16 ms (sympathetic dominance)
+5. BIOMETRIC SIGNATURE (OURA RING & ORAL BBT VERIFIED):
+- Clean follicular cardiovascular baseline: RHR 36-39 bpm | HRV 64-76 ms | Oura temp -0.10°C to -0.38°C
+- Verified Ovulation Milestones: 02 Sep (CD15), 01 Oct (CD16: -0.44°C Oura nadir + Mittelschmerz cramps -> +0.15°C luteal shift)
+- Verified Cycle Day 1 Resets (28-day periodicity): 19 Aug (35.86°C crash), 16 Sep (-0.18°C Oura drop), 14 Oct (-0.68°C Oura plunge, 0/10 bloat)
+- Confounder calibration: Alcohol evenings transiently elevate RHR to 46-55 bpm, drop HRV to 17-34 ms, and spike temp +0.36°C to +0.85°C (filtered from endocrine staging).
 
 Report certified for medical records and consultant review.
   `.trim();
@@ -11710,35 +12952,35 @@ function renderOuraOvulationSection(targetDateStr) {
         <div id="ovulationSimCardContainer"></div>
       </div>
 
-      <!-- Mirena IUS Deep-Dive Callout Box -->
+      <!-- Mirena IUS Deep-Dive Callout Box (Updated for 5th Oct 2026 New Coil) -->
       <div class="p-4 sm:p-5 rounded-2xl bg-amber-50/80 border border-amber-200 space-y-2.5 text-xs text-amber-950">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between flex-wrap gap-1.5">
           <div class="flex items-center gap-2 font-extrabold text-xs text-amber-950">
             <span class="text-base">🩺</span>
-            <span>Why Oura Temperature is Your Superpower With a Mirena Coil</span>
+            <span>New Mirena Coil Fitted (5th Oct 2026) — What Oura Watches Now</span>
           </div>
-          <span class="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 shrink-0">
-            Clinical Fact
+          <span class="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 shrink-0">
+            Fresh 52mg Shield Active
           </span>
         </div>
         <p class="leading-relaxed text-amber-900 font-normal">
-          Traditional period apps rely entirely on bleeding to guess your cycle. But a <strong>Mirena IUS coil releases local levonorgestrel directly into the uterus</strong>, preventing the uterine lining from thickening — meaning you may have zero periods or irregular spotting.
+          Emma had her brand-new <strong>52mg Mirena coil fitted on 5th October 2026</strong> (replacing her April 2021 coil). Right away on Oct 7–8, the fresh hormone shield cushioned her mid-luteal bloating down to <strong>1/10</strong>, and on <strong>14th October</strong> Oura captured a textbook <strong>-0.68°C</strong> Cycle Day 1 reset!
         </p>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1 text-[11px]">
           <div class="p-2.5 bg-white/90 rounded-xl border border-amber-200/80 space-y-1">
             <div class="font-bold text-amber-950 flex items-center gap-1">
-              <span>🥚</span> <span>Your Ovaries Still Cycle:</span>
+              <span>🥚</span> <span>Months 1–3 Settling Nuance:</span>
             </div>
             <p class="text-amber-900/90 leading-relaxed">
-              Clinical studies prove that up to <strong>75–85% of women with a Mirena continue natural ovarian ovulation</strong>. Your ovaries still produce estrogen and progesterone waves.
+              Most women still ovulate on a 28-day rhythm with Mirena, though in the <strong>first 1–3 months of a fresh coil</strong> (~20 mcg/day local levonorgestrel), progesterone swings are gentler and ovulation can occasionally soften or shift by 1–3 days.
             </p>
           </div>
           <div class="p-2.5 bg-white/90 rounded-xl border border-amber-200/80 space-y-1">
             <div class="font-bold text-amber-950 flex items-center gap-1">
-              <span>💍</span> <span>The Only Reliable Confirmation:</span>
+              <span>💍</span> <span>Why Oura Is Your Superpower:</span>
             </div>
             <p class="text-amber-900/90 leading-relaxed">
-              Because bleeding is absent, <strong>Oura's nocturnal temperature curve is the ONLY passive tool</strong> that confirms whether your ovaries ovulated, without weekly blood tests!
+              Because bleeding is absent (or just light settling spotting), <strong>Oura's nocturnal temperature curve is the ONLY passive tool</strong> that confirms each month's ovulation & Day 1 reset automatically while you sleep!
             </p>
           </div>
         </div>
@@ -12067,7 +13309,7 @@ async function disconnectOuraToken() {
       await fetch('/api/oura/save-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: '' })
+        body: JSON.stringify({ token: '', disconnect: true })
       });
     } catch (e) {}
 
@@ -12258,6 +13500,12 @@ function openOuraPeriodModal() {
   const nextPeriodEl = document.getElementById('ouraNextPeriodDisplay');
   if (nextPeriodEl) nextPeriodEl.innerText = periodInfo.nextFormatted;
 
+  const setupStep1El = document.getElementById('ouraSetupStep1Date');
+  if (setupStep1El) setupStep1El.innerText = `Select: ${periodInfo.formatted}`;
+
+  const evidenceTitleEl = document.getElementById('ouraPeriodEvidenceTitle');
+  if (evidenceTitleEl) evidenceTitleEl.innerText = `Why ${periodInfo.formatted}? (Oura Biometric Evidence)`;
+
   const m = document.getElementById('ouraPeriodModal');
   if (m) {
     m.classList.remove('hidden');
@@ -12272,7 +13520,7 @@ function closeOuraPeriodModal() {
 
 function copyOuraPeriodDate() {
   const periodInfo = getLatestPeriodStartDate(activeDateStr || getTodayISOString());
-  const textToCopy = periodInfo.plainDate || "19 August 2026";
+  const textToCopy = periodInfo.plainDate || "14 October 2026";
   
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(textToCopy).then(() => {
@@ -12287,10 +13535,10 @@ function copyOuraPeriodDate() {
       }
       showDynamicToast(`📋 Copied "${textToCopy}" to clipboard!`);
     }).catch(() => {
-      showDynamicToast(`19 August 2026`);
+      showDynamicToast(textToCopy);
     });
   } else {
-    showDynamicToast(`19 August 2026`);
+    showDynamicToast(textToCopy);
   }
 }
 
@@ -12413,17 +13661,27 @@ function getEmmaSilentPeriodAnalysis(targetDateStr) {
     }
   }
 
-  // 3. Autonomic Rebound (Resting Heart Rate Drop & HRV Recovery)
+  // 3. Autonomic Rebound (Resting Heart Rate Drop & HRV Recovery — calibrated to Emma's 36–40 bpm athletic baseline)
   const rhr = (entry.rhr !== undefined && entry.rhr !== null) ? Number(entry.rhr) : ((entry.ouraRhr !== undefined && entry.ouraRhr !== null) ? Number(entry.ouraRhr) : null);
   
-  if (rhr !== null && rhr <= 65) {
+  if (rhr !== null && rhr <= 41) {
     score += 10;
     signals.push({
       icon: "❤️",
       title: `Nocturnal Resting Heart Rate: ${rhr} bpm`,
       status: "Vagal Autonomic Ease",
       color: "emerald",
-      detail: `RHR has dropped from luteal highs (68–72 bpm) down to ${rhr} bpm as progesterone's sympathetic drive dissipates.`
+      detail: `RHR is at Emma's clean parasympathetic baseline (36–40 bpm vs luteal/stress highs of 42–50+ bpm) as progesterone's sympathetic drive dissipates.`
+    });
+  } else if (rhr !== null && rhr > 41) {
+    signals.push({
+      icon: "❤️",
+      title: `Nocturnal Resting Heart Rate: ${rhr} bpm`,
+      status: rhr >= 46 ? "Confounder / Stress Spike" : "Mild Luteal Elevation",
+      color: "amber",
+      detail: rhr >= 46
+        ? `RHR (${rhr} bpm) is well above Emma's 37–40 bpm baseline (commonly seen after social drinks, late meals, or viral load).`
+        : `RHR (${rhr} bpm) reflects active luteal thermogenesis above Emma's 37–39 bpm follicular floor.`
     });
   } else if (isPeriodDay) {
     score += 8;
@@ -12432,7 +13690,7 @@ function getEmmaSilentPeriodAnalysis(targetDateStr) {
       title: "Cardiovascular Rhythm: Sympathetic Dial-Down",
       status: "Autonomic Reset",
       color: "emerald",
-      detail: "Resting heart rate trends down and HRV rebounds as progesterone withdraws."
+      detail: "Resting heart rate trends down toward Emma's 37–39 bpm floor and HRV rebounds (64–76 ms) as progesterone withdraws."
     });
   }
 
@@ -12491,7 +13749,12 @@ function getEmmaSilentPeriodAnalysis(targetDateStr) {
     });
   }
 
-  // Determine final status
+  // Determine final status dynamically from active/target date
+  const periodsForDate = getHistoricalAndFutureSilentPeriods(dStr);
+  const matchingActiveWindow = periodsForDate.find(p => p.status === 'active');
+  const nextUpcomingWindow = periodsForDate.find(p => p.status === 'upcoming');
+  const nextWindowText = nextUpcomingWindow ? nextUpcomingWindow.displayDates : getLatestPeriodStartDate(dStr).nextFormatted;
+
   let isActive = false;
   let probability = Math.min(98, Math.max(10, score));
   let statusBadge = "Outside Window";
@@ -12503,18 +13766,20 @@ function getEmmaSilentPeriodAnalysis(targetDateStr) {
     probability = Math.max(88, probability);
     statusBadge = `Active Period Window (Day ${dayNum} of 4)`;
     statusColor = "rose";
-    statusSummary = `Emma is biologically inside her <strong>September Silent Period</strong> (Days 1–4: 16th–19th September 2026). While her Mirena IUD prevents heavy bleeding by suppressing the uterine lining, her systemic hormonal reset is 100% active today.`;
+    const winLabel = matchingActiveWindow ? `${matchingActiveWindow.monthName} Silent Period (${matchingActiveWindow.displayDates})` : `Silent Period Reset (Days 1–4)`;
+    statusSummary = `Emma is biologically inside her <strong>${winLabel}</strong>. While her <strong>52mg Mirena IUD (refreshed 5th Oct 2026)</strong> prevents heavy bleeding by keeping the uterine lining thin, her systemic progesterone withdrawal and cycle reset are 100% active today.`;
   } else if (isEve) {
     isActive = true;
     probability = Math.max(75, probability);
     statusBadge = "Silent Period Eve (Pre-Reset Transition)";
     statusColor = "indigo";
-    statusSummary = "Progesterone is falling toward baseline tonight. Emma's biological period window begins tomorrow morning.";
+    statusSummary = `Progesterone is falling toward baseline tonight (Cycle Day 28). Emma's biological Silent Period window (<strong>${nextWindowText}</strong>) begins tomorrow morning.`;
   } else {
     isActive = false;
+    const daysUntilReset = Math.max(1, 29 - dayNum);
     statusBadge = `Not in Period Window (Day ${dayNum})`;
     statusColor = "slate";
-    statusSummary = `Emma is currently in her <strong>${cycleInfo.phaseLabel}</strong>. Her next estimated Silent Period bleeding window begins <strong>14th October 2026</strong>.`;
+    statusSummary = `Emma is currently on <strong>Cycle Day ${dayNum} (${cycleInfo.phaseLabel})</strong> — verified by her punctual 28-day Oura temperature curve (latest Cycle Day 1 reset confirmed <strong>14th October 2026</strong> via a <strong>-0.68°C</strong> drop, following her <strong>5th October new Mirena coil</strong>). Her next Silent Period reset window begins in <strong>${daysUntilReset} day${daysUntilReset === 1 ? '' : 's'} (${nextWindowText})</strong>.`;
   }
 
   return {
@@ -12528,22 +13793,22 @@ function getEmmaSilentPeriodAnalysis(targetDateStr) {
     statusSummary,
     signals,
     clinicalGuidance: {
-      mirenaFact: "With a Mirena IUD, levonorgestrel acts locally on the uterine endometrium to keep it microscopic and dormant, which eliminates normal bleeding. However, circulating estrogen, progesterone, and prostaglandins still cycle systemically in your bloodstream.",
+      mirenaFact: "With Emma's fresh 52mg Mirena IUD (fitted 5th October 2026), levonorgestrel acts locally on the uterine endometrium to prevent lining build-up and heavy bleeding — and already cushioned her mid-luteal bloat! Meanwhile, Oura tracks her systemic ovarian rhythm passively overnight.",
       comfortPlan: "Wear comfortable non-restricting waistbands, use a warm water bottle or travel heat patch across the lower pelvis for prostaglandin cramping, take morning Linaclotide with a full glass of water, and allow a 40-minute fast.",
       adhdPacing: "Dopamine and serotonin temporarily reset when progesterone and estrogen are at their lowest baseline. Do not force high executive-function tasks today; prioritize unhurried pacing and guilt-free downtime."
     }
   };
 }
 
-function getHistoricalAndFutureSilentPeriods() {
-  return [
+function getHistoricalAndFutureSilentPeriods(referenceDateStr) {
+  const refStr = referenceDateStr || (typeof activeDateStr !== 'undefined' && activeDateStr ? activeDateStr : getTodayISOString());
+  const rawWindows = [
     {
       monthName: "May 2026",
       startDate: "2026-05-27",
       endDate: "2026-05-30",
       displayDates: "27 May – 30 May 2026",
-      status: "completed",
-      badge: "Historical Cycle",
+      completedBadge: "Historical Cycle",
       note: "Silent menses window (Mirena amenorrhea; systemic reset)"
     },
     {
@@ -12551,8 +13816,7 @@ function getHistoricalAndFutureSilentPeriods() {
       startDate: "2026-06-24",
       endDate: "2026-06-27",
       displayDates: "24 Jun – 27 Jun 2026",
-      status: "completed",
-      badge: "Historical Cycle",
+      completedBadge: "Historical Cycle",
       note: "Midsummer cycle reset; prompt prostaglandin fluid mobilization"
     },
     {
@@ -12560,8 +13824,7 @@ function getHistoricalAndFutureSilentPeriods() {
       startDate: "2026-07-22",
       endDate: "2026-07-25",
       displayDates: "22 Jul – 25 Jul 2026",
-      status: "completed",
-      badge: "Historical Cycle",
+      completedBadge: "Historical Cycle",
       note: "Progesterone withdrawal followed by high energy follicular ramp"
     },
     {
@@ -12569,53 +13832,49 @@ function getHistoricalAndFutureSilentPeriods() {
       startDate: "2026-08-19",
       endDate: "2026-08-22",
       displayDates: "19 Aug – 22 Aug 2026",
-      status: "completed",
-      badge: "Logged Vitals Verified",
-      note: "Emma logged 35.86°C thermal crash & lower tummy heaviness, followed by dramatic bloat release."
+      completedBadge: "Oral Temp Verified",
+      note: "Emma logged 36.07°C -> 35.86°C thermal crash & lower tummy heaviness, followed by full bloat release ('98% back to me')."
     },
     {
       monthName: "September 2026",
       startDate: "2026-09-16",
       endDate: "2026-09-19",
       displayDates: "16 Sep – 19 Sep 2026",
-      status: "active",
-      badge: "ACTIVE TODAY 🩸",
-      note: "Current 4-day menses reset window. Day 1 is 16th September. Low baseline temp, prostaglandin bowel transition, gentle ADHD pacing."
+      completedBadge: "Oura Verified ✓",
+      note: "Verified by Oura temp drop (-0.12°C -> -0.18°C -> -0.09°C), morning prostaglandin purge, and clean follicular rebound."
     },
     {
       monthName: "October 2026",
       startDate: "2026-10-14",
       endDate: "2026-10-17",
       displayDates: "14 Oct – 17 Oct 2026",
-      status: "upcoming",
-      badge: "Next Expected",
-      note: "Predicted 4-day window. Plan low-stress mornings and pack electrolytes."
+      completedBadge: "Oura Verified (-0.68°C) ✓",
+      note: "Exact 28-day reset 9 days after new Mirena (5 Oct): -0.68°C Oura plunge on 14 Oct, RHR 39, HRV 64, 0/10 bloat & Happy mood!"
     },
     {
       monthName: "November 2026",
       startDate: "2026-11-11",
       endDate: "2026-11-14",
       displayDates: "11 Nov – 14 Nov 2026",
-      status: "upcoming",
-      badge: "Upcoming",
-      note: "Autumn reset window; cozy knitwear and heat patches recommended."
+      completedBadge: "Completed Cycle",
+      note: "First full-cycle reset with new 52mg Mirena coil; cozy knitwear, electrolytes, and gentle mornings."
     },
     {
       monthName: "December 2026",
       startDate: "2026-12-09",
       endDate: "2026-12-12",
       displayDates: "9 Dec – 12 Dec 2026",
-      status: "upcoming",
-      badge: "Pre-Holiday Window",
-      note: "Occurs comfortably 2 weeks before Christmas (25 Dec), so Christmas Day falls in peak follicular high energy!"
+      completedBadge: "Completed Cycle",
+      upcomingBadge: "Pre-Holiday Window",
+      note: "Occurs 2 weeks before Christmas (25 Dec), placing Christmas Day in peak Ovulation / high energy!"
     },
     {
       monthName: "January 2027",
       startDate: "2027-01-06",
       endDate: "2027-01-09",
       displayDates: "6 Jan – 9 Jan 2027",
-      status: "upcoming",
-      badge: "New Year Reset",
+      completedBadge: "Completed Cycle",
+      upcomingBadge: "New Year Reset",
       note: "First cycle reset of 2027 following New Year celebrations."
     },
     {
@@ -12623,11 +13882,45 @@ function getHistoricalAndFutureSilentPeriods() {
       startDate: "2027-02-03",
       endDate: "2027-02-06",
       displayDates: "3 Feb – 6 Feb 2027",
-      status: "upcoming",
-      badge: "Upcoming",
+      completedBadge: "Completed Cycle",
+      upcomingBadge: "Upcoming",
       note: "Late winter reset window before Valentine's week."
+    },
+    {
+      monthName: "March 2027",
+      startDate: "2027-03-03",
+      endDate: "2027-03-06",
+      displayDates: "3 Mar – 6 Mar 2027",
+      completedBadge: "Completed Cycle",
+      upcomingBadge: "Spring Reset",
+      note: "Early spring 4-day silent reset window."
     }
   ];
+
+  let markedNextUpcoming = false;
+  return rawWindows.map(w => {
+    let status = "upcoming";
+    let badge = w.upcomingBadge || "Upcoming";
+    if (refStr >= w.startDate && refStr <= w.endDate) {
+      status = "active";
+      badge = "ACTIVE TODAY 🩸";
+    } else if (refStr > w.endDate) {
+      status = "completed";
+      badge = w.completedBadge || "Completed";
+    } else if (!markedNextUpcoming) {
+      markedNextUpcoming = true;
+      badge = "Next Expected";
+    }
+    return {
+      monthName: w.monthName,
+      startDate: w.startDate,
+      endDate: w.endDate,
+      displayDates: w.displayDates,
+      status,
+      badge,
+      note: w.note
+    };
+  });
 }
 
 function renderOuraSilentPeriodSection(targetDateStr) {
@@ -12636,9 +13929,15 @@ function renderOuraSilentPeriodSection(targetDateStr) {
 
   const dStr = targetDateStr || activeDateStr || getTodayISOString();
   const analysis = getEmmaSilentPeriodAnalysis(dStr);
-  const periods = getHistoricalAndFutureSilentPeriods();
-  const activePeriod = periods.find(p => p.status === 'active') || periods[4];
+  const periods = getHistoricalAndFutureSilentPeriods(dStr);
+  const activePeriod = periods.find(p => p.status === 'active');
   const nextPeriod = periods.find(p => p.status === 'upcoming');
+  const daysUntilNextWindow = nextPeriod
+    ? Math.max(1, Math.round((new Date(`${nextPeriod.startDate}T12:00:00Z`) - new Date(`${dStr}T12:00:00Z`)) / (1000 * 60 * 60 * 24)))
+    : Math.max(1, 29 - analysis.cycleDay);
+  const activeOrNextPill = analysis.isActive
+    ? (activePeriod ? `Active Window • ${activePeriod.displayDates.split(' 202')[0]}` : `Silent Period Eve • Starts Tomorrow`)
+    : `Upcoming in ${daysUntilNextWindow} day${daysUntilNextWindow === 1 ? '' : 's'}${nextPeriod ? ` • ${nextPeriod.displayDates.split(' 202')[0]}` : ''}`;
 
   container.innerHTML = `
     <div class="bg-gradient-to-br from-rose-50/70 via-white to-amber-50/40 rounded-3xl border border-rose-200 shadow-xs p-5 space-y-4">
@@ -12668,10 +13967,10 @@ function renderOuraSilentPeriodSection(targetDateStr) {
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
           <div class="flex items-center gap-2 font-black text-xs ${analysis.isActive ? 'text-rose-900' : 'text-slate-800'}">
             <span>${analysis.isActive ? '🔥' : '⏳'}</span>
-            <span>${analysis.isActive ? `Biological Menstrual Phase Active Right Now (Confidence: ${analysis.probability}%)` : `Next Predicted Silent Bleeding Window: ${nextPeriod?.displayDates || '14–17 Oct 2026'}`}</span>
+            <span>${analysis.isActive ? `Biological Menstrual Phase Active Right Now (Confidence: ${analysis.probability}%)` : `Next Predicted Silent Bleeding Window: ${nextPeriod?.displayDates || '11–14 Nov 2026'}`}</span>
           </div>
           <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full ${analysis.isActive ? 'bg-rose-200 text-rose-900 border border-rose-300' : 'bg-slate-200 text-slate-700'}">
-            ${analysis.isActive ? `Active Window • 16–19 Sep` : `Upcoming in ~27 days`}
+            ${activeOrNextPill}
           </span>
         </div>
 
@@ -12730,13 +14029,13 @@ function renderOuraSilentPeriodSection(targetDateStr) {
       <div class="p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80 space-y-2 text-xs">
         <div class="flex items-center gap-1.5 font-black text-amber-950">
           <span>💡</span>
-          <span>Why Emma Doesn't Bleed, But Her Period Is 100% Real (Mirena Biology)</span>
+          <span>New Mirena Fitted (5th Oct 2026) — Why Emma Doesn't Bleed, Yet Cycles Punctually</span>
         </div>
         <p class="text-[11px] text-amber-900/90 leading-relaxed font-medium">
-          The Mirena IUD continuously releases microscopic amounts of <em>levonorgestrel</em> directly into the uterus. This acts as a localized mucosal shield, preventing the endometrium (uterine lining) from building up. Because there is virtually no tissue to shed, <strong>Emma experiences amenorrhea (no heavy or visible menstrual blood)</strong>.
+          Emma's brand-new <strong>52mg Mirena IUD (fitted 5th October 2026)</strong> releases fresh localized <em>levonorgestrel</em> directly into the uterus, keeping the endometrium ultra-thin so there is no heavy menstrual bleed — and already cushioning her luteal tummy bloat down to <strong>1/10</strong> on Oct 7–8! (Occasional light settling spotting in Months 1–3 of a new coil is also completely normal.)
         </p>
         <p class="text-[11px] text-amber-900/90 leading-relaxed font-medium">
-          However, <strong>her ovaries still cycle systemically!</strong> Emma ovulates, produces progesterone, and experiences the dramatic progesterone drop that triggers menses. When this drop happens, local prostaglandins stimulate both uterine smooth muscle (causing deep pelvic aching) and colonic smooth muscle (causing looser stools or the "period evacuation surge"). Emma's monthly reset is real, biological, and measurable!
+          Meanwhile, <strong>her ovaries continue their natural 28-day cycle!</strong> Oura proved this on <strong>14th October 2026</strong> when her sleeping temperature plunged <strong>-0.68°C</strong> right on schedule (28 days after 16th Sept). Each reset brings natural prostaglandin fluid clearing and a fresh follicular energy wave!
         </p>
       </div>
 
@@ -12745,7 +14044,7 @@ function renderOuraSilentPeriodSection(targetDateStr) {
         <div class="flex items-center justify-between">
           <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
             <span>🗓️</span>
-            <span>Mirena Menses Timeline (May 2026 – Feb 2027)</span>
+            <span>Mirena Menses Timeline (May 2026 – Mar 2027)</span>
           </h4>
           <span class="text-[10px] text-slate-500 font-semibold">28-day synchronized cycle</span>
         </div>
@@ -13966,11 +15265,14 @@ let tripPlannerState = {
 function parseFutureDateQuery(query) {
   if (!query || typeof query !== 'string') return null;
   const raw = query.trim().toLowerCase();
-  const today = new Date("2026-09-08T12:00:00Z");
+  const todayIso = getTodayISOString();
+  const today = new Date(`${todayIso}T12:00:00Z`);
+  const curYear = today.getUTCFullYear();
+  const curMonth = today.getUTCMonth() + 1;
 
   // 1. Festive Holidays, Silent Period & Specific Celebrations
   if (raw.includes('bleed') || raw.includes('silent period') || raw.includes('period window') || (raw.includes('period') && !raw.includes('period of time'))) {
-    const silentList = typeof getHistoricalAndFutureSilentPeriods === 'function' ? getHistoricalAndFutureSilentPeriods() : [];
+    const silentList = typeof getHistoricalAndFutureSilentPeriods === 'function' ? getHistoricalAndFutureSilentPeriods(todayIso) : [];
     const upcoming = silentList.find(p => p.status === 'active' || p.status === 'upcoming');
     if (upcoming) {
       return { startDate: upcoming.startDate, endDate: upcoming.endDate, label: `${upcoming.monthName} Silent Period (${upcoming.displayDates.split(' 202')[0]})`, mode: 'range' };
@@ -14059,8 +15361,8 @@ function parseFutureDateQuery(query) {
   if (ukMatch) {
     const d = String(parseInt(ukMatch[1])).padStart(2, '0');
     const m = String(parseInt(ukMatch[2])).padStart(2, '0');
-    let y = ukMatch[3] ? parseInt(ukMatch[3]) : 2026;
-    if (!ukMatch[3] && parseInt(m) < 9) y = 2027;
+    let y = ukMatch[3] ? parseInt(ukMatch[3]) : curYear;
+    if (!ukMatch[3] && parseInt(m) < curMonth) y = curYear + 1;
     const iso = `${y}-${m}-${d}`;
     return { startDate: iso, endDate: iso, label: iso, mode: 'single' };
   }
@@ -14079,7 +15381,7 @@ function parseFutureDateQuery(query) {
   if (matchA) {
     const day = String(parseInt(matchA[1])).padStart(2, '0');
     const monthNum = months[matchA[2].toLowerCase()];
-    let year = matchA[3] ? parseInt(matchA[3]) : (monthNum < 9 ? 2027 : 2026);
+    let year = matchA[3] ? parseInt(matchA[3]) : (monthNum < curMonth ? curYear + 1 : curYear);
     const iso = `${year}-${String(monthNum).padStart(2, '0')}-${day}`;
     return { startDate: iso, endDate: iso, label: `${matchA[1]} ${matchA[2]}`, mode: 'single' };
   }
@@ -14089,7 +15391,7 @@ function parseFutureDateQuery(query) {
   if (matchB) {
     const monthNum = months[matchB[1].toLowerCase()];
     const day = String(parseInt(matchB[2])).padStart(2, '0');
-    let year = matchB[3] ? parseInt(matchB[3]) : (monthNum < 9 ? 2027 : 2026);
+    let year = matchB[3] ? parseInt(matchB[3]) : (monthNum < curMonth ? curYear + 1 : curYear);
     const iso = `${year}-${String(monthNum).padStart(2, '0')}-${day}`;
     return { startDate: iso, endDate: iso, label: `${matchB[1]} ${matchB[2]}`, mode: 'single' };
   }
@@ -14098,11 +15400,11 @@ function parseFutureDateQuery(query) {
 }
 
 function calculateFutureCycleDay(dateStr) {
-  const anchorDate = new Date("2026-09-06T12:00:00Z");
+  const anchorDate = new Date("2026-10-14T12:00:00Z");
   const targetDate = new Date(`${dateStr}T12:00:00Z`);
   const diffDays = Math.round((targetDate - anchorDate) / (1000 * 60 * 60 * 24));
   const cycleLength = 28;
-  return ((19 + diffDays - 1) % cycleLength + cycleLength) % cycleLength + 1;
+  return ((diffDays % cycleLength) + cycleLength) % cycleLength + 1;
 }
 
 function getFutureCycleDetails(dateStr) {
@@ -14116,7 +15418,7 @@ function getFutureCycleDetails(dateStr) {
   const formattedDate = `${dayName}, ${dayOfMonth}${suffix} ${monthNames[targetDate.getUTCMonth()]} ${targetDate.getUTCFullYear()}`;
   const shortDate = `${dayOfMonth}${suffix} ${monthNames[targetDate.getUTCMonth()].slice(0, 3)}`;
 
-  const today = new Date("2026-09-08T12:00:00Z");
+  const today = new Date(`${getTodayISOString()}T12:00:00Z`);
   const daysDiff = Math.round((targetDate - today) / (1000 * 60 * 60 * 24));
   let relString = "";
   if (daysDiff === 0) relString = "Today";
@@ -14712,7 +16014,7 @@ function handleTripQuerySubmit(prefix) {
 
 function quickSelectHoliday(key) {
   if (key === 'silentperiod') {
-    const silentList = typeof getHistoricalAndFutureSilentPeriods === 'function' ? getHistoricalAndFutureSilentPeriods() : [];
+    const silentList = typeof getHistoricalAndFutureSilentPeriods === 'function' ? getHistoricalAndFutureSilentPeriods(getTodayISOString()) : [];
     const upcoming = silentList.find(p => p.status === 'active' || p.status === 'upcoming');
     if (upcoming) {
       tripPlannerState.mode = 'range';
@@ -14746,7 +16048,7 @@ function quickSelectHoliday(key) {
     tripPlannerState.endDate = '2026-12-28';
     tripPlannerState.query = 'Festive Break (24–28 Dec)';
   } else if (key === 'in2weeks') {
-    const today = new Date("2026-09-08T12:00:00Z");
+    const today = new Date(`${getTodayISOString()}T12:00:00Z`);
     today.setUTCDate(today.getUTCDate() + 14);
     const iso = today.toISOString().split('T')[0];
     tripPlannerState.mode = 'single';

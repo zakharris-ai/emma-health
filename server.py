@@ -15,6 +15,7 @@ import datetime
 import re
 import tempfile
 import signal
+import threading
 import urllib.request
 import urllib.error
 import urllib.parse
@@ -42,6 +43,46 @@ EXPIRED_OURA_TOKENS = {
     ""
 }
 LAST_EXCHANGED_OURA_CODES = {}
+OURA_REFRESH_LOCK = threading.Lock()
+
+def compute_cycle_info_for_date(date_str):
+    try:
+        d = datetime.date.fromisoformat(date_str)
+    except Exception:
+        d = datetime.date.today()
+    anchor = datetime.date(2026, 10, 14)  # Verified Cycle Day 1 (-0.68C Oura plunge)
+    day_num = ((d - anchor).days % 28) + 1
+    if 1 <= day_num <= 4:
+        phase = "menstrual_follicular"
+        phase_label = "Menstrual Follicular • Days 1–4 (Silent Period Reset)"
+    elif 5 <= day_num <= 13:
+        phase = "follicular"
+        phase_label = "Rising Follicular • Days 5–13 (Estrogen Ramp)"
+    elif 14 <= day_num <= 16:
+        phase = "ovulation"
+        phase_label = "Ovulation Window"
+    elif 17 <= day_num <= 19:
+        phase = "luteal"
+        phase_label = "Early-Mid Luteal (Progesterone Ramp)"
+    elif 20 <= day_num <= 23:
+        phase = "luteal"
+        phase_label = "Mid-Luteal (Progesterone Peak Window)"
+    elif 24 <= day_num <= 27:
+        phase = "luteal"
+        phase_label = "Late Luteal (Pre-Reset Transition)"
+    else:
+        phase = "luteal"
+        phase_label = "Late Luteal (Silent Period Eve)"
+    dom = d.day
+    suffix = "st" if (dom % 10 == 1 and dom != 11) else ("nd" if (dom % 10 == 2 and dom != 12) else ("rd" if (dom % 10 == 3 and dom != 13) else "th"))
+    display_date = f"{d.strftime('%A')}, {dom}{suffix} {d.strftime('%B')} {d.year}"
+    return {
+        "cycleDay": day_num,
+        "phase": phase,
+        "phaseLabel": phase_label,
+        "month": d.strftime("%B").lower(),
+        "displayDate": display_date
+    }
 
 # Remote persistent database support (e.g. Render PostgreSQL or external URL)
 DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -1112,49 +1153,69 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def _refresh_oura_token(self, refresh_token):
         if not refresh_token or str(refresh_token).strip() in EXPIRED_OURA_TOKENS:
             return None
-        try:
-            post_params = {
-                'grant_type': 'refresh_token',
-                'refresh_token': str(refresh_token).strip(),
-                'client_id': OURA_CLIENT_ID,
-                'client_secret': OURA_CLIENT_SECRET
-            }
-            encoded_data = urllib.parse.urlencode(post_params).encode('utf-8')
-            req = urllib.request.Request(
-                'https://api.ouraring.com/oauth/token',
-                data=encoded_data,
-                headers={
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'User-Agent': 'EmmaHealthTracker/1.0'
+        with OURA_REFRESH_LOCK:
+            # First check if a concurrent request just rotated the refresh token in DB
+            try:
+                conn_chk = get_db_connection()
+                cur_chk = conn_chk.cursor()
+                cur_chk.execute("SELECT value FROM app_state WHERE key = 'oura_oauth_data'")
+                row_chk = cur_chk.fetchone()
+                conn_chk.close()
+                if row_chk and row_chk[0]:
+                    latest_oauth = json.loads(row_chk[0])
+                    if isinstance(latest_oauth, dict):
+                        latest_rt = str(latest_oauth.get('refresh_token', '')).strip()
+                        latest_at = str(latest_oauth.get('access_token', '')).strip()
+                        if latest_rt and latest_rt != str(refresh_token).strip() and latest_at and latest_at not in EXPIRED_OURA_TOKENS:
+                            return latest_at
+                        if latest_rt:
+                            refresh_token = latest_rt
+            except Exception:
+                pass
+
+            try:
+                post_params = {
+                    'grant_type': 'refresh_token',
+                    'refresh_token': str(refresh_token).strip(),
+                    'client_id': OURA_CLIENT_ID,
+                    'client_secret': OURA_CLIENT_SECRET
                 }
-            )
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                token_data = json.loads(resp.read().decode('utf-8'))
-                new_access_token = token_data.get('access_token')
-                if new_access_token:
-                    if not token_data.get('refresh_token'):
-                        token_data['refresh_token'] = refresh_token
-                    conn = get_db_connection()
-                    is_pg = hasattr(conn, 'status')
-                    ph = "%s" if is_pg else "?"
-                    cur = conn.cursor()
-                    cur.execute(f"""
-                        INSERT INTO app_state (key, value, updated_at)
-                        VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
-                        ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
-                    """, ('oura_token', json.dumps(new_access_token)))
-                    cur.execute(f"""
-                        INSERT INTO app_state (key, value, updated_at)
-                        VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
-                        ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
-                    """, ('oura_oauth_data', json.dumps(token_data)))
-                    conn.commit()
-                    conn.close()
-                    self._update_disk_snapshots()
-                    print("🟢 Oura access token auto-refreshed and persisted to DB.")
-                    return new_access_token
-        except Exception as e:
-            print(f"⚠️ Oura token auto-refresh error: {e}")
+                encoded_data = urllib.parse.urlencode(post_params).encode('utf-8')
+                req = urllib.request.Request(
+                    'https://api.ouraring.com/oauth/token',
+                    data=encoded_data,
+                    headers={
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'User-Agent': 'EmmaHealthTracker/1.0'
+                    }
+                )
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    token_data = json.loads(resp.read().decode('utf-8'))
+                    new_access_token = token_data.get('access_token')
+                    if new_access_token:
+                        if not token_data.get('refresh_token'):
+                            token_data['refresh_token'] = refresh_token
+                        conn = get_db_connection()
+                        is_pg = hasattr(conn, 'status')
+                        ph = "%s" if is_pg else "?"
+                        cur = conn.cursor()
+                        cur.execute(f"""
+                            INSERT INTO app_state (key, value, updated_at)
+                            VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
+                            ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+                        """, ('oura_token', json.dumps(new_access_token)))
+                        cur.execute(f"""
+                            INSERT INTO app_state (key, value, updated_at)
+                            VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
+                            ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+                        """, ('oura_oauth_data', json.dumps(token_data)))
+                        conn.commit()
+                        conn.close()
+                        self._update_disk_snapshots()
+                        print("🟢 Oura access token auto-refreshed and persisted to DB.")
+                        return new_access_token
+            except Exception as e:
+                print(f"⚠️ Oura token auto-refresh error: {e}")
         return None
 
     def _resolve_oura_credentials(self, prefer_header=False):
@@ -1236,18 +1297,25 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             raw_body = self.rfile.read(content_length).decode('utf-8')
             payload = json.loads(raw_body) if raw_body else {}
             token = payload.get('token')
+            explicit_disconnect = bool(payload.get('disconnect'))
 
             conn = get_db_connection()
             is_pg = hasattr(conn, 'status')
             ph = "%s" if is_pg else "?"
             cur = conn.cursor()
 
-            if not token or not isinstance(token, str) or not token.strip() or token.strip().strip('"').strip("'") in EXPIRED_OURA_TOKENS:
+            if explicit_disconnect:
                 cur.execute("DELETE FROM app_state WHERE key IN ('oura_token', 'oura_oauth_data')")
                 conn.commit()
                 conn.close()
                 self._update_disk_snapshots()
-                self._send_json(200, {"ok": True, "message": "Oura token cleared"})
+                self._send_json(200, {"ok": True, "message": "Oura token disconnected"})
+                return
+
+            if not token or not isinstance(token, str) or not token.strip() or token.strip().strip('"').strip("'") in EXPIRED_OURA_TOKENS:
+                conn.close()
+                # Never allow a stale cached browser tab sending an empty/expired token to wipe active OAuth credentials!
+                self._send_json(200, {"ok": True, "ignored": True, "message": "Ignored empty/expired token to protect active Oura session"})
                 return
 
             clean_token = token.strip().strip('"').strip("'")
@@ -1354,9 +1422,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 })
                 return
 
-            # 2. Date range calculation (default: last 60 days so no gap is ever missed)
+            # 2. Date range calculation (default: last 75 days so no gap is ever missed)
             today = datetime.date.today()
-            default_start = (today - datetime.timedelta(days=60)).isoformat()
+            default_start = (today - datetime.timedelta(days=75)).isoformat()
             default_end = (today + datetime.timedelta(days=1)).isoformat()
 
             start_date = q_params.get('start_date', [default_start])[0]
@@ -1462,7 +1530,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     days[d]["steps"] = item.get('steps')
                     days[d]["active_calories"] = item.get('active_calories')
 
-            # Server-side persistence: enrich existing check-in records in DB with Oura metrics immediately
+            # Server-side persistence: enrich existing check-in records AND create new Oura-synced days in DB immediately
             if days:
                 try:
                     conn = get_db_connection()
@@ -1471,25 +1539,43 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     existing_dates = {r[0] for r in cur.fetchall()}
                     conn.close()
                     updated_any = False
-                    for d_str, d_obj in days.items():
+                    for d_str, d_obj in sorted(days.items()):
+                        has_vitals = any(
+                            d_obj.get(k) is not None
+                            for k in ("sleep_score", "rhr", "hrv", "temperature_deviation", "readiness_score")
+                        )
+                        if not has_vitals:
+                            continue
                         if d_str in existing_dates:
                             patch = {"date": d_str}
-                            if d_obj.get("sleep_score") is not None:
-                                patch["ouraSleep"] = d_obj["sleep_score"]
-                                patch["sleepScore"] = d_obj["sleep_score"]
-                            if d_obj.get("rhr") is not None:
-                                patch["ouraRhr"] = d_obj["rhr"]
-                                patch["rhr"] = d_obj["rhr"]
-                            if d_obj.get("hrv") is not None:
-                                patch["ouraHrv"] = d_obj["hrv"]
-                                patch["hrv"] = d_obj["hrv"]
-                            if d_obj.get("temperature_deviation") is not None:
-                                patch["ouraTempDev"] = d_obj["temperature_deviation"]
-                            if d_obj.get("readiness_score") is not None:
-                                patch["readinessScore"] = d_obj["readiness_score"]
-                            if len(patch) > 1:
-                                save_single_checkin_to_db(patch)
-                                updated_any = True
+                        else:
+                            c_info = compute_cycle_info_for_date(d_str)
+                            patch = {
+                                "id": d_str,
+                                "date": d_str,
+                                "displayDate": c_info["displayDate"],
+                                "month": c_info["month"],
+                                "cycleDay": c_info["cycleDay"],
+                                "phase": c_info["phase"],
+                                "phaseLabel": c_info["phaseLabel"],
+                                "diaphragmBloat": 0,
+                                "notes": ""
+                            }
+                        if d_obj.get("sleep_score") is not None:
+                            patch["ouraSleep"] = d_obj["sleep_score"]
+                            patch["sleepScore"] = d_obj["sleep_score"]
+                        if d_obj.get("rhr") is not None:
+                            patch["ouraRhr"] = d_obj["rhr"]
+                            patch["rhr"] = d_obj["rhr"]
+                        if d_obj.get("hrv") is not None:
+                            patch["ouraHrv"] = d_obj["hrv"]
+                            patch["hrv"] = d_obj["hrv"]
+                        if d_obj.get("temperature_deviation") is not None:
+                            patch["ouraTempDev"] = d_obj["temperature_deviation"]
+                        if d_obj.get("readiness_score") is not None:
+                            patch["readinessScore"] = d_obj["readiness_score"]
+                        save_single_checkin_to_db(patch)
+                        updated_any = True
                     if updated_any:
                         self._update_disk_snapshots()
                 except Exception as persist_err:
@@ -1623,6 +1709,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 "  * CARBONATED DRINKS & SODAS: Dilates the gastric fundus and mechanically forces the diaphragm down (theme 'red').\n"
                 "  * ALLIUMS & GLUTEN: Any dish containing garlic, onions, shallots, wheat, or barley MUST be marked theme 'red' with safe gut-friendly swap recommendations.\n"
                 "  * UNVERIFIED / AMBIGUOUS DISHES: If a dish is not explicitly confirmed safe, NEVER say 'Specialist Approved' or 'Safe to Enjoy' without warning about hidden allium powders (stocks/seasoning), dairy cream, or wheat thickeners (use theme 'amber' with badge 'Screening & Verification Needed').\n"
+                f"- ENDOCRINE & MIRENA COIL STATUS: Emma had a brand-new 52mg Mirena IUS fitted on 5th October 2026 (replacing her previous April 2021 coil). Despite Mirena amenorrhea (no menstrual bleeding), her Oura Ring nocturnal temperature verifies a punctual 28-day ovulatory rhythm (latest Cycle Day 1 reset verified on 14th October 2026 via a -0.68°C progesterone withdrawal plunge; fresh levonorgestrel is already cushioning her luteal bloat severity).\n"
                 f"- CURRENT HORMONAL CONTEXT: Cycle Day {cycle_day} ({phase_label}). Explain explicitly how her current hormone levels (progesterone vs estrogen) modulate digestion of this food.\n"
                 "TONE: Deeply empathetic, calming, empowering, NEVER restrictive or scolding. Keep language clear, short, and bite-sized in plain English without medical jargon or restaurant ordering scripts so Emma is never overwhelmed.\n\n"
                 "You must return ONLY a JSON object matching this schema:\n"
