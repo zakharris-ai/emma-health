@@ -4263,9 +4263,10 @@ function fetchServerDataOnLoad() {
             needsReRender = true;
           }
 
-          // If local had entries that were NOT on the server, heal the server database immediately
-          if (combined.length > data.logs.length) {
-            console.log(`🌸 Healing server database: uploading ${combined.length - data.logs.length} entries`);
+          // If local had entries or Oura token that were NOT on the server, heal the server database immediately
+          const localTok = localStorage.getItem('emma_oura_token');
+          if (combined.length > cleanServerLogs.length || (localTok && !data.ouraToken) || JSON.stringify(combined) !== JSON.stringify(cleanServerLogs)) {
+            console.log(`🌸 Healing server database from device storage (${combined.length} entries)`);
             syncDataToServer(true);
           }
         } else if (logs && logs.length > 0) {
@@ -12979,20 +12980,25 @@ function renderOuraCycleSummaryCard(targetDateStr) {
   const cycleDay = cycleInfo.cycleDay || 19;
 
   const targetDateObj = new Date(`${dStr}T12:00:00Z`);
-  const cycleStartObj = new Date(targetDateObj.getTime() - (cycleDay - 1) * 86400000);
-  const nextResetStartObj = new Date(cycleStartObj.getTime() + 28 * 86400000);
-  const nextResetEndObj = new Date(cycleStartObj.getTime() + 31 * 86400000);
+  const rawCycleStartObj = new Date(targetDateObj.getTime() - (cycleDay - 1) * 86400000);
+  // During Days 1–5 of a new 28-day window (e.g. 11–15 Nov), evaluate ovulation from the cycle just completing (14 Oct – 11 Nov)
+  const evalCycleStartObj = cycleDay <= 5
+    ? new Date(rawCycleStartObj.getTime() - 28 * 86400000)
+    : rawCycleStartObj;
+  const evalCycleEndObj = new Date(evalCycleStartObj.getTime() + 27 * 86400000);
+  const nextResetStartObj = new Date(evalCycleStartObj.getTime() + 28 * 86400000);
+  const nextResetEndObj = new Date(evalCycleStartObj.getTime() + 31 * 86400000);
 
   const fmtShort = (dt) => dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-  const cycleStartIso = cycleStartObj.toISOString().slice(0, 10);
-  const cycleStartLabel = fmtShort(cycleStartObj);
+  const cycleStartIso = evalCycleStartObj.toISOString().slice(0, 10);
+  const cycleEndIso = evalCycleEndObj.toISOString().slice(0, 10);
+  const cycleStartLabel = fmtShort(evalCycleStartObj);
   const nextResetLabel = `${fmtShort(nextResetStartObj)} – ${fmtShort(nextResetEndObj)}`;
 
-  // Gather all logs in this cycle up to the viewed date (or today if viewing current cycle)
   const todayIso = getTodayISOString();
-  const maxDateIso = dStr >= cycleStartIso ? (dStr > todayIso ? dStr : (cycleStartIso === '2026-10-14' && dStr >= '2026-10-14' ? (dStr > todayIso ? dStr : todayIso) : dStr)) : dStr;
+  const maxDateIso = cycleDay <= 5 ? dStr : (dStr > todayIso ? dStr : todayIso);
   const cycleLogs = (Array.isArray(logs) ? logs : [])
-    .filter(l => l.date >= cycleStartIso && l.date <= maxDateIso)
+    .filter(l => l.date >= cycleStartIso && l.date <= (cycleDay <= 5 ? cycleEndIso : maxDateIso))
     .sort((a, b) => a.date.localeCompare(b.date));
 
   const day1Entry = logs.find(l => l.date === cycleStartIso);
@@ -13010,7 +13016,7 @@ function renderOuraCycleSummaryCard(targetDateStr) {
   const nightsWithTemp = cycleLogs
     .filter(l => l.ouraTempDev !== undefined && l.ouraTempDev !== null)
     .map(l => {
-      const cd = Math.round((new Date(`${l.date}T12:00:00Z`) - cycleStartObj) / 86400000) + 1;
+      const cd = Math.round((new Date(`${l.date}T12:00:00Z`) - evalCycleStartObj) / 86400000) + 1;
       return {
         date: l.date,
         shortDate: fmtShort(new Date(`${l.date}T12:00:00Z`)),
@@ -13021,6 +13027,16 @@ function renderOuraCycleSummaryCard(targetDateStr) {
       };
     });
 
+  // Also inspect reset-window nights (Days 28–33) when viewing Days 1–5
+  const resetWindowLogs = cycleDay <= 5
+    ? (Array.isArray(logs) ? logs : [])
+        .filter(l => l.date >= nextResetStartObj.toISOString().slice(0, 10) && l.date <= dStr && l.ouraTempDev !== null && l.ouraTempDev !== undefined)
+        .sort((a, b) => a.date.localeCompare(b.date))
+    : [];
+  const resetDropNight = resetWindowLogs.find(l => !isNightConfounded(l) && Number(l.ouraTempDev) <= -0.15);
+
+  const evalMaxCd = cycleDay <= 5 ? 28 : cycleDay;
+  const hasPostNov1Data = nightsWithTemp.some(n => n.date >= '2026-11-02');
   const cleanMidCycle = nightsWithTemp.filter(n => !n.confounded && n.cd >= 12 && n.cd <= 21);
   const deepestDip = cleanMidCycle.length > 0
     ? cleanMidCycle.reduce((min, cur) => (cur.temp < min.temp ? cur : min), cleanMidCycle[0])
@@ -13042,28 +13058,36 @@ function renderOuraCycleSummaryCard(targetDateStr) {
     ovuSummary = 'Confirmed via sustained luteal warmth before your 16 Sep Oura Cycle Day 1 reset.';
   } else if (cleanWarmPost14.length >= 2) {
     const estDay = deepestDip ? deepestDip.cd : Math.max(14, cleanWarmPost14[0].cd - 1);
-    const estDateObj = new Date(cycleStartObj.getTime() + (estDay - 1) * 86400000);
+    const estDateObj = new Date(evalCycleStartObj.getTime() + (estDay - 1) * 86400000);
     ovuBadge = `✅ Confirmed (~${fmtShort(estDateObj)} • Day ${estDay})`;
     ovuBadgeClass = 'bg-emerald-100 text-emerald-900 border-emerald-300';
     ovuTitle = `Yes (~${fmtShort(estDateObj)}, Day ${estDay})`;
-    ovuSummary = `Verified by ${cleanWarmPost14.length} clean alcohol-free warm nights above baseline${deepestDip ? ` after your ${deepestDip.temp.toFixed(2)}°C dip on ${deepestDip.shortDate}` : ''}.`;
-  } else if (cycleDay <= 13) {
+    const resetSuffix = resetDropNight
+      ? ` Silent Cycle Day 1 reset also verified on <strong>${fmtShort(new Date(resetDropNight.date + 'T12:00:00Z'))} (${Number(resetDropNight.ouraTempDev).toFixed(2)}°C drop)</strong>!`
+      : '';
+    ovuSummary = `Verified by ${cleanWarmPost14.length} clean alcohol-free warm nights above baseline${deepestDip ? ` after your ${deepestDip.temp.toFixed(2)}°C dip on ${deepestDip.shortDate}` : ''}.${resetSuffix}`;
+  } else if (cycleStartIso === '2026-10-14' && !hasPostNov1Data && dStr >= '2026-11-03') {
+    ovuBadge = '🔄 Tap Sync Ring to Check Nov 2–12';
+    ovuBadgeClass = 'bg-amber-100 text-amber-900 border-amber-300';
+    ovuTitle = 'Awaiting Ring Sync';
+    ovuSummary = `Latest synced ring night is <strong>1 Nov</strong>. Tap <strong>"Sync Ring Now"</strong> above (or <strong>"1-Tap Authorize"</strong> in Ring Settings if your 30-day login expired) to pull <strong>2–12 Nov</strong> and instantly reveal your October/November ovulation & reset!`;
+  } else if (evalMaxCd <= 13) {
     ovuBadge = '🌿 Follicular Window (Pre-Ovulation)';
     ovuBadgeClass = 'bg-emerald-50 text-emerald-800 border-emerald-200';
     ovuTitle = 'Not Yet (Days 14–17 Window Ahead)';
     ovuSummary = `Currently in your cool follicular phase (Day ${cycleDay}). Expected ovulation window is Days 14–17.`;
-  } else if (confoundedWarmPost15.length > 0 && cleanCoolLate.length === 0) {
+  } else if (confoundedWarmPost15.length > 0 && cleanCoolLate.length === 0 && cleanWarmPost14.length < 2) {
     const dipNote = deepestDip ? `Clean nights stayed cool right through <strong>${deepestDip.shortDate} (Day ${deepestDip.cd}: ${deepestDip.temp.toFixed(2)}°C dip)</strong>.` : 'Clean weekday temperatures stayed below baseline.';
     const spikeDates = confoundedWarmPost15.map(n => `${n.shortDate} (+${n.temp.toFixed(2)}°C, ${n.rhr} bpm)`).join(' & ');
     ovuBadge = '⏳ Unconfirmed (Masked by Drinks)';
     ovuBadgeClass = 'bg-amber-100 text-amber-900 border-amber-300';
     ovuTitle = 'Pending 2 Clean Nights';
     ovuSummary = `${dipNote} The warm jump on <strong>${spikeDates}</strong> had high heart rate from social drinks — <strong>2–3 alcohol-free sleeps</strong> will confirm if you ovulated around Day 17–18 or if your <strong>5 Oct Mirena</strong> gently paused ovulation this month.`;
-  } else if (cleanCoolLate.length >= 2 || cycleDay >= 21) {
+  } else if (cleanCoolLate.length >= 2 || evalMaxCd >= 21) {
     ovuBadge = '🌸 Gently Paused (New Mirena Cushion)';
     ovuBadgeClass = 'bg-purple-100 text-purple-900 border-purple-300';
-    ovuTitle = 'No Thermal Shift Yet';
-    ovuSummary = `Clean temperatures have stayed cool below baseline past Day ${cycleDay}. With your new <strong>5th Oct Mirena coil</strong>, a delayed or skipped ovulation in Months 1–3 is 100% healthy and keeps tummy bloat much flatter!`;
+    ovuTitle = 'Paused This Cycle (Normal)';
+    ovuSummary = `Clean temperatures stayed cool below baseline across the second half of your ${cycleStartLabel} cycle. With your new <strong>5th Oct Mirena coil</strong>, a paused ovulation in Months 1–3 is 100% healthy and keeps tummy bloat much flatter!`;
   } else {
     ovuBadge = '🔍 Watching Ovulation Window';
     ovuBadgeClass = 'bg-amber-50 text-amber-900 border-amber-200';
