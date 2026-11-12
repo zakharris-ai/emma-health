@@ -50,8 +50,15 @@ def compute_cycle_info_for_date(date_str):
         d = datetime.date.fromisoformat(date_str)
     except Exception:
         d = datetime.date.today()
-    anchor = datetime.date(2026, 10, 14)  # Verified Cycle Day 1 (-0.68C Oura plunge)
-    day_num = ((d - anchor).days % 28) + 1
+    if d >= datetime.date(2026, 11, 10):
+        anchor = datetime.date(2026, 11, 10)  # Verified Cycle Day 1 (-0.40C Oura plunge)
+        day_num = ((d - anchor).days % 28) + 1
+    elif d >= datetime.date(2026, 10, 14):
+        anchor = datetime.date(2026, 10, 14)  # Verified Cycle Day 1 (-0.68C Oura plunge, 27d cycle)
+        day_num = (d - anchor).days + 1
+    else:
+        anchor = datetime.date(2026, 10, 14)
+        day_num = ((d - anchor).days % 28) + 1
     if 1 <= day_num <= 4:
         phase = "menstrual_follicular"
         phase_label = "Menstrual Follicular • Days 1–4 (Silent Period Reset)"

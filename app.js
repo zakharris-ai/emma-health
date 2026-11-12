@@ -8,6 +8,237 @@
 // ============================================================================
 const DEFAULT_LOGS = [
   {
+    "id": "2026-11-12",
+    "date": "2026-11-12",
+    "displayDate": "Thursday, 12th November 2026",
+    "month": "november",
+    "cycleDay": 3,
+    "phase": "menstrual_follicular",
+    "phaseLabel": "Menstrual Follicular \u2022 Days 1\u20134 (Silent Period Reset)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 69,
+    "sleepScore": 69,
+    "ouraRhr": 42,
+    "rhr": 42,
+    "ouraHrv": 47,
+    "hrv": 47,
+    "ouraTempDev": 0.02,
+    "readinessScore": 77,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-11-11",
+    "date": "2026-11-11",
+    "displayDate": "Wednesday, 11th November 2026",
+    "month": "november",
+    "cycleDay": 2,
+    "phase": "menstrual_follicular",
+    "phaseLabel": "Menstrual Follicular \u2022 Days 1\u20134 (Silent Period Reset)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 75,
+    "sleepScore": 75,
+    "ouraRhr": 39,
+    "rhr": 39,
+    "ouraHrv": 65,
+    "hrv": 65,
+    "ouraTempDev": 0.05,
+    "readinessScore": 84,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-11-10",
+    "date": "2026-11-10",
+    "displayDate": "Tuesday, 10th November 2026",
+    "month": "november",
+    "cycleDay": 1,
+    "phase": "menstrual_follicular",
+    "phaseLabel": "Menstrual Follicular \u2022 Days 1\u20134 (Silent Period Reset)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 75,
+    "sleepScore": 75,
+    "ouraRhr": 40,
+    "rhr": 40,
+    "ouraHrv": 60,
+    "hrv": 60,
+    "ouraTempDev": -0.4,
+    "readinessScore": 82,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-11-09",
+    "date": "2026-11-09",
+    "displayDate": "Monday, 9th November 2026",
+    "month": "november",
+    "cycleDay": 27,
+    "phase": "luteal",
+    "phaseLabel": "Late Luteal (Pre-Reset Transition)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 79,
+    "sleepScore": 79,
+    "ouraRhr": 39,
+    "rhr": 39,
+    "ouraHrv": 57,
+    "hrv": 57,
+    "ouraTempDev": 0.1,
+    "readinessScore": 84,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-11-08",
+    "date": "2026-11-08",
+    "displayDate": "Sunday, 8th November 2026",
+    "month": "november",
+    "cycleDay": 26,
+    "phase": "luteal",
+    "phaseLabel": "Late Luteal (Pre-Reset Transition)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 77,
+    "sleepScore": 77,
+    "ouraRhr": 42,
+    "rhr": 42,
+    "ouraHrv": 39,
+    "hrv": 39,
+    "ouraTempDev": 0.04,
+    "readinessScore": 78,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-11-07",
+    "date": "2026-11-07",
+    "displayDate": "Saturday, 7th November 2026",
+    "month": "november",
+    "cycleDay": 25,
+    "phase": "luteal",
+    "phaseLabel": "Late Luteal (Pre-Reset Transition)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 67,
+    "sleepScore": 67,
+    "ouraRhr": 42,
+    "rhr": 42,
+    "ouraHrv": 46,
+    "hrv": 46,
+    "ouraTempDev": -0.06,
+    "readinessScore": 68,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-11-06",
+    "date": "2026-11-06",
+    "displayDate": "Friday, 6th November 2026",
+    "month": "november",
+    "cycleDay": 24,
+    "phase": "luteal",
+    "phaseLabel": "Late Luteal (Pre-Reset Transition)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 72,
+    "sleepScore": 72,
+    "ouraRhr": 43,
+    "rhr": 43,
+    "ouraHrv": 36,
+    "hrv": 36,
+    "ouraTempDev": 0.18,
+    "readinessScore": 65,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-11-05",
+    "date": "2026-11-05",
+    "displayDate": "Thursday, 5th November 2026",
+    "month": "november",
+    "cycleDay": 23,
+    "phase": "luteal",
+    "phaseLabel": "Mid-Luteal (Progesterone Peak Window)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 90,
+    "sleepScore": 90,
+    "ouraRhr": 40,
+    "rhr": 40,
+    "ouraHrv": 66,
+    "hrv": 66,
+    "ouraTempDev": -0.16,
+    "readinessScore": 84,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-11-04",
+    "date": "2026-11-04",
+    "displayDate": "Wednesday, 4th November 2026",
+    "month": "november",
+    "cycleDay": 22,
+    "phase": "luteal",
+    "phaseLabel": "Mid-Luteal (Progesterone Peak Window)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 73,
+    "sleepScore": 73,
+    "ouraRhr": 38,
+    "rhr": 38,
+    "ouraHrv": 65,
+    "hrv": 65,
+    "ouraTempDev": 0.08,
+    "readinessScore": 77,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-11-03",
+    "date": "2026-11-03",
+    "displayDate": "Tuesday, 3rd November 2026",
+    "month": "november",
+    "cycleDay": 21,
+    "phase": "luteal",
+    "phaseLabel": "Mid-Luteal (Progesterone Peak Window)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 75,
+    "sleepScore": 75,
+    "ouraRhr": 39,
+    "rhr": 39,
+    "ouraHrv": 64,
+    "hrv": 64,
+    "ouraTempDev": -0.22,
+    "readinessScore": 78,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
+    "id": "2026-11-02",
+    "date": "2026-11-02",
+    "displayDate": "Monday, 2nd November 2026",
+    "month": "november",
+    "cycleDay": 20,
+    "phase": "luteal",
+    "phaseLabel": "Mid-Luteal (Progesterone Peak Window)",
+    "diaphragmBloat": 0,
+    "notes": "",
+    "ouraSleep": 70,
+    "sleepScore": 70,
+    "ouraRhr": 37,
+    "rhr": 37,
+    "ouraHrv": 66,
+    "hrv": 66,
+    "ouraTempDev": -0.04,
+    "readinessScore": 80,
+    "symptoms": "",
+    "headspaceNotes": ""
+  },
+  {
     "id": "2026-11-01",
     "date": "2026-11-01",
     "displayDate": "Sunday, 1st November 2026",
@@ -451,7 +682,7 @@ const DEFAULT_LOGS = [
     "rhr": 41,
     "ouraHrv": 63,
     "hrv": 63,
-    "ouraTempDev": 0,
+    "ouraTempDev": 0.0,
     "readinessScore": 85,
     "symptoms": "Still bad bloating \nHeadspace fine just tired",
     "headspaceNotes": "Still bad bloating \nHeadspace fine just tired",
@@ -740,7 +971,8 @@ const DEFAULT_LOGS = [
     "hrv": 66,
     "readinessScore": 85,
     "symptoms": "",
-    "headspaceNotes": ""
+    "headspaceNotes": "",
+    "puffiness": []
   },
   {
     "id": "2026-10-11",
@@ -872,7 +1104,9 @@ const DEFAULT_LOGS = [
       "warmMeals": true,
       "diaphragmRelease": false
     },
-    "updatedAt": "2026-10-11T05:15:41.500Z"
+    "updatedAt": "2026-10-11T05:15:41.500Z",
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
   },
   {
     "id": "2026-10-09",
@@ -941,7 +1175,9 @@ const DEFAULT_LOGS = [
       "warmMeals": true,
       "diaphragmRelease": false
     },
-    "updatedAt": "2026-10-09T17:38:06.461Z"
+    "updatedAt": "2026-10-09T17:38:06.461Z",
+    "linaclotideTaken": true,
+    "safeWarmMeals": true
   },
   {
     "id": "2026-10-08",
@@ -1273,7 +1509,8 @@ const DEFAULT_LOGS = [
     "ouraTempDev": 0.05,
     "readinessScore": 68,
     "symptoms": "",
-    "headspaceNotes": ""
+    "headspaceNotes": "",
+    "puffiness": []
   },
   {
     "id": "2026-10-02",
@@ -4830,15 +5067,24 @@ function getCycleInfoForDate(targetDateStr) {
   // Check if there is an existing log for this exact date
   const existing = logs.find(l => l.date === targetDateStr);
   
-  // Verified Cycle Day 1 anchor: 2026-10-14 (-0.68°C Oura temp plunge, RHR 39, HRV 64, 0/10 bloat; exact 28d from 2026-09-16 & 2026-08-19)
-  const anchorDate = new Date("2026-10-14T12:00:00Z");
+  // Piecewise verified Cycle Day 1 anchors: 2026-08-19, 2026-09-16, 2026-10-14 (-0.68°C), and 2026-11-10 (-0.40°C Oura plunge)
   const targetDate = new Date(`${targetDateStr}T12:00:00Z`);
-  const diffDays = Math.round((targetDate - anchorDate) / (1000 * 60 * 60 * 24));
   const mirenaFittedDateObj = new Date("2026-10-05T12:00:00Z");
   const daysSinceMirena = Math.round((targetDate - mirenaFittedDateObj) / (1000 * 60 * 60 * 24));
-  
-  const cycleLength = 28; // Emma's verified 28-day ovulatory cycle
-  let dayNum = ((diffDays % cycleLength) + cycleLength) % cycleLength + 1;
+  const cycleLength = 28;
+  let dayNum = 1;
+  if (targetDateStr >= "2026-11-10") {
+    const anchorNov = new Date("2026-11-10T12:00:00Z");
+    const diffNov = Math.round((targetDate - anchorNov) / (1000 * 60 * 60 * 24));
+    dayNum = ((diffNov % cycleLength) + cycleLength) % cycleLength + 1;
+  } else if (targetDateStr >= "2026-10-14") {
+    const anchorOct = new Date("2026-10-14T12:00:00Z");
+    dayNum = Math.round((targetDate - anchorOct) / (1000 * 60 * 60 * 24)) + 1;
+  } else {
+    const anchorOct = new Date("2026-10-14T12:00:00Z");
+    const diffDays = Math.round((targetDate - anchorOct) / (1000 * 60 * 60 * 24));
+    dayNum = ((diffDays % cycleLength) + cycleLength) % cycleLength + 1;
+  }
 
   let phase = "luteal";
   let phaseLabel = "Late Luteal (Progesterone Peak)";
@@ -12981,27 +13227,37 @@ function renderOuraCycleSummaryCard(targetDateStr) {
 
   const targetDateObj = new Date(`${dStr}T12:00:00Z`);
   const rawCycleStartObj = new Date(targetDateObj.getTime() - (cycleDay - 1) * 86400000);
-  // During Days 1–5 of a new 28-day window (e.g. 11–15 Nov), evaluate ovulation from the cycle just completing (14 Oct – 11 Nov)
-  const evalCycleStartObj = cycleDay <= 5
-    ? new Date(rawCycleStartObj.getTime() - 28 * 86400000)
-    : rawCycleStartObj;
-  const evalCycleEndObj = new Date(evalCycleStartObj.getTime() + 27 * 86400000);
-  const nextResetStartObj = new Date(evalCycleStartObj.getTime() + 28 * 86400000);
-  const nextResetEndObj = new Date(evalCycleStartObj.getTime() + 31 * 86400000);
+  const rawCycleStartIso = rawCycleStartObj.toISOString().slice(0, 10);
+  const isEarlyNewCycle = cycleDay <= 6;
+
+  // During Days 1–6 of a new cycle (e.g. 10–15 Nov), also show the ovulation verdict from the cycle that just completed!
+  let evalCycleStartObj = rawCycleStartObj;
+  let evalCycleEndObj = new Date(rawCycleStartObj.getTime() + 27 * 86400000);
+  if (isEarlyNewCycle) {
+    if (rawCycleStartIso === '2026-11-10') {
+      evalCycleStartObj = new Date('2026-10-14T12:00:00Z');
+      evalCycleEndObj = new Date('2026-11-09T12:00:00Z');
+    } else {
+      evalCycleStartObj = new Date(rawCycleStartObj.getTime() - 28 * 86400000);
+      evalCycleEndObj = new Date(rawCycleStartObj.getTime() - 86400000);
+    }
+  }
+  const nextResetStartObj = new Date(rawCycleStartObj.getTime() + 28 * 86400000);
+  const nextResetEndObj = new Date(rawCycleStartObj.getTime() + 31 * 86400000);
 
   const fmtShort = (dt) => dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-  const cycleStartIso = evalCycleStartObj.toISOString().slice(0, 10);
-  const cycleEndIso = evalCycleEndObj.toISOString().slice(0, 10);
-  const cycleStartLabel = fmtShort(evalCycleStartObj);
+  const evalStartIso = evalCycleStartObj.toISOString().slice(0, 10);
+  const evalEndIso = evalCycleEndObj.toISOString().slice(0, 10);
+  const activeResetLabel = fmtShort(rawCycleStartObj);
   const nextResetLabel = `${fmtShort(nextResetStartObj)} – ${fmtShort(nextResetEndObj)}`;
 
   const todayIso = getTodayISOString();
-  const maxDateIso = cycleDay <= 5 ? dStr : (dStr > todayIso ? dStr : todayIso);
+  const maxDateIso = isEarlyNewCycle ? evalEndIso : (dStr > todayIso ? dStr : todayIso);
   const cycleLogs = (Array.isArray(logs) ? logs : [])
-    .filter(l => l.date >= cycleStartIso && l.date <= (cycleDay <= 5 ? cycleEndIso : maxDateIso))
+    .filter(l => l.date >= evalStartIso && l.date <= maxDateIso)
     .sort((a, b) => a.date.localeCompare(b.date));
 
-  const day1Entry = logs.find(l => l.date === cycleStartIso);
+  const day1Entry = logs.find(l => l.date === rawCycleStartIso);
   const day1TempStr = (day1Entry && day1Entry.ouraTempDev !== undefined && day1Entry.ouraTempDev !== null)
     ? `${Number(day1Entry.ouraTempDev) > 0 ? '+' : ''}${Number(day1Entry.ouraTempDev).toFixed(2)}°C Oura drop`
     : '28-day rhythm anchor';
@@ -13010,7 +13266,7 @@ function renderOuraCycleSummaryCard(targetDateStr) {
     const hr = Number(l.rhr ?? l.ouraRhr ?? 0);
     const hv = Number(l.hrv ?? l.ouraHrv ?? 99);
     const alc = (l.alcohol && l.alcohol !== 'none') || (Array.isArray(l.puffiness) && l.puffiness.some(p => /wine|tequila|drink|prosecco|beer|alcohol|bubbles/i.test(p)));
-    return (hr >= 46) || (hv > 0 && hv <= 34) || Boolean(alc);
+    return (hr >= 46) || (hv > 0 && hv <= 38) || Boolean(alc);
   };
 
   const nightsWithTemp = cycleLogs
@@ -13027,67 +13283,75 @@ function renderOuraCycleSummaryCard(targetDateStr) {
       };
     });
 
-  // Also inspect reset-window nights (Days 28–33) when viewing Days 1–5
-  const resetWindowLogs = cycleDay <= 5
-    ? (Array.isArray(logs) ? logs : [])
-        .filter(l => l.date >= nextResetStartObj.toISOString().slice(0, 10) && l.date <= dStr && l.ouraTempDev !== null && l.ouraTempDev !== undefined)
-        .sort((a, b) => a.date.localeCompare(b.date))
-    : [];
-  const resetDropNight = resetWindowLogs.find(l => !isNightConfounded(l) && Number(l.ouraTempDev) <= -0.15);
-
-  const evalMaxCd = cycleDay <= 5 ? 28 : cycleDay;
-  const hasPostNov1Data = nightsWithTemp.some(n => n.date >= '2026-11-02');
+  const evalMaxCd = isEarlyNewCycle ? 27 : cycleDay;
   const cleanMidCycle = nightsWithTemp.filter(n => !n.confounded && n.cd >= 12 && n.cd <= 21);
   const deepestDip = cleanMidCycle.length > 0
     ? cleanMidCycle.reduce((min, cur) => (cur.temp < min.temp ? cur : min), cleanMidCycle[0])
     : null;
 
-  const cleanWarmPost14 = nightsWithTemp.filter(n => !n.confounded && n.cd >= 15 && n.temp >= 0.08);
+  const cleanPost15 = nightsWithTemp.filter(n => !n.confounded && n.cd >= 16);
+  const cleanLutealMean = cleanPost15.length > 0
+    ? cleanPost15.reduce((acc, n) => acc + n.temp, 0) / cleanPost15.length
+    : -0.10;
+  let maxConsecWarm = 0;
+  let curConsec = 0;
+  cleanPost15.forEach(n => {
+    if (n.temp >= 0.10) {
+      curConsec++;
+      if (curConsec > maxConsecWarm) maxConsecWarm = curConsec;
+    } else {
+      curConsec = 0;
+    }
+  });
+  const hasSustainedShift = (maxConsecWarm >= 2 && cleanLutealMean >= 0.08) || (cleanPost15.filter(n => n.temp >= 0.12).length >= 3 && cleanLutealMean >= 0.08);
   const confoundedWarmPost15 = nightsWithTemp.filter(n => n.confounded && n.cd >= 16 && n.temp >= 0.30);
-  const cleanCoolLate = nightsWithTemp.filter(n => !n.confounded && n.cd >= 19 && n.temp <= -0.05);
+  const cleanCoolLate = nightsWithTemp.filter(n => !n.confounded && n.cd >= 19 && n.temp <= 0.00);
+
+  const ovuCardHeading = isEarlyNewCycle ? `Last Cycle (${fmtShort(evalCycleStartObj)}–${fmtShort(evalCycleEndObj)})` : 'Did Emma Ovulate?';
 
   let ovuBadge = '';
   let ovuBadgeClass = '';
   let ovuTitle = '';
   let ovuSummary = '';
 
-  if (cycleStartIso === '2026-08-19') {
+  if (evalStartIso === '2026-08-19') {
     ovuBadge = '✅ Ovulated (~2 Sep • Day 15)';
     ovuBadgeClass = 'bg-emerald-100 text-emerald-900 border-emerald-300';
     ovuTitle = 'Confirmed (~2 Sep)';
     ovuSummary = 'Confirmed via sustained luteal warmth before your 16 Sep Oura Cycle Day 1 reset.';
-  } else if (cleanWarmPost14.length >= 2) {
-    const estDay = deepestDip ? deepestDip.cd : Math.max(14, cleanWarmPost14[0].cd - 1);
+  } else if (evalStartIso === '2026-09-16') {
+    ovuBadge = '✅ Ovulated (~1 Oct • Day 16)';
+    ovuBadgeClass = 'bg-emerald-100 text-emerald-900 border-emerald-300';
+    ovuTitle = 'Confirmed (~1 Oct, Day 16)';
+    ovuSummary = 'Verified by your -0.44°C pre-ovulatory dip on 1 Oct before your new 5 Oct Mirena softened late-luteal heat.';
+  } else if (hasSustainedShift) {
+    const firstWarm = cleanPost15.find(n => n.temp >= 0.10);
+    const estDay = deepestDip ? deepestDip.cd : Math.max(14, (firstWarm?.cd || 16) - 1);
     const estDateObj = new Date(evalCycleStartObj.getTime() + (estDay - 1) * 86400000);
     ovuBadge = `✅ Confirmed (~${fmtShort(estDateObj)} • Day ${estDay})`;
     ovuBadgeClass = 'bg-emerald-100 text-emerald-900 border-emerald-300';
     ovuTitle = `Yes (~${fmtShort(estDateObj)}, Day ${estDay})`;
-    const resetSuffix = resetDropNight
-      ? ` Silent Cycle Day 1 reset also verified on <strong>${fmtShort(new Date(resetDropNight.date + 'T12:00:00Z'))} (${Number(resetDropNight.ouraTempDev).toFixed(2)}°C drop)</strong>!`
-      : '';
-    ovuSummary = `Verified by ${cleanWarmPost14.length} clean alcohol-free warm nights above baseline${deepestDip ? ` after your ${deepestDip.temp.toFixed(2)}°C dip on ${deepestDip.shortDate}` : ''}.${resetSuffix}`;
-  } else if (cycleStartIso === '2026-10-14' && !hasPostNov1Data && dStr >= '2026-11-03') {
-    ovuBadge = '🔄 Tap Sync Ring to Check Nov 2–12';
-    ovuBadgeClass = 'bg-amber-100 text-amber-900 border-amber-300';
-    ovuTitle = 'Awaiting Ring Sync';
-    ovuSummary = `Latest synced ring night is <strong>1 Nov</strong>. Tap <strong>"Sync Ring Now"</strong> above (or <strong>"1-Tap Authorize"</strong> in Ring Settings if your 30-day login expired) to pull <strong>2–12 Nov</strong> and instantly reveal your October/November ovulation & reset!`;
-  } else if (evalMaxCd <= 13) {
+    ovuSummary = `Verified by sustained clean warm nights above baseline (avg +${cleanLutealMean.toFixed(2)}°C)${deepestDip ? ` after your ${deepestDip.temp.toFixed(2)}°C dip on ${deepestDip.shortDate}` : ''}.`;
+  } else if (!isEarlyNewCycle && evalMaxCd <= 13) {
     ovuBadge = '🌿 Follicular Window (Pre-Ovulation)';
     ovuBadgeClass = 'bg-emerald-50 text-emerald-800 border-emerald-200';
-    ovuTitle = 'Not Yet (Days 14–17 Window Ahead)';
+    ovuTitle = 'Not Yet (Days 14–17 Ahead)';
     ovuSummary = `Currently in your cool follicular phase (Day ${cycleDay}). Expected ovulation window is Days 14–17.`;
-  } else if (confoundedWarmPost15.length > 0 && cleanCoolLate.length === 0 && cleanWarmPost14.length < 2) {
+  } else if (!isEarlyNewCycle && confoundedWarmPost15.length > 0 && cleanCoolLate.length === 0) {
     const dipNote = deepestDip ? `Clean nights stayed cool right through <strong>${deepestDip.shortDate} (Day ${deepestDip.cd}: ${deepestDip.temp.toFixed(2)}°C dip)</strong>.` : 'Clean weekday temperatures stayed below baseline.';
     const spikeDates = confoundedWarmPost15.map(n => `${n.shortDate} (+${n.temp.toFixed(2)}°C, ${n.rhr} bpm)`).join(' & ');
     ovuBadge = '⏳ Unconfirmed (Masked by Drinks)';
     ovuBadgeClass = 'bg-amber-100 text-amber-900 border-amber-300';
     ovuTitle = 'Pending 2 Clean Nights';
-    ovuSummary = `${dipNote} The warm jump on <strong>${spikeDates}</strong> had high heart rate from social drinks — <strong>2–3 alcohol-free sleeps</strong> will confirm if you ovulated around Day 17–18 or if your <strong>5 Oct Mirena</strong> gently paused ovulation this month.`;
+    ovuSummary = `${dipNote} The warm jump on <strong>${spikeDates}</strong> had high heart rate from social drinks — <strong>2–3 alcohol-free sleeps</strong> will confirm if you ovulated or if your <strong>5 Oct Mirena</strong> gently paused ovulation.`;
   } else if (cleanCoolLate.length >= 2 || evalMaxCd >= 21) {
-    ovuBadge = '🌸 Gently Paused (New Mirena Cushion)';
-    ovuBadgeClass = 'bg-purple-100 text-purple-900 border-purple-300';
-    ovuTitle = 'Paused This Cycle (Normal)';
-    ovuSummary = `Clean temperatures stayed cool below baseline across the second half of your ${cycleStartLabel} cycle. With your new <strong>5th Oct Mirena coil</strong>, a paused ovulation in Months 1–3 is 100% healthy and keeps tummy bloat much flatter!`;
+    ovuBadge = isEarlyNewCycle ? '🌸 New Cycle Reset Verified (10 Nov)' : '🌸 Gently Paused (New Mirena Cushion)';
+    ovuBadgeClass = isEarlyNewCycle ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-purple-100 text-purple-900 border-purple-300';
+    ovuTitle = 'Paused by New Mirena (Normal)';
+    const resetNote = isEarlyNewCycle && day1Entry
+      ? ` Your new cycle then reset right on schedule on <strong>${activeResetLabel} (${Number(day1Entry.ouraTempDev).toFixed(2)}°C Oura drop)</strong> — Estrogen Ramp begins Day 5!`
+      : '';
+    ovuSummary = `Clean nights across 2–9 Nov stayed cool & flat (avg ${cleanLutealMean.toFixed(2)}°C, no 3-day heat rise), confirming your <strong>5th Oct Mirena coil</strong> gently suppressed ovulation last cycle — 100% healthy in Months 1–3 and much gentler on tummy bloat.${resetNote}`;
   } else {
     ovuBadge = '🔍 Watching Ovulation Window';
     ovuBadgeClass = 'bg-amber-50 text-amber-900 border-amber-200';
@@ -13115,12 +13379,12 @@ function renderOuraCycleSummaryCard(targetDateStr) {
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
         <div class="p-3 rounded-2xl bg-brand-cream/70 border border-brand-border space-y-0.5">
           <span class="text-[10px] font-bold uppercase text-brand-textMuted">Cycle Day 1 Reset</span>
-          <div class="font-extrabold text-sm text-brand-textDark">${cycleStartLabel} 2026</div>
+          <div class="font-extrabold text-sm text-brand-textDark">${activeResetLabel} 2026</div>
           <span class="text-[10px] text-emerald-800 font-semibold">${day1TempStr}</span>
         </div>
 
         <div class="p-3 rounded-2xl bg-purple-50/70 border border-purple-200/80 space-y-0.5">
-          <span class="text-[10px] font-bold uppercase text-purple-800">Did Emma Ovulate?</span>
+          <span class="text-[10px] font-bold uppercase text-purple-800">${ovuCardHeading}</span>
           <div class="font-extrabold text-sm text-purple-950">${ovuTitle}</div>
           <span class="text-[10px] text-purple-800 font-medium">New Mirena fitted 5 Oct</span>
         </div>
@@ -16271,10 +16535,19 @@ function parseFutureDateQuery(query) {
 }
 
 function calculateFutureCycleDay(dateStr) {
-  const anchorDate = new Date("2026-10-14T12:00:00Z");
   const targetDate = new Date(`${dateStr}T12:00:00Z`);
-  const diffDays = Math.round((targetDate - anchorDate) / (1000 * 60 * 60 * 24));
   const cycleLength = 28;
+  if (dateStr >= "2026-11-10") {
+    const anchorNov = new Date("2026-11-10T12:00:00Z");
+    const diffNov = Math.round((targetDate - anchorNov) / (1000 * 60 * 60 * 24));
+    return ((diffNov % cycleLength) + cycleLength) % cycleLength + 1;
+  }
+  if (dateStr >= "2026-10-14") {
+    const anchorOct = new Date("2026-10-14T12:00:00Z");
+    return Math.round((targetDate - anchorOct) / (1000 * 60 * 60 * 24)) + 1;
+  }
+  const anchorDate = new Date("2026-10-14T12:00:00Z");
+  const diffDays = Math.round((targetDate - anchorDate) / (1000 * 60 * 60 * 24));
   return ((diffDays % cycleLength) + cycleLength) % cycleLength + 1;
 }
 
