@@ -4592,6 +4592,8 @@ function fetchServerDataOnLoad() {
           triggerLucideIcons();
         }
 
+        window.emmaDbBackend = data.dbBackend || 'sqlite';
+        updateStorageBackendLabels();
         updateSyncIndicator('synced', `All ${logs.length} entries permanently secured`);
       }
     })
@@ -4601,9 +4603,23 @@ function fetchServerDataOnLoad() {
     });
 }
 
+function updateStorageBackendLabels() {
+  const titleEl = document.getElementById('modalStorageLayerTitle');
+  const descEl = document.getElementById('modalStorageLayerDesc');
+  if (!titleEl || !descEl) return;
+  if (window.emmaDbBackend === 'postgres') {
+    titleEl.textContent = '2. Permanent PostgreSQL Cloud Database:';
+    descEl.textContent = 'Connected to permanent PostgreSQL cloud storage — every ACE flush & check-in persists across all devices.';
+  } else {
+    titleEl.textContent = '2. Phone Vault + Auto-Healing Server Sync:';
+    descEl.textContent = 'Saved permanently on your phone (IndexedDB + LocalStorage) and auto-synced to the server. Tip: attach a free Postgres DATABASE_URL on Render for multi-device cloud permanence.';
+  }
+}
+
 function openDataSafetyModal() {
   const modal = document.getElementById('dataSafetyModal');
   if (modal) modal.classList.remove('hidden');
+  updateStorageBackendLabels();
   updateSyncIndicator(navigator.onLine ? 'synced' : 'offline');
   triggerLucideIcons();
 }
@@ -4661,57 +4677,104 @@ function downloadJsonBackup() {
 
 function downloadCsvExport() {
   if (!logs || logs.length === 0) {
-    alert("No check-in entries to export yet.");
+    showDynamicToast("No check-in entries to export yet.");
     return;
   }
+
+  const csvCell = (val) => `"${String(val === null || val === undefined ? '' : val).replace(/"/g, '""')}"`;
 
   const headers = [
     "Date",
     "Cycle Day",
     "Phase",
-    "Bristol Stool (1-7)",
-    "Bloating Score (1-5)",
+    "ACE Flush Done",
+    "Flush Time",
+    "Flush Solution",
+    "Additive Dose",
+    "Flush Water (mL)",
+    "Kick-In Onset",
+    "Flush Consistency",
+    "Flush Output",
+    "Flush Outcomes",
+    "Flush Notes",
+    "Total Movements",
+    "Rest-of-Day Movements",
+    "Prucalopride",
+    "DulcoEase (Docusate)",
+    "EAAs",
+    "Electrolytes",
+    "Rescue Meds",
+    "Bloat (0-10)",
     "Upper Tummy Bloat",
     "Lower Tummy Bloat",
-    "Mental State / Mood",
-    "Motility Speed",
-    "Abdominal Pain (1-5)",
-    "Splenic Pressure (1-5)",
-    "Diaphragm Done",
-    "Supplements",
+    "Inflammation & Symptoms Tags",
+    "Oura Temp Shift (C)",
+    "Oura Sleep",
+    "Oura HRV (ms)",
+    "Oura RHR (bpm)",
+    "Mood",
     "Headspace Notes",
     "Notes"
   ];
 
-  const rows = logs.map(l => [
-    `"${l.date || ''}"`,
-    `"${l.cycleDay || ''}"`,
-    `"${l.cyclePhase || l.phase || ''}"`,
-    `"${l.bristolStool || l.bristol || ''}"`,
-    `"${l.bloatingScore || l.diaphragmBloat || ''}"`,
-    `"${l.upperTummyBloat ? 'Yes' : ((l.puffiness && (l.puffiness.includes('🎈 Upper Tummy Bloating') || l.puffiness.includes('Upper Tummy Bloating'))) ? 'Yes' : 'No')}"`,
-    `"${l.lowerTummyBloat ? 'Yes' : ((l.puffiness && (l.puffiness.includes('🫧 Lower Tummy Bloating') || l.puffiness.includes('Lower Tummy Bloating'))) ? 'Yes' : 'No')}"`,
-    `"${l.mood || ''}"`,
-    `"${l.motilitySpeed || ''}"`,
-    `"${l.abdominalPain || ''}"`,
-    `"${l.splenicPressure || ''}"`,
-    `"${l.diaphragmDone ? 'Yes' : 'No'}"`,
-    `"${(l.supplements || []).join('; ')}"`,
-    `"${(l.headspaceNotes || '').replace(/"/g, '""')}"`,
-    `"${(l.dailyNotes || l.notes || '').replace(/"/g, '""')}"`
-  ]);
+  const sorted = [...logs]
+    .filter(l => l && l.date && !isSyntheticTestEntry(l))
+    .sort((a, b) => b.date.localeCompare(a.date));
 
-  const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+  const rows = sorted.map(l => {
+    const tags = Array.isArray(l.puffiness)
+      ? l.puffiness.filter(p => !/Libido|Reformer Pilates|Running|Cycling|Gentle Incline Walk|Gentle Strength|Rest & Mobility|Swimming|Prucalopride Taken|DulcoEase Taken|Electrolytes Taken|EAAs Taken|Senna Tea Taken/i.test(p))
+      : [];
+    const upper = l.upperTummyBloat || (l.puffiness && l.puffiness.some(p => p.includes('Upper Tummy')));
+    const lower = l.lowerTummyBloat || (l.puffiness && l.puffiness.some(p => p.includes('Lower Tummy')));
+    const rescues = Array.isArray(l.rescueMeds) ? l.rescueMeds : (l.sennaTea ? ['Senna / Senna Tea'] : []);
+    return [
+      l.date || '',
+      l.cycleDay || '',
+      l.phaseLabel || l.phase || '',
+      l.aceFlushDone === true ? 'Yes' : (l.aceFlushDone === false ? 'No' : ''),
+      l.flushTime || '',
+      typeof formatFlushSolutionLabel === 'function' ? formatFlushSolutionLabel(l.flushSolution) : (l.flushSolution || ''),
+      l.flushAdditiveDose || '',
+      l.flushWaterMl || '',
+      typeof formatFlushOnsetLabel === 'function' ? formatFlushOnsetLabel(l.flushOnset) : (l.flushOnset || ''),
+      typeof formatFlushConsistencyLabel === 'function' ? formatFlushConsistencyLabel(l.flushConsistency) : (l.flushConsistency || ''),
+      typeof formatFlushOutputLabel === 'function' ? formatFlushOutputLabel(l.flushOutput) : (l.flushOutput || ''),
+      Array.isArray(l.flushOutcomes) ? l.flushOutcomes.join('; ') : '',
+      l.flushNotes || '',
+      l.movementFrequency !== undefined && l.movementFrequency !== null ? l.movementFrequency : '',
+      l.extraMovementsNotes || '',
+      l.prucaloprideTaken ? 'Yes' : 'No',
+      l.docusateTaken ? 'Yes' : 'No',
+      l.eaasTaken ? 'Yes' : 'No',
+      (l.electrolytesTaken || l.electrolyteBuffered) ? 'Yes' : 'No',
+      rescues.join('; '),
+      l.diaphragmBloat !== undefined && l.diaphragmBloat !== null ? l.diaphragmBloat : '',
+      upper ? 'Yes' : 'No',
+      lower ? 'Yes' : 'No',
+      tags.join('; '),
+      l.ouraTempDev !== undefined && l.ouraTempDev !== null ? l.ouraTempDev : '',
+      l.sleepScore ?? l.ouraSleep ?? '',
+      l.hrv ?? l.ouraHrv ?? '',
+      l.rhr ?? l.ouraRhr ?? '',
+      Array.isArray(l.moods) && l.moods.length > 0 ? l.moods.join('; ') : (l.mood || ''),
+      l.headspaceNotes || '',
+      l.notes || ''
+    ].map(csvCell);
+  });
+
+  const csvContent = [headers.map(csvCell).join(','), ...rows.map(r => r.join(','))].join('\r\n');
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   const today = new Date().toISOString().split('T')[0];
   a.href = url;
-  a.download = `emma_health_summary_${today}.csv`;
+  a.download = `emma_post_ace_health_${today}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  showDynamicToast(`📊 Exported ${sorted.length} entries with full ACE flush history!`, 3200);
 }
 
 function handleRestoreFile(event) {
@@ -4723,8 +4786,9 @@ function handleRestoreFile(event) {
     try {
       const data = JSON.parse(e.target.result);
       if (data.logs && Array.isArray(data.logs)) {
-        logs = data.logs;
+        logs = mergeLogs(logs, data.logs);
         localStorage.setItem('emma_health_logs', JSON.stringify(logs));
+        persistLogsToIndexedDB(logs);
         if (data.app_states) {
           if (data.app_states.chrono_trial) {
             chronoTrialState = data.app_states.chrono_trial;
@@ -4735,19 +4799,22 @@ function handleRestoreFile(event) {
             localStorage.setItem('emma_specialist_tracking_v1', JSON.stringify(specialistTrackingState));
           }
         }
-        syncDataToServer();
-        initializeUI();
+        syncDataToServer(true);
+        initializeUI(true);
         renderDashboardTrends();
         renderHistoryLogs();
+        if (typeof renderAceFlushHub === 'function') renderAceFlushHub(activeDateStr);
+        if (typeof renderFlushTrendsSection === 'function') renderFlushTrendsSection();
+        if (typeof renderOuraSection === 'function') renderOuraSection(activeDateStr);
         if (typeof renderTrialUI === 'function') renderTrialUI();
         if (typeof renderSpecialistTrackingUI === 'function') renderSpecialistTrackingUI();
-        alert(`Successfully restored ${logs.length} check-in entries!`);
+        showDynamicToast(`✅ Restored & merged ${logs.length} check-in entries safely!`, 4000);
         closeDataSafetyModal();
       } else {
-        alert("The selected file does not appear to contain valid Emma Health logs.");
+        showDynamicToast("That file doesn't look like an Emma Health JSON backup.", 3500);
       }
     } catch (err) {
-      alert("Error parsing backup file: " + err.message);
+      showDynamicToast("Couldn't read backup file: " + err.message, 4000);
     }
   };
   reader.readAsText(file);
@@ -5428,7 +5495,7 @@ function applyActiveDate(targetDateStr) {
     if (info.isSilentPeriod || info.phase === 'menstrual_follicular' || info.phase === 'reset' || (info.cycleDay >= 1 && info.cycleDay <= 4)) {
       heroBody.innerHTML = `<strong>You are in your Menstrual Follicular phase (Days 1–4).</strong> Even though your <strong>Mirena IUD suppresses overt menstrual bleeding</strong>, your body is currently undergoing its biological monthly hormonal reset (progesterone withdrawal drop down to baseline). Prostaglandins stimulate uterine and intestinal smooth muscle—any looser stools, lower pelvic heaviness, or low dopamine are 100% normal and temporary. Keep mornings unhurried, buffer electrolytes, and be gentle with yourself. In ~3–4 days, your rising estrogen will kick in!`;
     } else if (info.phase === 'follicular' || (info.cycleDay >= 5 && info.cycleDay <= 13)) {
-      heroBody.innerHTML = `<strong>You are in your Rising Follicular phase (Days 5–13).</strong> The menstrual reset is behind you, and your dominant ovarian follicle is actively pumping out fresh estradiol (estrogen). Dopamine turnover is high, brain fog clears, and digestive smooth muscle tone is brisk. Your APD bloating is at its cycle low point—ideal for Third Space workouts and active plans!`;
+      heroBody.innerHTML = `<strong>You are in your Rising Follicular phase (Days 5–13).</strong> The menstrual reset is behind you, and your dominant ovarian follicle is actively pumping out fresh estradiol (estrogen). Dopamine turnover is high, brain fog clears, and digestive smooth muscle tone is brisk — a lovely window for smooth morning ACE flushes and low bloating!`;
     } else if (info.phase === 'luteal' && info.cycleDay < 24) {
       heroBody.innerHTML = `Your body is currently producing natural progesterone (the body's natural "slow-down" hormone). This naturally relaxes bowel muscles and holds onto water. <strong>Any tightness in your ribs, tummy bloating, or lower dopamine is 100% biological and temporary.</strong>`;
     } else if (info.phase === 'luteal') {
@@ -7909,7 +7976,11 @@ function renderCalendarDaysList() {
     if (item.diaphragmBloat >= 7) bloatBg = 'bg-rose-100 text-rose-800';
     else if (item.diaphragmBloat >= 5) bloatBg = 'bg-amber-100 text-amber-800';
 
-    let rawSummary = item.symptoms || item.movement || item.notes || 'Normal routine';
+    const hasFlush = !!(item.aceFlushDone || item.flushWaterMl || item.flushSolution);
+    const flushPill = hasFlush
+      ? `<span class="px-2 py-0.5 rounded-md bg-sky-100 text-sky-900 border border-sky-200 font-bold">💧 ${item.flushWaterMl ? item.flushWaterMl + 'mL' : 'Flush'}${item.flushOutput ? ' • ' + (typeof formatFlushOutputLabel === 'function' ? formatFlushOutputLabel(item.flushOutput) : item.flushOutput) : ''}</span>`
+      : '';
+    let rawSummary = item.flushNotes || item.symptoms || item.movement || item.notes || 'Normal routine';
     let summaryText = (rawSummary || '').replace(/Auto-created from Oura Ring daily sync\.+\s*/gi, '').trim() || (item.movement || 'Daily check-in logged');
 
     return `
@@ -7927,12 +7998,13 @@ function renderCalendarDaysList() {
               ${isToday ? '<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-brand-coralLight text-brand-coral">TODAY</span>' : ''}
               ${isSelected ? '<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-brand-textDark text-white">VIEWING NOW</span>' : ''}
             </div>
-            <p class="text-[11px] text-brand-textMuted truncate mt-0.5" title="${escapeQuotes(summaryText)}">${summaryText}</p>
+            <p class="text-[11px] text-brand-textMuted truncate mt-0.5" title="${escapeQuotes(summaryText)}">${escapeFlushHtml(summaryText)}</p>
           </div>
         </div>
 
-        <div class="flex items-center space-x-1.5 self-start sm:self-auto shrink-0 text-[10px] font-semibold">
-          <span class="px-2 py-0.5 rounded-md ${bloatBg}">Bloat: ${item.diaphragmBloat}/10</span>
+        <div class="flex items-center flex-wrap gap-1.5 self-start sm:self-auto shrink-0 text-[10px] font-semibold">
+          ${flushPill}
+          <span class="px-2 py-0.5 rounded-md ${bloatBg}">Bloat: ${item.diaphragmBloat ?? 0}/10</span>
           ${item.temp ? `<span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">${item.temp}°C</span>` : ''}
           <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-brand-textMuted"></i>
         </div>
@@ -8693,7 +8765,7 @@ function renderHistoryLogs() {
           ${moodBadgesHtml}
           ${item.prucaloprideTaken ? `<span class="px-2 py-0.5 rounded-md bg-purple-100 text-purple-900 border border-purple-200 font-bold text-[10px]">🌊 Prucalopride</span>` : ''}
           ${item.docusateTaken ? `<span class="px-2 py-0.5 rounded-md bg-sky-50 text-sky-900 border border-sky-200 font-bold text-[10px]">💧 DulcoEase</span>` : ''}
-          ${(Array.isArray(item.rescueMeds) && item.rescueMeds.length > 0) ? `<span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-950 border border-amber-300 font-bold text-[10px]">🧰 Rescue: ${item.rescueMeds.join(', ')}</span>` : ''}
+          ${(Array.isArray(item.rescueMeds) && item.rescueMeds.length > 0) ? `<span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-950 border border-amber-300 font-bold text-[10px]">🧰 Rescue: ${escapeFlushHtml(item.rescueMeds.join(', '))}</span>` : ''}
           ${(item.upperTummyBloat || (item.puffiness && (item.puffiness.includes('🎈 Upper Tummy Bloating') || item.puffiness.includes('Upper Tummy Bloating')))) ? `
             <span class="px-2 py-0.5 rounded-md bg-amber-100/90 text-amber-900 border border-amber-300 font-bold text-[10px] inline-flex items-center gap-1">
               <span>🎈</span><span>Upper Bloat</span>
@@ -8714,7 +8786,7 @@ function renderHistoryLogs() {
               <span>🗣️</span><span>Burpy</span>
             </span>
           ` : ''}
-          ${(item.sennaTea || (item.puffiness && item.puffiness.includes('🍵 Senna Tea Taken'))) ? `
+          ${((item.sennaTea || (item.puffiness && item.puffiness.includes('🍵 Senna Tea Taken'))) && !(Array.isArray(item.rescueMeds) && item.rescueMeds.some(m => m.toLowerCase().includes('senna')))) ? `
             <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-[10px] inline-flex items-center gap-1">
               <span>🍵</span><span>Senna Tea</span>
             </span>
@@ -8756,16 +8828,16 @@ function renderHistoryLogs() {
                 ${item.flushTime ? `<span class="text-[10px] font-mono bg-white px-2 py-0.5 rounded-md border border-sky-200">⏰ ${item.flushTime}</span>` : ''}
               </div>
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[10px]">
-                <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Solution</span><strong class="text-sky-950">${typeof formatFlushSolutionLabel === 'function' ? formatFlushSolutionLabel(item.flushSolution) : (item.flushSolution || '—')}${item.flushAdditiveDose ? ' (' + item.flushAdditiveDose + ')' : ''}</strong></div>
+                <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Solution</span><strong class="text-sky-950">${escapeFlushHtml(typeof formatFlushSolutionLabel === 'function' ? formatFlushSolutionLabel(item.flushSolution) : (item.flushSolution || '—'))}${item.flushAdditiveDose ? ' (' + escapeFlushHtml(item.flushAdditiveDose) + ')' : ''}</strong></div>
                 <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Water Volume</span><strong class="text-sky-950">${item.flushWaterMl ? item.flushWaterMl + ' mL' : '—'}</strong></div>
-                <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Kick-In Time</span><strong class="text-sky-950">${typeof formatFlushOnsetLabel === 'function' ? formatFlushOnsetLabel(item.flushOnset) : (item.flushOnset || '—')}</strong></div>
-                <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Consistency</span><strong class="text-sky-950">${typeof formatFlushConsistencyLabel === 'function' ? formatFlushConsistencyLabel(item.flushConsistency) : (item.flushConsistency || '—')}</strong></div>
-                <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Amount Out</span><strong class="text-emerald-800">${typeof formatFlushOutputLabel === 'function' ? formatFlushOutputLabel(item.flushOutput) : (item.flushOutput || '—')}</strong></div>
+                <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Kick-In Time</span><strong class="text-sky-950">${escapeFlushHtml(typeof formatFlushOnsetLabel === 'function' ? formatFlushOnsetLabel(item.flushOnset) : (item.flushOnset || '—'))}</strong></div>
+                <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Consistency</span><strong class="text-sky-950">${escapeFlushHtml(typeof formatFlushConsistencyLabel === 'function' ? formatFlushConsistencyLabel(item.flushConsistency) : (item.flushConsistency || '—'))}</strong></div>
+                <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Amount Out</span><strong class="text-emerald-800">${escapeFlushHtml(typeof formatFlushOutputLabel === 'function' ? formatFlushOutputLabel(item.flushOutput) : (item.flushOutput || '—'))}</strong></div>
                 <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Total Movements</span><strong class="text-purple-900">${item.movementFrequency ?? 0} today</strong></div>
               </div>
-              ${(Array.isArray(item.flushOutcomes) && item.flushOutcomes.length > 0) ? `<div class="flex flex-wrap gap-1 pt-0.5">${item.flushOutcomes.map(o => `<span class="px-2 py-0.5 rounded-md bg-white border border-sky-200 text-sky-900 font-semibold text-[10px]">${o}</span>`).join('')}</div>` : ''}
-              ${item.flushNotes ? `<p class="text-sky-950 bg-white/80 p-2 rounded-lg border border-sky-100 italic">“${item.flushNotes}”</p>` : ''}
-              ${item.extraMovementsNotes ? `<p class="text-purple-950 bg-purple-50/70 p-2 rounded-lg border border-purple-200 text-[10px]"><strong>Rest of day movements:</strong> ${item.extraMovementsNotes}</p>` : ''}
+              ${(Array.isArray(item.flushOutcomes) && item.flushOutcomes.length > 0) ? `<div class="flex flex-wrap gap-1 pt-0.5">${item.flushOutcomes.map(o => `<span class="px-2 py-0.5 rounded-md bg-white border border-sky-200 text-sky-900 font-semibold text-[10px]">${escapeFlushHtml(o)}</span>`).join('')}</div>` : ''}
+              ${item.flushNotes ? `<p class="text-sky-950 bg-white/80 p-2 rounded-lg border border-sky-100 italic">“${escapeFlushHtml(item.flushNotes)}”</p>` : ''}
+              ${item.extraMovementsNotes ? `<p class="text-purple-950 bg-purple-50/70 p-2 rounded-lg border border-purple-200 text-[10px]"><strong>Rest of day movements:</strong> ${escapeFlushHtml(item.extraMovementsNotes)}</p>` : ''}
             </div>
           ` : `
             <div class="p-2.5 rounded-xl bg-brand-cream/70 text-[11px] space-y-1">
@@ -8781,7 +8853,7 @@ function renderHistoryLogs() {
 
           ${item.puffiness && item.puffiness.length > 0 ? `
             <div class="flex flex-wrap gap-1">
-              ${item.puffiness.filter(p => !/Libido|Reformer Pilates|Running|Cycling|Gentle Incline Walk|Gentle Strength|Rest & Mobility|Swimming/i.test(p)).map(p => {
+              ${item.puffiness.filter(p => !/Libido|Reformer Pilates|Running|Cycling|Gentle Incline Walk|Gentle Strength|Rest & Mobility|Swimming|Prucalopride Taken|DulcoEase Taken|Electrolytes Taken|EAAs Taken|Senna Tea Taken|Electrolyte & EAAs Taken/i.test(p)).map(p => {
                 const isBloat = p.includes('Upper Tummy') || p.includes('Lower Tummy');
                 const isGas = p.includes('Gass') || p.includes('Burp') || p.includes('Wind') || p.includes('Gas');
                 const isSenna = p.includes('Senna');
@@ -9106,20 +9178,52 @@ function resetQuickLogModalToBlank() {
   }
 }
 
-function openQuickLogModal(dateOverride) {
-  const modal = document.getElementById('quickLogModal');
-  if (!modal) return;
-  modal.classList.remove('hidden');
+var currentQuickLogMode = 'full';
 
-  const targetDate = (typeof dateOverride === 'string' && dateOverride) ? dateOverride : (activeDateStr || getTodayISOString());
+function setQuickLogMode(mode) {
+  currentQuickLogMode = (mode === 'flush') ? 'flush' : 'full';
+  const flushBtn = document.getElementById('quickLogModeBtn-flush');
+  const fullBtn = document.getElementById('quickLogModeBtn-full');
+  const movSec = document.getElementById('modalMovementsSection');
+  const bloatSec = document.getElementById('modalBloatInflammationSection');
+  const headSec = document.getElementById('modalHeadspaceSection');
+  const expandWrap = document.getElementById('quickFlushExpandWrap');
+  const submitText = document.getElementById('quickLogSubmitBtnText');
+
+  if (flushBtn && fullBtn) {
+    if (currentQuickLogMode === 'flush') {
+      flushBtn.className = "py-1.5 px-2.5 rounded-xl text-[11px] font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-sky-600 text-white shadow-2xs";
+      fullBtn.className = "py-1.5 px-2.5 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer text-brand-textMuted hover:text-brand-textDark";
+    } else {
+      fullBtn.className = "py-1.5 px-2.5 rounded-xl text-[11px] font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-brand-textDark text-white shadow-2xs";
+      flushBtn.className = "py-1.5 px-2.5 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer text-brand-textMuted hover:text-brand-textDark";
+    }
+  }
+
+  const hideExtras = currentQuickLogMode === 'flush';
+  [movSec, bloatSec, headSec].forEach(el => {
+    if (!el) return;
+    if (hideExtras) el.classList.add('hidden');
+    else el.classList.remove('hidden');
+  });
+  if (expandWrap) {
+    if (hideExtras) expandWrap.classList.remove('hidden');
+    else expandWrap.classList.add('hidden');
+  }
+  if (submitText) {
+    submitText.innerText = hideExtras ? 'Save Morning Flush & Meds ✓' : 'Save Daily Check-In';
+  }
+}
+
+function hydrateQuickLogForDate(targetDate, silentToast = false) {
   const dateInput = document.getElementById('logDate');
   if (dateInput) dateInput.value = targetDate;
 
-  const entry = logs.find(l => l.date === targetDate);
+  const entry = logs.find(l => l.date === targetDate && !isSyntheticTestEntry(l));
   const existingBanner = document.getElementById('quickLogExistingBanner');
 
   const hasSavedUserData = entry && (
-    entry.aceFlushDone || entry.flushWaterMl || entry.flushSolution || entry.flushNotes ||
+    entry.aceFlushDone !== undefined || entry.flushWaterMl || entry.flushSolution || entry.flushNotes ||
     entry.docusateTaken || entry.prucaloprideTaken || entry.eaasTaken || entry.electrolytesTaken ||
     (Array.isArray(entry.rescueMeds) && entry.rescueMeds.length > 0) ||
     (entry.movementFrequency && entry.movementFrequency > 0) || entry.extraMovementsNotes ||
@@ -9128,12 +9232,12 @@ function openQuickLogModal(dateOverride) {
   );
 
   if (hasSavedUserData) {
-    loadSavedCheckInIntoModal(targetDate);
+    loadSavedCheckInIntoModal(targetDate, silentToast);
     if (existingBanner) {
       existingBanner.innerHTML = `
         <div class="flex items-center gap-1.5 pr-2">
           <span>✨</span>
-          <span class="text-[11px] font-bold text-purple-950">Editing ${entry.displayDate || targetDate}. Update anything & tap Save.</span>
+          <span class="text-[11px] font-bold text-purple-950">Editing ${escapeFlushHtml(entry.displayDate || targetDate)}. Tap Save when ready.</span>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
           <button type="button" onclick="promptDeleteDiaryEntry('${targetDate}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold border border-rose-200 rounded-xl text-[10px] active:scale-95 transition-all shadow-2xs flex items-center gap-1 cursor-pointer">
@@ -9151,13 +9255,32 @@ function openQuickLogModal(dateOverride) {
     resetQuickLogModalToBlank();
     if (existingBanner) existingBanner.classList.add('hidden');
   }
+}
+
+function onQuickLogDateChange(newDate) {
+  if (!newDate) return;
+  hydrateQuickLogForDate(newDate, false);
+  if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+}
+
+function openQuickLogModal(dateOverride, modeOverride) {
+  const modal = document.getElementById('quickLogModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+
+  const targetDate = (typeof dateOverride === 'string' && dateOverride) ? dateOverride : (activeDateStr || getTodayISOString());
+  hydrateQuickLogForDate(targetDate, true);
+  setQuickLogMode(modeOverride === 'flush' ? 'flush' : 'full');
+
+  const scrollBody = document.getElementById('quickLogScrollBody');
+  if (scrollBody) scrollBody.scrollTop = 0;
 
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
     lucide.createIcons();
   }
 }
 
-function loadSavedCheckInIntoModal(customDate) {
+function loadSavedCheckInIntoModal(customDate, silentToast = false) {
   const targetDate = customDate || document.getElementById('logDate')?.value || activeDateStr || getTodayISOString();
   const entry = logs.find(l => l.date === targetDate && !isSyntheticTestEntry(l));
   if (!entry) {
@@ -9294,7 +9417,7 @@ function loadSavedCheckInIntoModal(customDate) {
   const existingBanner = document.getElementById('quickLogExistingBanner');
   if (existingBanner) existingBanner.classList.add('hidden');
 
-  showDynamicToast("Loaded previously saved check-in ✨");
+  if (!silentToast) showDynamicToast("Loaded previously saved check-in ✨");
 }
 
 function closeQuickLogModal() {
@@ -10106,6 +10229,7 @@ function updateDashboardCheckInBadge(entry) {
     }
   }
 
+  const hasFlush = Boolean(entry && (entry.aceFlushDone === true || entry.flushWaterMl || entry.flushSolution));
   const hasPruc = Boolean(entry?.prucaloprideTaken || entry?.puffiness?.includes('🌊 Prucalopride Taken'));
   const hasDoc = Boolean(entry?.docusateTaken || entry?.puffiness?.includes('💧 DulcoEase Taken'));
   const hasEaas = Boolean(entry?.eaasTaken || entry?.puffiness?.includes('🧬 EAAs Taken') || entry?.puffiness?.includes('⚡ Electrolyte & EAAs Taken'));
@@ -10113,21 +10237,48 @@ function updateDashboardCheckInBadge(entry) {
   const movCount = Number(entry?.movementFrequency || 0);
   const bloatVal = Number(entry?.diaphragmBloat || 0);
 
+  const routinePill = document.getElementById('morningRoutineProgressPill');
+  if (routinePill) {
+    const doneCount = [hasFlush, hasPruc, hasDoc, hasEaas, hasSalt].filter(Boolean).length;
+    if (doneCount === 5) {
+      routinePill.innerText = '🎉 5 / 5 done!';
+      routinePill.className = 'text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300';
+    } else if (doneCount > 0) {
+      routinePill.innerText = `${doneCount} / 5 routine`;
+      routinePill.className = 'text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-sky-100 text-sky-900 border border-sky-300';
+    } else {
+      routinePill.innerText = '0 / 5 routine';
+      routinePill.className = 'text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-sky-50 text-sky-900 border border-sky-200';
+    }
+  }
+
+  const styleMedTile = (tileId, isOn, activeClasses) => {
+    const tile = document.getElementById(tileId);
+    if (!tile) return;
+    tile.className = isOn
+      ? `min-h-[48px] p-2.5 rounded-xl border-2 flex items-center space-x-2 cursor-pointer transition-all active:scale-95 select-none shadow-2xs ${activeClasses}`
+      : 'min-h-[48px] p-2.5 rounded-xl bg-white border border-purple-100 flex items-center space-x-2 cursor-pointer hover:border-purple-300 transition-all active:scale-95 select-none';
+  };
+  styleMedTile('dashTilePrucalopride', hasPruc, 'bg-purple-50/90 border-purple-400');
+  styleMedTile('dashTileDocusate', hasDoc, 'bg-sky-50/90 border-sky-400');
+  styleMedTile('dashTileEaas', hasEaas, 'bg-indigo-50/90 border-indigo-400');
+  styleMedTile('dashTileSalt', hasSalt, 'bg-amber-50/90 border-amber-400');
+
   if (prucStatus) {
     prucStatus.innerText = hasPruc ? "Taken ✓" : "Tap";
-    prucStatus.className = hasPruc ? "font-extrabold text-purple-700" : "font-extrabold text-slate-400";
+    prucStatus.className = hasPruc ? "font-extrabold text-purple-800" : "font-extrabold text-slate-400";
   }
   if (docStatus) {
     docStatus.innerText = hasDoc ? "Taken ✓" : "Tap";
-    docStatus.className = hasDoc ? "font-extrabold text-sky-700" : "font-extrabold text-slate-400";
+    docStatus.className = hasDoc ? "font-extrabold text-sky-800" : "font-extrabold text-slate-400";
   }
   if (eaasStatus) {
     eaasStatus.innerText = hasEaas ? "Taken ✓" : "Tap";
-    eaasStatus.className = hasEaas ? "font-extrabold text-indigo-700" : "font-extrabold text-slate-400";
+    eaasStatus.className = hasEaas ? "font-extrabold text-indigo-800" : "font-extrabold text-slate-400";
   }
   if (saltStatus) {
     saltStatus.innerText = hasSalt ? "Taken ✓" : "Tap";
-    saltStatus.className = hasSalt ? "font-extrabold text-amber-700" : "font-extrabold text-slate-400";
+    saltStatus.className = hasSalt ? "font-extrabold text-amber-800" : "font-extrabold text-slate-400";
   }
   if (movStatus) {
     movStatus.innerText = `${movCount} today`;
@@ -12864,6 +13015,11 @@ function handleQuickLogSubmit(e) {
   saveSpecialistTracking();
   renderSpecialistTrackingUI();
 
+  // Clear live flush timer if saving a flush for that same date
+  if (aceFlushDoneVal && typeof clearLiveFlushTimerSilently === 'function') {
+    clearLiveFlushTimerSilently();
+  }
+
   // Refresh ALL UI cards, Flush Coach, Trends & Diary
   updateDashboardCheckInBadge(newEntry);
   updateDashboardStats(newEntry);
@@ -12873,6 +13029,9 @@ function handleQuickLogSubmit(e) {
   renderOuraChart();
   renderHistoryLogs();
   if (typeof renderCalendarDaysList === 'function') renderCalendarDaysList();
+  if (aceFlushDoneVal && (flushOutVal === 'good' || flushOutVal === 'full') && typeof confetti === 'function') {
+    try { confetti({ particleCount: 45, spread: 65, origin: { y: 0.72 } }); } catch (err) {}
+  }
   if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip();
 
   closeQuickLogModal();
@@ -13348,13 +13507,14 @@ function renderOuraCycleSummaryCard(targetDateStr) {
     ovuTitle = 'Pending 2 Clean Nights';
     ovuSummary = `${dipNote} The warm jump on <strong>${spikeDates}</strong> had high heart rate from social drinks — <strong>2–3 alcohol-free sleeps</strong> will confirm if you ovulated or if your <strong>5 Oct Mirena</strong> gently paused ovulation.`;
   } else if (cleanCoolLate.length >= 2 || evalMaxCd >= 21) {
-    ovuBadge = isEarlyNewCycle ? '🌸 New Cycle Reset Verified (10 Nov)' : '🌸 Gently Paused (New Mirena Cushion)';
+    const evalRangeStr = `${fmtShort(evalCycleStartObj)}–${fmtShort(evalCycleEndObj)}`;
+    ovuBadge = isEarlyNewCycle ? `🌸 New Cycle Reset Verified (${activeResetLabel})` : '🌸 Gently Paused (New Mirena Cushion)';
     ovuBadgeClass = isEarlyNewCycle ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-purple-100 text-purple-900 border-purple-300';
     ovuTitle = 'Paused by New Mirena (Normal)';
     const resetNote = isEarlyNewCycle && day1Entry
       ? ` Your new cycle then reset right on schedule on <strong>${activeResetLabel} (${Number(day1Entry.ouraTempDev).toFixed(2)}°C Oura drop)</strong> — Estrogen Ramp begins Day 5!`
       : '';
-    ovuSummary = `Clean nights across 2–9 Nov stayed cool & flat (avg ${cleanLutealMean.toFixed(2)}°C, no 3-day heat rise), confirming your <strong>5th Oct Mirena coil</strong> gently suppressed ovulation last cycle — 100% healthy in Months 1–3 and much gentler on tummy bloat.${resetNote}`;
+    ovuSummary = `Clean late-cycle nights (${evalRangeStr}) stayed cool & flat (avg ${cleanLutealMean.toFixed(2)}°C, no 3-day heat rise), indicating your <strong>5th Oct Mirena coil</strong> gently suppressed ovulation — 100% healthy in Months 1–3 and much gentler on tummy bloat.${resetNote}`;
   } else {
     ovuBadge = '🔍 Watching Ovulation Window';
     ovuBadgeClass = 'bg-amber-50 text-amber-900 border-amber-200';
@@ -13855,11 +14015,11 @@ function renderOuraOvulationSimulatorCard() {
 }
 
 function scrollToOuraOvulation() {
-  const el = document.getElementById('ouraOvulationSection');
+  const el = document.getElementById('ouraCycleSummarySection') || document.getElementById('ouraOvulationSection');
   if (el) {
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    el.classList.add('ring-4', 'ring-purple-400', 'transition-all');
-    setTimeout(() => el.classList.remove('ring-4', 'ring-purple-400'), 2500);
+    el.classList.add('ring-4', 'ring-purple-400', 'rounded-3xl', 'transition-all');
+    setTimeout(() => el.classList.remove('ring-4', 'ring-purple-400', 'rounded-3xl'), 2500);
   }
 }
 
@@ -15315,7 +15475,7 @@ function showRescueGuide(type) {
       <div class="p-3 rounded-2xl bg-purple-50/80 border border-purple-200 text-purple-950 space-y-1.5">
         <span class="font-bold text-xs block">🧠 The ADHD Sensory Connection:</span>
         <p class="text-[11px] leading-relaxed">
-          Non-stretch denim, tight waistbands, or rigid seams send continuous micro-threat signals to your sensory system. When in luteal phase (Day 19), your skin and gut nerves are twice as sensitive.
+          Non-stretch denim, tight waistbands, or rigid seams send continuous micro-threat signals to your sensory system. During your luteal phase or post-ACE healing, your skin and gut nerves are twice as sensitive.
         </p>
       </div>
       <div class="space-y-1.5 text-[11px]">
@@ -17824,7 +17984,7 @@ function repeatLastFlushSetup() {
 
 function openFlushQuickLog(presetRepeat = false) {
   const targetDate = activeDateStr || getTodayISOString();
-  openQuickLogModal(targetDate);
+  openQuickLogModal(targetDate, 'flush');
   if (presetRepeat) {
     repeatLastFlushSetup();
   } else {
@@ -17833,10 +17993,180 @@ function openFlushQuickLog(presetRepeat = false) {
       setAceFlushDone(true);
     }
   }
-  const flushSec = document.getElementById('modalAceFlushSection');
-  if (flushSec && typeof flushSec.scrollIntoView === 'function') {
-    setTimeout(() => flushSec.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+}
+
+// ============================================================================
+// LIVE PERSISTENT MORNING ACE FLUSH COMPANION TIMER (ADHD TIME-BLINDNESS AID)
+// ============================================================================
+const FLUSH_TIMER_STORAGE_KEY = 'emma_active_flush_timer_v1';
+var liveFlushTimerInterval = null;
+
+function loadFlushTimerState() {
+  try {
+    const raw = localStorage.getItem(FLUSH_TIMER_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.startedAtMs) {
+      // Auto-expire timers older than 6 hours so stale sessions never linger
+      if (Date.now() - parsed.startedAtMs > 6 * 3600 * 1000) {
+        localStorage.removeItem(FLUSH_TIMER_STORAGE_KEY);
+        return null;
+      }
+      return parsed;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function saveFlushTimerState(state) {
+  try {
+    if (!state) localStorage.removeItem(FLUSH_TIMER_STORAGE_KEY);
+    else localStorage.setItem(FLUSH_TIMER_STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {}
+}
+
+function mapElapsedMinutesToOnset(mins) {
+  if (mins === null || mins === undefined || isNaN(mins)) return '';
+  if (mins < 15) return 'lt_15';
+  if (mins < 30) return '15_30';
+  if (mins < 60) return '30_60';
+  if (mins < 120) return '1_2h';
+  return '2h_plus';
+}
+
+function formatTimerClock(elapsedSec) {
+  const s = Math.max(0, Math.floor(elapsedSec));
+  const mins = Math.floor(s / 60);
+  const secs = s % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function getFlushTimerPhaseCue(elapsedMins) {
+  if (elapsedMins < 15) {
+    return {
+      stage: 'Stage 1 • Gentle Infusion',
+      cue: 'Infuse body-temp water (~37°C) slowly over 10–15 mins — zero rush!',
+      pct: Math.min(100, Math.round((elapsedMins / 45) * 100))
+    };
   }
+  if (elapsedMins < 40) {
+    return {
+      stage: 'Stage 2 • Calm Sitting Window',
+      cue: 'Sit relaxed with feet raised on a footstool — tap "⚡ It Kicked In!" when the wave starts.',
+      pct: Math.min(100, Math.round((elapsedMins / 45) * 100))
+    };
+  }
+  return {
+    stage: 'Stage 3 • Tail-End Clear Check',
+    cue: 'Gentle clockwise tummy rub & 5 relaxed breaths to clear any tail-end liquid before standing up ✨',
+    pct: 100
+  };
+}
+
+function ensureLiveFlushTimerTicking() {
+  if (liveFlushTimerInterval) {
+    clearInterval(liveFlushTimerInterval);
+    liveFlushTimerInterval = null;
+  }
+  const st = loadFlushTimerState();
+  if (!st) return;
+  tickLiveFlushTimer();
+  if (typeof setInterval === 'function') {
+    liveFlushTimerInterval = setInterval(tickLiveFlushTimer, 1000);
+  }
+}
+
+function tickLiveFlushTimer() {
+  const st = loadFlushTimerState();
+  if (!st) {
+    if (liveFlushTimerInterval) {
+      clearInterval(liveFlushTimerInterval);
+      liveFlushTimerInterval = null;
+    }
+    return;
+  }
+  const elapsedSec = Math.max(0, Math.floor((Date.now() - st.startedAtMs) / 1000));
+  const elapsedMins = elapsedSec / 60;
+  const phase = getFlushTimerPhaseCue(elapsedMins);
+
+  const clockEl = document.getElementById('liveFlushTimerElapsed');
+  const stageEl = document.getElementById('liveFlushTimerStage');
+  const cueEl = document.getElementById('liveFlushTimerCue');
+  const barEl = document.getElementById('liveFlushTimerBar');
+  if (clockEl) clockEl.innerText = formatTimerClock(elapsedSec);
+  if (stageEl) stageEl.innerText = phase.stage;
+  if (cueEl) cueEl.innerText = phase.cue;
+  if (barEl) barEl.style.width = `${Math.max(4, phase.pct)}%`;
+}
+
+function startLiveFlushTimer() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const state = {
+    startedAtMs: Date.now(),
+    startedTimeHHMM: `${hh}:${mm}`,
+    kickedInAtMs: null,
+    kickedInMins: null,
+    date: activeDateStr || getTodayISOString()
+  };
+  saveFlushTimerState(state);
+  renderAceFlushHub(activeDateStr);
+  ensureLiveFlushTimerTicking();
+  showDynamicToast(`⏱️ Flush timer started at ${state.startedTimeHHMM}! Runs safely even if you switch apps.`, 3800);
+}
+
+function markFlushKickedIn() {
+  const st = loadFlushTimerState();
+  if (!st) return;
+  const elapsedMins = Math.max(1, Math.round((Date.now() - st.startedAtMs) / 60000));
+  st.kickedInAtMs = Date.now();
+  st.kickedInMins = elapsedMins;
+  saveFlushTimerState(st);
+  renderAceFlushHub(activeDateStr);
+  ensureLiveFlushTimerTicking();
+  const onsetLabel = formatFlushOnsetLabel(mapElapsedMinutesToOnset(elapsedMins));
+  showDynamicToast(`⚡ Logged kick-in at ${elapsedMins} min (${onsetLabel})! Take your time finishing.`, 3500);
+}
+
+function clearLiveFlushTimerSilently() {
+  if (liveFlushTimerInterval) {
+    clearInterval(liveFlushTimerInterval);
+    liveFlushTimerInterval = null;
+  }
+  saveFlushTimerState(null);
+}
+
+function cancelLiveFlushTimer() {
+  clearLiveFlushTimerSilently();
+  renderAceFlushHub(activeDateStr);
+  showDynamicToast("Flush timer cleared.", 2200);
+}
+
+function finishAndLogFlushTimer() {
+  const st = loadFlushTimerState();
+  const targetDate = (st && st.date) ? st.date : (activeDateStr || getTodayISOString());
+  const startedTime = st?.startedTimeHHMM || '';
+  const onsetCode = (st && st.kickedInMins !== null && st.kickedInMins !== undefined)
+    ? mapElapsedMinutesToOnset(st.kickedInMins)
+    : '';
+  clearLiveFlushTimerSilently();
+  renderAceFlushHub(targetDate);
+
+  openQuickLogModal(targetDate, 'flush');
+  const prev = getLastFlushEntry(targetDate);
+  if (prev) {
+    setAceFlushDone(true);
+    if (prev.flushSolution) selectFlushSolution(prev.flushSolution);
+    if (prev.flushAdditiveDose) setFlushAdditivePreset(prev.flushAdditiveDose);
+    if (prev.flushWaterMl) setFlushWaterPreset(prev.flushWaterMl);
+  } else {
+    setAceFlushDone(true);
+  }
+  if (startedTime) setFlushTimePreset(startedTime);
+  if (onsetCode) selectFlushOnset(onsetCode);
+
+  showDynamicToast(`✅ Time (${startedTime || 'now'})${onsetCode ? ' & Kick-In (' + formatFlushOnsetLabel(onsetCode) + ')' : ''} pre-filled! Just tap Consistency, Amount & Save.`, 4500);
 }
 
 // ============================================================================
@@ -18151,8 +18481,53 @@ function renderAceFlushHub(targetDateStr) {
 
   const totalFlushes = getSortedFlushLogs(true).length;
 
+  const activeTimer = loadFlushTimerState();
+  const isTimerRunningForView = !!(activeTimer && (!activeTimer.date || activeTimer.date === dStr));
+
   let topStatusHtml = '';
-  if (todayHasFlush) {
+  if (isTimerRunningForView) {
+    const elapsedSec = Math.max(0, Math.floor((Date.now() - activeTimer.startedAtMs) / 1000));
+    const phase = getFlushTimerPhaseCue(elapsedSec / 60);
+    const hasKicked = activeTimer.kickedInMins !== null && activeTimer.kickedInMins !== undefined;
+    topStatusHtml = `
+      <div class="p-3.5 rounded-2xl bg-gradient-to-r from-sky-600 via-sky-700 to-teal-700 text-white space-y-2.5 shadow-md flush-timer-active">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <span id="liveFlushTimerStage" class="text-[10px] font-black uppercase tracking-wider text-sky-100 block">${escapeFlushHtml(phase.stage)}</span>
+            <div class="flex items-baseline gap-2 mt-0.5">
+              <span id="liveFlushTimerElapsed" class="text-2xl font-black font-mono tracking-tight">${formatTimerClock(elapsedSec)}</span>
+              <span class="text-[10px] font-semibold text-sky-100/90">started ${escapeFlushHtml(activeTimer.startedTimeHHMM)}</span>
+            </div>
+          </div>
+          <button type="button" onclick="cancelLiveFlushTimer()" title="Cancel timer" class="w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center text-xs font-bold cursor-pointer">✕</button>
+        </div>
+
+        <div class="w-full h-1.5 rounded-full bg-white/20 overflow-hidden">
+          <div id="liveFlushTimerBar" class="h-full rounded-full bg-emerald-300 transition-all duration-500" style="width: ${Math.max(4, phase.pct)}%"></div>
+        </div>
+
+        <p id="liveFlushTimerCue" class="text-[11px] text-sky-50 leading-snug font-medium">
+          ${escapeFlushHtml(phase.cue)}
+        </p>
+
+        <div class="flex flex-wrap gap-2 pt-0.5">
+          ${hasKicked ? `
+            <span class="px-3 py-2 rounded-xl bg-emerald-400/25 border border-emerald-200/60 text-emerald-50 text-[11px] font-extrabold inline-flex items-center gap-1">
+              <span>⚡</span>
+              <span>Kicked in at ${activeTimer.kickedInMins}m ✓</span>
+            </span>
+          ` : `
+            <button type="button" onclick="markFlushKickedIn()" class="flex-1 py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 text-xs font-black shadow-2xs active:scale-95 transition-all cursor-pointer">
+              ⚡ It Kicked In!
+            </button>
+          `}
+          <button type="button" onclick="finishAndLogFlushTimer()" class="flex-1 py-2 px-3 rounded-xl bg-white hover:bg-sky-50 text-sky-950 text-xs font-black shadow-2xs active:scale-95 transition-all cursor-pointer">
+            ✅ Done — Log Now
+          </button>
+        </div>
+      </div>
+    `;
+  } else if (todayHasFlush) {
     const solText = formatFlushSolutionLabel(entry.flushSolution) || 'ACE Flush';
     const doseText = entry.flushAdditiveDose ? ` (${escapeFlushHtml(entry.flushAdditiveDose)})` : '';
     const mlText = entry.flushWaterMl ? `${entry.flushWaterMl} mL` : 'Vol not set';
@@ -18214,15 +18589,21 @@ function renderAceFlushHub(targetDateStr) {
     `;
   } else {
     topStatusHtml = `
-      <div class="flex flex-col sm:flex-row gap-2">
-        <button type="button" onclick="openFlushQuickLog(false)" class="flex-1 py-3 px-4 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-extrabold shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer">
-          <span class="text-base">💧</span>
-          <span>Log Morning ACE Flush (20 sec)</span>
-        </button>
+      <div class="space-y-2">
+        <div class="flex flex-col sm:flex-row gap-2">
+          <button type="button" onclick="openFlushQuickLog(false)" class="flex-1 py-3 px-4 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-extrabold shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer">
+            <span class="text-base">💧</span>
+            <span>Log Morning Flush (15s)</span>
+          </button>
+          <button type="button" onclick="startLiveFlushTimer()" class="py-3 px-4 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-extrabold shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0">
+            <span>⏱️</span>
+            <span>Start Live Timer</span>
+          </button>
+        </div>
         ${lastFlush ? `
-          <button type="button" onclick="openFlushQuickLog(true)" class="py-3 px-4 rounded-2xl bg-white hover:bg-sky-50 text-sky-950 border-2 border-sky-300 text-xs font-extrabold shadow-2xs active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0">
+          <button type="button" onclick="openFlushQuickLog(true)" class="w-full py-2.5 px-4 rounded-2xl bg-white hover:bg-sky-50 text-sky-950 border-2 border-sky-200 text-xs font-extrabold shadow-2xs active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
             <span>⚡</span>
-            <span>Repeat Last (${escapeFlushHtml(lastRepeatLabel)})</span>
+            <span>Repeat Yesterday's Setup (${escapeFlushHtml(lastRepeatLabel)})</span>
           </button>
         ` : ''}
       </div>
@@ -18312,6 +18693,10 @@ function renderAceFlushHub(targetDateStr) {
       </div>
     </div>
   `;
+
+  if (isTimerRunningForView) {
+    ensureLiveFlushTimerTicking();
+  }
 }
 
 // ============================================================================
@@ -18558,6 +18943,31 @@ window.renderFlushTrendsSection = renderFlushTrendsSection;
 window.togglePrucaloprideQuick = togglePrucaloprideQuick;
 window.toggleDocusateQuick = toggleDocusateQuick;
 window.quickStepDailyMovements = quickStepDailyMovements;
+window.setQuickLogMode = setQuickLogMode;
+window.onQuickLogDateChange = onQuickLogDateChange;
+window.startLiveFlushTimer = startLiveFlushTimer;
+window.markFlushKickedIn = markFlushKickedIn;
+window.finishAndLogFlushTimer = finishAndLogFlushTimer;
+window.cancelLiveFlushTimer = cancelLiveFlushTimer;
+window.clearLiveFlushTimerSilently = clearLiveFlushTimerSilently;
+window.updateStorageBackendLabels = updateStorageBackendLabels;
+
+// Global Escape key dismissal for open modals
+if (typeof document !== 'undefined') {
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (typeof closeQuickLogModal === 'function') closeQuickLogModal();
+    if (typeof closeDoctorExportModal === 'function') closeDoctorExportModal();
+    if (typeof closeDataSafetyModal === 'function') closeDataSafetyModal();
+    if (typeof closeOuraConfigModal === 'function') closeOuraConfigModal();
+    if (typeof closeOuraPeriodModal === 'function') closeOuraPeriodModal();
+    if (typeof closeCalendarPickerModal === 'function') closeCalendarPickerModal();
+    if (typeof closeBayesianModal === 'function') closeBayesianModal();
+    if (typeof closeRescueModal === 'function') closeRescueModal();
+    if (typeof closeDeleteConfirmModal === 'function') closeDeleteConfirmModal();
+    if (typeof closeTripPlannerModal === 'function') closeTripPlannerModal();
+  });
+}
 
 // ============================================================================
 // APP BOOTSTRAP: INITIALIZE AFTER ALL SCRIPTS & DOM LOAD

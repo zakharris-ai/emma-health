@@ -145,11 +145,46 @@ body {
   }
 }
 
-/* Tag Buttons Selected */
+/* Tag Buttons Selected (Preserve color-coded Amber/Sky/Rose/Coral classes from app.js) */
 .tag-btn.selected {
-  background-color: #1A211E !important;
-  color: #FFFFFF !important;
-  border-color: #1A211E !important;
+  box-shadow: 0 2px 6px -1px rgba(26, 33, 30, 0.14);
+  font-weight: 700;
+}
+
+/* Flush Companion Timer Pulse */
+@keyframes softPulseRing {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(14, 165, 233, 0);
+  }
+}
+
+.flush-timer-active {
+  animation: softPulseRing 2.2s ease-in-out infinite;
+}
+
+/* Hide scrollbars cleanly for horizontal pill scrollers */
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar,
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Prevent iOS Safari auto-zoom on form inputs while keeping desktop compact */
+@media (max-width: 639px) {
+  #quickLogModal input[type="text"],
+  #quickLogModal input[type="number"],
+  #quickLogModal input[type="time"],
+  #quickLogModal input[type="date"],
+  #quickLogModal textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* Filter Buttons */
