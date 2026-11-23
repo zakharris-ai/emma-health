@@ -131,11 +131,13 @@ def clean_synthetic_text(text):
 def merge_checkin_entries(existing, incoming):
     if not existing:
         res = dict(incoming) if isinstance(incoming, dict) else {}
+        res.pop('_explicitSave', None)
         res['symptoms'] = clean_synthetic_text(res.get('symptoms'))
         res['notes'] = clean_synthetic_text(res.get('notes'))
         res['headspaceNotes'] = clean_synthetic_text(res.get('headspaceNotes'))
         return res
 
+    is_explicit = bool(isinstance(incoming, dict) and incoming.get('_explicitSave'))
     merged = dict(existing)
 
     # 1. Clean synthetic text in both existing and incoming
@@ -143,23 +145,67 @@ def merge_checkin_entries(existing, incoming):
         if f in merged:
             merged[f] = clean_synthetic_text(merged.get(f))
 
-    # 2. Non-destructive field merge
+    # 2. Non-destructive field merge (with explicit-edit respect for intentional user updates)
+    flush_text_keys = {
+        'flushTime', 'flushSolution', 'flushAdditiveDose', 'flushOnset',
+        'flushConsistency', 'flushOutput', 'flushNotes', 'extraMovementsNotes'
+    }
+    flush_bool_keys = {
+        'aceFlushDone', 'docusateTaken', 'prucaloprideTaken',
+        'eaasTaken', 'electrolytesTaken', 'electrolyteBuffered', 'sennaTea'
+    }
+
     for k, v in incoming.items():
+        if k == '_explicitSave':
+            continue
         if v is None:
+            if is_explicit and k == 'flushWaterMl':
+                merged[k] = None
             continue
 
         if k in ['symptoms', 'notes', 'headspaceNotes']:
             incoming_clean = clean_synthetic_text(v)
             existing_val = merged.get(k, '')
             if incoming_clean:
-                if not existing_val or len(incoming_clean) >= len(existing_val):
+                if is_explicit or not existing_val or len(incoming_clean) >= len(existing_val):
                     merged[k] = incoming_clean
-            # If incoming_clean is empty, keep existing_val!
+        elif k in flush_text_keys:
+            if is_explicit:
+                merged[k] = v
+            elif isinstance(v, str) and v.strip():
+                merged[k] = v
+        elif k == 'flushWaterMl':
+            if is_explicit:
+                merged[k] = v
+            elif v:
+                merged[k] = v
+        elif k in ['movementFrequency', 'diaphragmBloat']:
+            if is_explicit:
+                merged[k] = v
+            elif isinstance(v, (int, float)) and v > 0:
+                merged[k] = v
+            elif k not in merged:
+                merged[k] = v
         elif k == 'movement':
-            if v and str(v).strip() and str(v).strip() != 'None':
+            if is_explicit and v is not None:
+                merged[k] = v
+            elif v and str(v).strip() and str(v).strip() != 'None':
                 merged[k] = v
             elif not merged.get(k):
                 merged[k] = v
+        elif k in ['flushOutcomes', 'rescueMeds']:
+            arr_in = v if isinstance(v, list) else ([v] if v else [])
+            if is_explicit:
+                merged[k] = [item for item in arr_in if item]
+            else:
+                arr_ex = merged.get(k) or []
+                if not isinstance(arr_ex, list):
+                    arr_ex = [arr_ex]
+                combined = []
+                for item in arr_ex + arr_in:
+                    if item and item not in combined:
+                        combined.append(item)
+                merged[k] = combined
         elif k in ['puffiness', 'exercises', 'moods']:
             arr_ex = merged.get(k) or []
             arr_in = v or []
@@ -167,16 +213,21 @@ def merge_checkin_entries(existing, incoming):
                 arr_ex = [arr_ex]
             if not isinstance(arr_in, list):
                 arr_in = [arr_in]
-            combined = []
-            for item in arr_ex + arr_in:
-                if item and item not in combined:
-                    combined.append(item)
-            merged[k] = combined
+            if is_explicit and k in ['puffiness', 'moods']:
+                merged[k] = [item for item in arr_in if item]
+            else:
+                combined = []
+                for item in arr_ex + arr_in:
+                    if item and item not in combined:
+                        combined.append(item)
+                merged[k] = combined
         elif k == 'dailyFocus' and isinstance(v, dict):
             ex_focus = merged.get('dailyFocus') or {}
             merged['dailyFocus'] = {**ex_focus, **v}
         elif isinstance(v, bool):
-            if v:
+            if is_explicit and k in flush_bool_keys:
+                merged[k] = v
+            elif v:
                 merged[k] = True
             elif k not in merged:
                 merged[k] = False
@@ -794,6 +845,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def handle_load_data(self):
         try:
             conn = get_db_connection()
+            is_pg = hasattr(conn, 'status')
             cur = conn.cursor()
             cur.execute("SELECT data_json FROM checkins ORDER BY date DESC")
             rows = cur.fetchall()
@@ -837,6 +889,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
             self._send_json(200, {
                 "ok": True,
+                "dbBackend": "postgres" if is_pg else "sqlite",
                 "logs": logs,
                 "chronoTrial": app_states.get('chrono_trial'),
                 "specialistTracking": app_states.get('specialist_tracking'),
@@ -922,6 +975,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def _update_disk_snapshots(self):
         try:
             conn = get_db_connection()
+            is_pg = hasattr(conn, 'status')
             cur = conn.cursor()
             cur.execute("SELECT data_json FROM checkins ORDER BY date DESC")
             db_logs = []
@@ -983,6 +1037,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def handle_export_backup(self):
         try:
             conn = get_db_connection()
+            is_pg = hasattr(conn, 'status')
             cur = conn.cursor()
             cur.execute("SELECT data_json FROM checkins ORDER BY date DESC")
             logs = [json.loads(r[0]) for r in cur.fetchall()]
@@ -1245,6 +1300,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         refresh_token = None
         try:
             conn = get_db_connection()
+            is_pg = hasattr(conn, 'status')
             cur = conn.cursor()
             cur.execute("SELECT key, value FROM app_state WHERE key IN ('oura_token', 'oura_oauth_data')")
             rows = cur.fetchall()

@@ -3907,6 +3907,8 @@ function initApp() {
     if (typeof renderDashboardOuraGlance === 'function') renderDashboardOuraGlance(activeDateStr);
     if (typeof renderTripPlannerUI === 'function') renderTripPlannerUI();
     renderHistoryLogs();
+    if (typeof renderAceFlushHub === 'function') renderAceFlushHub(activeDateStr);
+    if (typeof renderFlushTrendsSection === 'function') renderFlushTrendsSection();
     if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip();
     if (typeof renderCalendarDaysList === 'function') renderCalendarDaysList();
     renderEmmaMeals();
@@ -4048,6 +4050,11 @@ function mergeLogs(listA = [], listB = []) {
     if (!e) return 0;
     let s = 1;
     if (e.updatedAt) s += 10;
+    if (e.aceFlushDone || e.flushWaterMl || e.flushSolution) s += 25;
+    if (e.flushNotes && e.flushNotes.trim().length > 0) s += 8;
+    if (e.extraMovementsNotes && e.extraMovementsNotes.trim().length > 0) s += 5;
+    if (e.docusateTaken || e.prucaloprideTaken) s += 4;
+    if (Array.isArray(e.rescueMeds) && e.rescueMeds.length > 0) s += 4;
     if (e.temp) s += 2;
     if (e.diaphragmBloat) s += 2;
     if (e.upperTummyBloat || e.lowerTummyBloat) s += 3;
@@ -4196,6 +4203,24 @@ function mergeLogs(listA = [], listB = []) {
     }
     if ((!base.exercise || base.exercise === 'Gentle') && donor.exercise && donor.exercise !== 'Gentle') {
       base.exercise = donor.exercise;
+    }
+
+    // 9B. Preserve ACE Flush & Post-Surgery Routine Fields (Zero Data Loss Guarantee)
+    const isExplicitBase = Boolean(base._explicitSave);
+    if (!isExplicitBase) {
+      if (!base.aceFlushDone && donor.aceFlushDone) base.aceFlushDone = true;
+      if (!base.docusateTaken && donor.docusateTaken) base.docusateTaken = true;
+      if (!base.prucaloprideTaken && donor.prucaloprideTaken) base.prucaloprideTaken = true;
+      ['flushTime', 'flushSolution', 'flushAdditiveDose', 'flushOnset', 'flushConsistency', 'flushOutput', 'flushNotes', 'extraMovementsNotes'].forEach(fk => {
+        if ((!base[fk] || base[fk] === '') && donor[fk]) base[fk] = donor[fk];
+      });
+      if ((!base.flushWaterMl || base.flushWaterMl === 0) && donor.flushWaterMl) base.flushWaterMl = donor.flushWaterMl;
+      if ((!Array.isArray(base.flushOutcomes) || base.flushOutcomes.length === 0) && Array.isArray(donor.flushOutcomes) && donor.flushOutcomes.length > 0) {
+        base.flushOutcomes = [...donor.flushOutcomes];
+      }
+      if ((!Array.isArray(base.rescueMeds) || base.rescueMeds.length === 0) && Array.isArray(donor.rescueMeds) && donor.rescueMeds.length > 0) {
+        base.rescueMeds = [...donor.rescueMeds];
+      }
     }
 
     // 10. Preserve Oura Biometric Vitals
@@ -4554,6 +4579,8 @@ function fetchServerDataOnLoad() {
           }
           renderDashboardTrends();
           renderHistoryLogs();
+          if (typeof renderAceFlushHub === 'function') renderAceFlushHub(activeDateStr);
+          if (typeof renderFlushTrendsSection === 'function') renderFlushTrendsSection();
           if (typeof renderCalendarDaysList === 'function') renderCalendarDaysList();
           if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip();
           if (typeof renderTrialUI === 'function') renderTrialUI();
@@ -4764,12 +4791,14 @@ function switchTab(tabId) {
 
   // Re-render charts on tab switch to ensure proper canvas dimension calculations
   if (tabId === 'dashboard') {
+    if (typeof renderAceFlushHub === 'function') renderAceFlushHub(activeDateStr);
     setTimeout(renderDashboardTrends, 50);
   } else if (tabId === 'oura') {
     if (typeof updateOuraConnectionUI === 'function') updateOuraConnectionUI();
     if (typeof renderOuraSection === 'function') renderOuraSection(activeDateStr);
     setTimeout(renderOuraChart, 50);
   } else if (tabId === 'history') {
+    if (typeof renderFlushTrendsSection === 'function') renderFlushTrendsSection();
     renderHistoryLogs();
   }
   
@@ -5528,11 +5557,11 @@ function applyActiveDate(targetDateStr) {
   // 15. Re-render Dashboard Headspace & Thoughts Card for active date
   renderDashboardHeadspaceCard(activeLogEntry, info);
 
-  // 16. Re-render Oura Biometrics & ADHD Translation for active date
+  // 16. Re-render ACE Flush Hub, Oura Biometrics & Recent Strip for active date
+  if (typeof renderAceFlushHub === 'function') renderAceFlushHub(activeDateStr);
   if (typeof renderOuraSection === 'function') renderOuraSection(activeDateStr);
   if (typeof renderDashboardOuraGlance === 'function') renderDashboardOuraGlance(activeDateStr);
-  if (typeof renderOuraOvulationSection === 'function') renderOuraOvulationSection(activeDateStr);
-  if (typeof renderOuraSilentPeriodSection === 'function') renderOuraSilentPeriodSection(activeDateStr);
+  if (typeof renderFlushTrendsSection === 'function') renderFlushTrendsSection();
   if (typeof renderTripPlannerUI === 'function') renderTripPlannerUI();
   if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip();
 
@@ -6699,6 +6728,42 @@ function getOrCreateDateSpecialistState(dateStr) {
   return specialistTrackingState.byDate[d];
 }
 
+function getOrCreateCleanPostAceEntry(dateStr) {
+  let logEntry = logs.find(l => l.date === dateStr);
+  if (!logEntry) {
+    const cycleInfo = getCycleInfoForDate(dateStr);
+    const dParts = dateStr.split('-');
+    const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+    logEntry = {
+      id: dateStr,
+      date: dateStr,
+      displayDate: cycleInfo.displayDate,
+      month: monthNames[parseInt(dParts[1], 10) - 1] || 'november',
+      cycleDay: cycleInfo.cycleDay,
+      phase: cycleInfo.phase,
+      phaseLabel: cycleInfo.phaseLabel,
+      temp: null,
+      isManualTemp: false,
+      electrolytesTaken: false,
+      electrolyteBuffered: false,
+      eaasTaken: false,
+      docusateTaken: false,
+      prucaloprideTaken: false,
+      rescueMeds: [],
+      movementFrequency: 0,
+      diaphragmBloat: 0,
+      movement: '',
+      puffiness: [],
+      moods: [],
+      mood: '',
+      notes: '',
+      symptoms: ''
+    };
+    logs.push(logEntry);
+  }
+  return logEntry;
+}
+
 // Tool 1: Electrolyte & Osmolality Buffer
 function toggleElectrolyteBuffer() {
   const dState = getOrCreateDateSpecialistState(activeDateStr);
@@ -6706,57 +6771,34 @@ function toggleElectrolyteBuffer() {
   saveSpecialistTracking();
   renderSpecialistTrackingUI();
 
-  // Sync with active date log entry
-  let logEntry = logs.find(l => l.date === activeDateStr);
-  if (!logEntry) {
-    const cycleInfo = getCycleInfoForDate(activeDateStr);
-    logEntry = {
-      date: activeDateStr,
-      displayDate: cycleInfo.displayDate,
-      cycleDay: cycleInfo.cycleDay,
-      phase: cycleInfo.phase,
-      phaseLabel: cycleInfo.phaseLabel,
-      temp: cycleInfo.temp,
-      fastingAdherence: 'kept_40',
-      warmTrigger: false,
-      electrolytesTaken: false,
-      eaasTaken: false,
-      bristol: 'none',
-      diaphragm: 4,
-      alcohol: 'none',
-      mood: 'flat',
-      sexDrive: 'normal',
-      movement: 'Pending morning movement',
-      puffiness: [],
-      notes: ''
-    };
-    logs.push(logEntry);
-  }
-
+  const logEntry = getOrCreateCleanPostAceEntry(activeDateStr);
   logEntry.electrolytesTaken = dState.electrolyteBuffered;
   logEntry.electrolyteBuffered = dState.electrolyteBuffered;
+  logEntry.updatedAt = new Date().toISOString();
+  logEntry._explicitSave = true;
   if (!logEntry.puffiness) logEntry.puffiness = [];
   if (dState.electrolyteBuffered) {
     if (!logEntry.puffiness.includes('⚡ Electrolytes Taken')) logEntry.puffiness.push('⚡ Electrolytes Taken');
   } else {
     logEntry.puffiness = logEntry.puffiness.filter(t => t !== '⚡ Electrolytes Taken' && t !== '⚡ Electrolyte & EAAs Taken');
   }
-  saveLogs();
+  saveLogs(true);
+  saveSingleCheckinToServer(logEntry);
+  updateDashboardCheckInBadge(logEntry);
+  if (typeof renderAceFlushHub === 'function') renderAceFlushHub(activeDateStr);
   renderHistoryLogs();
-  renderDashboardTrends();
-  render5PillarDashboard();
+  renderRecentCheckInsStrip();
 
-  // Sync Check-In modal checkbox if open
   const chk = document.getElementById('logElectrolytesTaken');
   if (chk) chk.checked = dState.electrolyteBuffered;
 
   if (dState.electrolyteBuffered) {
     if (typeof confetti === 'function') {
-      confetti({ particleCount: 35, spread: 60, origin: { y: 0.7 } });
+      confetti({ particleCount: 30, spread: 55, origin: { y: 0.7 } });
     }
-    showDynamicToast("⚡ Electrolytes Logged! Supports colonic mucosal hydration.");
+    showDynamicToast("⚡ Electrolytes Logged! Great post-flush hydration.");
   } else {
-    showDynamicToast("Electrolytes status set to Pending.");
+    showDynamicToast("Electrolytes set to Pending.");
   }
 }
 
@@ -6766,57 +6808,99 @@ function toggleEaasBuffer() {
   saveSpecialistTracking();
   renderSpecialistTrackingUI();
 
-  // Sync with active date log entry
-  let logEntry = logs.find(l => l.date === activeDateStr);
-  if (!logEntry) {
-    const cycleInfo = getCycleInfoForDate(activeDateStr);
-    logEntry = {
-      date: activeDateStr,
-      displayDate: cycleInfo.displayDate,
-      cycleDay: cycleInfo.cycleDay,
-      phase: cycleInfo.phase,
-      phaseLabel: cycleInfo.phaseLabel,
-      temp: cycleInfo.temp,
-      fastingAdherence: 'kept_40',
-      warmTrigger: false,
-      electrolytesTaken: false,
-      eaasTaken: false,
-      bristol: 'none',
-      diaphragm: 4,
-      alcohol: 'none',
-      mood: 'flat',
-      sexDrive: 'normal',
-      movement: 'Pending morning movement',
-      puffiness: [],
-      notes: ''
-    };
-    logs.push(logEntry);
-  }
-
+  const logEntry = getOrCreateCleanPostAceEntry(activeDateStr);
   logEntry.eaasTaken = dState.eaasTaken;
+  logEntry.updatedAt = new Date().toISOString();
+  logEntry._explicitSave = true;
   if (!logEntry.puffiness) logEntry.puffiness = [];
   if (dState.eaasTaken) {
     if (!logEntry.puffiness.includes('🧬 EAAs Taken')) logEntry.puffiness.push('🧬 EAAs Taken');
   } else {
     logEntry.puffiness = logEntry.puffiness.filter(t => t !== '🧬 EAAs Taken' && t !== '⚡ Electrolyte & EAAs Taken');
   }
-  saveLogs();
+  saveLogs(true);
+  saveSingleCheckinToServer(logEntry);
+  updateDashboardCheckInBadge(logEntry);
+  if (typeof renderAceFlushHub === 'function') renderAceFlushHub(activeDateStr);
   renderHistoryLogs();
-  renderDashboardTrends();
-  render5PillarDashboard();
+  renderRecentCheckInsStrip();
 
-  // Sync Check-In modal checkbox if open
   const chk = document.getElementById('logEaasTaken');
   if (chk) chk.checked = dState.eaasTaken;
 
   if (dState.eaasTaken) {
     if (typeof confetti === 'function') {
-      confetti({ particleCount: 35, spread: 60, origin: { y: 0.7 } });
+      confetti({ particleCount: 30, spread: 55, origin: { y: 0.7 } });
     }
-    showDynamicToast("🧬 EAAs Logged! Supports muscle energy without GI digestive burden.");
+    showDynamicToast("🧬 EAAs Logged! Gentle muscle fuel with zero bloat.");
   } else {
-    showDynamicToast("EAAs status set to Pending.");
+    showDynamicToast("EAAs set to Pending.");
   }
+}
+
+function toggleDocusateQuick() {
+  const logEntry = getOrCreateCleanPostAceEntry(activeDateStr);
+  logEntry.docusateTaken = !logEntry.docusateTaken;
+  logEntry.updatedAt = new Date().toISOString();
+  logEntry._explicitSave = true;
+  if (!logEntry.puffiness) logEntry.puffiness = [];
+  if (logEntry.docusateTaken) {
+    if (!logEntry.puffiness.includes('💧 DulcoEase Taken')) logEntry.puffiness.push('💧 DulcoEase Taken');
+  } else {
+    logEntry.puffiness = logEntry.puffiness.filter(t => t !== '💧 DulcoEase Taken');
+  }
+  saveLogs(true);
+  saveSingleCheckinToServer(logEntry);
+  updateDashboardCheckInBadge(logEntry);
+  if (typeof renderAceFlushHub === 'function') renderAceFlushHub(activeDateStr);
+  renderHistoryLogs();
+  renderRecentCheckInsStrip();
+
+  const chk = document.getElementById('logDocusateTaken');
+  if (chk) chk.checked = logEntry.docusateTaken;
+
+  showDynamicToast(logEntry.docusateTaken ? "💧 DulcoEase (Docusate) Logged! Keeps stool soft for your morning flush." : "DulcoEase set to Pending.");
+}
+
+function togglePrucaloprideQuick() {
+  const logEntry = getOrCreateCleanPostAceEntry(activeDateStr);
+  logEntry.prucaloprideTaken = !logEntry.prucaloprideTaken;
+  logEntry.updatedAt = new Date().toISOString();
+  logEntry._explicitSave = true;
+  if (!logEntry.puffiness) logEntry.puffiness = [];
+  if (logEntry.prucaloprideTaken) {
+    if (!logEntry.puffiness.includes('🌊 Prucalopride Taken')) logEntry.puffiness.push('🌊 Prucalopride Taken');
+  } else {
+    logEntry.puffiness = logEntry.puffiness.filter(t => t !== '🌊 Prucalopride Taken');
+  }
+  saveLogs(true);
+  saveSingleCheckinToServer(logEntry);
+  updateDashboardCheckInBadge(logEntry);
+  if (typeof renderAceFlushHub === 'function') renderAceFlushHub(activeDateStr);
+  renderHistoryLogs();
+  renderRecentCheckInsStrip();
+
+  const chk = document.getElementById('logPrucaloprideTaken');
+  if (chk) chk.checked = logEntry.prucaloprideTaken;
+
+  showDynamicToast(logEntry.prucaloprideTaken ? "🌊 Prucalopride Logged! Daily motility wave active." : "Prucalopride set to Pending.");
+}
+
+function quickStepDailyMovements(delta) {
+  const logEntry = getOrCreateCleanPostAceEntry(activeDateStr);
+  const current = Number(logEntry.movementFrequency || 0);
+  const next = Math.max(0, Math.min(15, current + delta));
+  logEntry.movementFrequency = next;
+  logEntry.updatedAt = new Date().toISOString();
+  logEntry._explicitSave = true;
+  saveLogs(true);
+  saveSingleCheckinToServer(logEntry);
+  updateDashboardCheckInBadge(logEntry);
+  if (typeof renderAceFlushHub === 'function') renderAceFlushHub(activeDateStr);
+  if (typeof renderFlushTrendsSection === 'function') renderFlushTrendsSection();
+  renderHistoryLogs();
+  renderRecentCheckInsStrip();
+  showDynamicToast(`🚽 Total movements today: ${next}`);
 }
 
 function quickAddWater(amount = 250) {
@@ -7870,14 +7954,18 @@ function renderRecentCheckInsStrip() {
   // Filter for genuine user entries with recorded notes, symptoms, movements, or ratings
   const loggedEntries = [...rawList]
     .filter(l => l && l.date && !isSyntheticTestEntry(l) && (
+      l.aceFlushDone ||
+      l.flushWaterMl ||
+      l.flushSolution ||
+      l.docusateTaken ||
+      l.prucaloprideTaken ||
+      (Array.isArray(l.rescueMeds) && l.rescueMeds.length > 0) ||
       (l.symptoms && l.symptoms.trim().length > 0) || 
       (l.notes && l.notes.trim().length > 0 && !l.notes.includes("Saved via Emma's Unified Daily Check-In")) || 
       (l.movement && l.movement !== 'None' && l.movement !== 'Pending morning movement') || 
       (l.diaphragmBloat !== undefined && l.diaphragmBloat > 0) || 
-      l.exercise || 
       (Array.isArray(l.puffiness) && l.puffiness.length > 0) ||
-      l.temp !== null ||
-      l.fastingAdherence
+      l.temp !== null
     ))
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 4);
@@ -7927,7 +8015,10 @@ function renderRecentCheckInsStrip() {
           if (item.diaphragmBloat >= 7) bloatBg = 'bg-rose-100 text-rose-800';
           else if (item.diaphragmBloat >= 5) bloatBg = 'bg-amber-100 text-amber-800';
 
-          const notePreview = (item.headspaceNotes || item.notes || item.symptoms || item.movement || 'Routine logged').replace(/Auto-created from Oura Ring daily sync\.+\s*/gi, '').trim();
+          const flushSummary = (item.aceFlushDone || item.flushWaterMl || item.flushSolution)
+            ? `💧 Flush${item.flushTime ? ' ' + item.flushTime : ''}: ${item.flushWaterMl ? item.flushWaterMl + 'ml ' : ''}${typeof formatFlushSolutionLabel === 'function' ? formatFlushSolutionLabel(item.flushSolution) : (item.flushSolution || '')}${item.flushOutput ? ' • ' + (typeof formatFlushOutputLabel === 'function' ? formatFlushOutputLabel(item.flushOutput) : item.flushOutput) : ''}`
+            : '';
+          const notePreview = flushSummary || (item.flushNotes || item.headspaceNotes || item.notes || item.symptoms || item.movement || 'Routine logged').replace(/Auto-created from Oura Ring daily sync\.+\s*/gi, '').trim();
 
           return `
             <div onclick="selectDayFromRecentStrip('${item.date}')" class="p-3 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-2 ${isSelected ? 'border-purple-600 bg-purple-50/70 ring-2 ring-purple-400/40 shadow-xs' : 'border-slate-200 bg-slate-50/60 hover:bg-purple-50/40 hover:border-purple-300 shadow-2xs'}">
@@ -8446,13 +8537,23 @@ function renderHistoryLogs() {
       const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
       entryMonth = monthNames[mIdx] || '';
     }
-    const matchMonth = (currentCycleFilter === 'all') || (entryMonth === currentCycleFilter.toLowerCase());
+    const isFlushEntry = Boolean(entry.aceFlushDone || entry.flushWaterMl || entry.flushSolution);
+    const matchMonth = (currentCycleFilter === 'all') ||
+      (currentCycleFilter === 'flushes' ? isFlushEntry : (entryMonth === currentCycleFilter.toLowerCase()));
     const matchPhase = (currentPhaseFilter === 'all') || (entry.phase === currentPhaseFilter);
     const matchSearch = !searchTerm || 
       (entry.symptoms && entry.symptoms.toLowerCase().includes(searchTerm)) ||
       (entry.movement && entry.movement.toLowerCase().includes(searchTerm)) ||
       (entry.emotions && entry.emotions.toLowerCase().includes(searchTerm)) ||
       (entry.notes && entry.notes.toLowerCase().includes(searchTerm)) ||
+      (entry.flushSolution && entry.flushSolution.toLowerCase().includes(searchTerm)) ||
+      (entry.flushAdditiveDose && entry.flushAdditiveDose.toLowerCase().includes(searchTerm)) ||
+      (entry.flushNotes && entry.flushNotes.toLowerCase().includes(searchTerm)) ||
+      (entry.extraMovementsNotes && entry.extraMovementsNotes.toLowerCase().includes(searchTerm)) ||
+      (Array.isArray(entry.rescueMeds) && entry.rescueMeds.join(' ').toLowerCase().includes(searchTerm)) ||
+      (Array.isArray(entry.puffiness) && entry.puffiness.join(' ').toLowerCase().includes(searchTerm)) ||
+      (entry.docusateTaken && 'dulcoease docusate'.includes(searchTerm)) ||
+      (entry.prucaloprideTaken && 'prucalopride resolor'.includes(searchTerm)) ||
       (entry.displayDate && entry.displayDate.toLowerCase().includes(searchTerm));
     
     return matchMonth && matchPhase && matchSearch;
@@ -8580,9 +8681,19 @@ function renderHistoryLogs() {
 
         <!-- Quick Summary Badges (Always Visible) -->
         <div class="flex flex-wrap items-center gap-1.5 text-[11px] pt-1 border-t border-brand-border/60">
-          <span class="px-2 py-0.5 rounded-md ${stoolBg} font-bold">${stoolIcon}</span>
-          <span class="px-2 py-0.5 rounded-md bg-brand-cream text-brand-textMuted font-semibold">Bloat: <strong class="text-brand-coral">${item.diaphragmBloat}/10</strong></span>
+          ${(item.aceFlushDone || item.flushWaterMl || item.flushSolution) ? `
+            <span class="px-2 py-0.5 rounded-md bg-sky-100 text-sky-900 border border-sky-300 font-bold text-[10px] inline-flex items-center gap-1">
+              <span>💧</span><span>${item.flushWaterMl ? item.flushWaterMl + 'ml ' : ''}${typeof formatFlushSolutionLabel === 'function' ? formatFlushSolutionLabel(item.flushSolution) : 'ACE Flush'}${item.flushOutput ? ' • ' + (typeof formatFlushOutputLabel === 'function' ? formatFlushOutputLabel(item.flushOutput) : item.flushOutput) : ''}</span>
+            </span>
+          ` : `<span class="px-2 py-0.5 rounded-md ${stoolBg} font-bold">${stoolIcon}</span>`}
+          ${item.movementFrequency ? `
+            <span class="px-2 py-0.5 rounded-md bg-purple-50 text-purple-900 border border-purple-200 font-bold text-[10px]">🚽 ${item.movementFrequency}x</span>
+          ` : ''}
+          <span class="px-2 py-0.5 rounded-md bg-brand-cream text-brand-textMuted font-semibold">Bloat: <strong class="text-brand-coral">${item.diaphragmBloat ?? 0}/10</strong></span>
           ${moodBadgesHtml}
+          ${item.prucaloprideTaken ? `<span class="px-2 py-0.5 rounded-md bg-purple-100 text-purple-900 border border-purple-200 font-bold text-[10px]">🌊 Prucalopride</span>` : ''}
+          ${item.docusateTaken ? `<span class="px-2 py-0.5 rounded-md bg-sky-50 text-sky-900 border border-sky-200 font-bold text-[10px]">💧 DulcoEase</span>` : ''}
+          ${(Array.isArray(item.rescueMeds) && item.rescueMeds.length > 0) ? `<span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-950 border border-amber-300 font-bold text-[10px]">🧰 Rescue: ${item.rescueMeds.join(', ')}</span>` : ''}
           ${(item.upperTummyBloat || (item.puffiness && (item.puffiness.includes('🎈 Upper Tummy Bloating') || item.puffiness.includes('Upper Tummy Bloating')))) ? `
             <span class="px-2 py-0.5 rounded-md bg-amber-100/90 text-amber-900 border border-amber-300 font-bold text-[10px] inline-flex items-center gap-1">
               <span>🎈</span><span>Upper Bloat</span>
@@ -8606,11 +8717,6 @@ function renderHistoryLogs() {
           ${(item.sennaTea || (item.puffiness && item.puffiness.includes('🍵 Senna Tea Taken'))) ? `
             <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-[10px] inline-flex items-center gap-1">
               <span>🍵</span><span>Senna Tea</span>
-            </span>
-          ` : ''}
-          ${item.sexDrive ? `
-            <span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 font-semibold text-[10px]">
-              ❤️ Libido: ${item.sexDrive === 'high' ? 'High' : (item.sexDrive === 'mild' ? 'Mild' : (item.sexDrive === 'low' ? 'Low' : 'Normal'))}
             </span>
           ` : ''}
           ${(item.electrolytesTaken || item.electrolyteBuffered || (item.puffiness && (item.puffiness.includes('⚡ Electrolytes Taken') || item.puffiness.includes('⚡ Electrolyte & EAAs Taken')))) ? `
@@ -8642,11 +8748,31 @@ function renderHistoryLogs() {
 
         <!-- Expandable Detail Section -->
         <div id="${cardId}-details" class="space-y-2.5 pt-1.5 ${isOpenInitially ? '' : 'hidden'} text-xs text-brand-textDark border-t border-brand-border/40">
-          
-          <div class="p-2.5 rounded-xl bg-brand-cream/70 text-[11px] space-y-1">
-            <div class="font-bold text-brand-textDark">Movement:</div>
-            <p class="text-brand-textMuted">${item.movement || 'None reported'}</p>
-          </div>
+
+          ${(item.aceFlushDone || item.flushWaterMl || item.flushSolution) ? `
+            <div class="p-3 rounded-xl bg-sky-50/80 border border-sky-200 text-[11px] space-y-1.5">
+              <div class="font-extrabold text-sky-950 flex items-center justify-between">
+                <span>💧 Morning ACE Flush Log</span>
+                ${item.flushTime ? `<span class="text-[10px] font-mono bg-white px-2 py-0.5 rounded-md border border-sky-200">⏰ ${item.flushTime}</span>` : ''}
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[10px]">
+                <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Solution</span><strong class="text-sky-950">${typeof formatFlushSolutionLabel === 'function' ? formatFlushSolutionLabel(item.flushSolution) : (item.flushSolution || '—')}${item.flushAdditiveDose ? ' (' + item.flushAdditiveDose + ')' : ''}</strong></div>
+                <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Water Volume</span><strong class="text-sky-950">${item.flushWaterMl ? item.flushWaterMl + ' mL' : '—'}</strong></div>
+                <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Kick-In Time</span><strong class="text-sky-950">${typeof formatFlushOnsetLabel === 'function' ? formatFlushOnsetLabel(item.flushOnset) : (item.flushOnset || '—')}</strong></div>
+                <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Consistency</span><strong class="text-sky-950">${typeof formatFlushConsistencyLabel === 'function' ? formatFlushConsistencyLabel(item.flushConsistency) : (item.flushConsistency || '—')}</strong></div>
+                <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Amount Out</span><strong class="text-emerald-800">${typeof formatFlushOutputLabel === 'function' ? formatFlushOutputLabel(item.flushOutput) : (item.flushOutput || '—')}</strong></div>
+                <div class="bg-white p-1.5 rounded-lg border border-sky-100"><span class="text-slate-500 block">Total Movements</span><strong class="text-purple-900">${item.movementFrequency ?? 0} today</strong></div>
+              </div>
+              ${(Array.isArray(item.flushOutcomes) && item.flushOutcomes.length > 0) ? `<div class="flex flex-wrap gap-1 pt-0.5">${item.flushOutcomes.map(o => `<span class="px-2 py-0.5 rounded-md bg-white border border-sky-200 text-sky-900 font-semibold text-[10px]">${o}</span>`).join('')}</div>` : ''}
+              ${item.flushNotes ? `<p class="text-sky-950 bg-white/80 p-2 rounded-lg border border-sky-100 italic">“${item.flushNotes}”</p>` : ''}
+              ${item.extraMovementsNotes ? `<p class="text-purple-950 bg-purple-50/70 p-2 rounded-lg border border-purple-200 text-[10px]"><strong>Rest of day movements:</strong> ${item.extraMovementsNotes}</p>` : ''}
+            </div>
+          ` : `
+            <div class="p-2.5 rounded-xl bg-brand-cream/70 text-[11px] space-y-1">
+              <div class="font-bold text-brand-textDark">Movement:</div>
+              <p class="text-brand-textMuted">${item.movement || 'None reported'}</p>
+            </div>
+          `}
 
           <div class="p-2.5 rounded-xl bg-brand-cream/70 text-[11px] space-y-1">
             <div class="font-bold text-brand-textDark">Bloating & Symptoms:</div>
@@ -8655,7 +8781,7 @@ function renderHistoryLogs() {
 
           ${item.puffiness && item.puffiness.length > 0 ? `
             <div class="flex flex-wrap gap-1">
-              ${item.puffiness.map(p => {
+              ${item.puffiness.filter(p => !/Libido|Reformer Pilates|Running|Cycling|Gentle Incline Walk|Gentle Strength|Rest & Mobility|Swimming/i.test(p)).map(p => {
                 const isBloat = p.includes('Upper Tummy') || p.includes('Lower Tummy');
                 const isGas = p.includes('Gass') || p.includes('Burp') || p.includes('Wind') || p.includes('Gas');
                 const isSenna = p.includes('Senna');
@@ -8668,7 +8794,6 @@ function renderHistoryLogs() {
                           : 'bg-brand-coralLight text-brand-coral'));
                 return `<span class="px-2 py-0.5 rounded-md ${badgeClass} text-[10px] font-semibold">${p}</span>`;
               }).join('')}
-              ${item.exercise ? `<span class="px-2 py-0.5 rounded-md bg-brand-sageLight text-brand-sage text-[10px] font-semibold">🏃 ${item.exercise}</span>` : ''}
             </div>
           ` : ''}
 
@@ -8733,12 +8858,20 @@ function toggleHistoryCard(cardId) {
 
 function filterCycle(month) {
   currentCycleFilter = month;
+  let matchedBtn = null;
   document.querySelectorAll('.cycle-filter-btn').forEach(btn => {
-    btn.classList.remove('active-filter');
-    btn.classList.add('bg-slate-100', 'text-slate-700');
+    btn.classList.remove('active-filter', 'bg-brand-textDark', 'text-white');
+    btn.classList.add('bg-brand-cream', 'text-brand-textMuted');
+    const oc = btn.getAttribute ? (btn.getAttribute('onclick') || '') : '';
+    if (oc.includes(`'${month}'`) || oc.includes(`"${month}"`)) {
+      matchedBtn = btn;
+    }
   });
-  event.target.classList.add('active-filter');
-  event.target.classList.remove('bg-slate-100', 'text-slate-700');
+  const targetBtn = matchedBtn || (typeof event !== 'undefined' && event?.target?.classList?.contains('cycle-filter-btn') ? event.target : null);
+  if (targetBtn) {
+    targetBtn.classList.add('active-filter', 'bg-brand-textDark', 'text-white');
+    targetBtn.classList.remove('bg-brand-cream', 'text-brand-textMuted', 'bg-slate-100', 'text-slate-700');
+  }
   renderHistoryLogs();
 }
 
@@ -8747,7 +8880,9 @@ function filterByPhase(phase) {
   document.querySelectorAll('.phase-pill').forEach(btn => {
     btn.classList.remove('active-phase-pill');
   });
-  event.target.classList.add('active-phase-pill');
+  if (typeof event !== 'undefined' && event?.target?.classList) {
+    event.target.classList.add('active-phase-pill');
+  }
   renderHistoryLogs();
 }
 
@@ -8919,11 +9054,14 @@ function resetQuickLogModalToBlank() {
   const ouraHrv = document.getElementById('logOuraHrv');
   if (ouraHrv) ouraHrv.value = '';
 
-  // 2. Morning Fasting Routine - BLANK (none selected)
-  selectFasting('');
+  // 2. Post-ACE Morning Flush, Daily Meds & Rescue Meds - BLANK
+  if (typeof resetAceFlushModalFields === 'function') resetAceFlushModalFields();
 
-  const warmTrigger = document.getElementById('logWarmTrigger');
-  if (warmTrigger) warmTrigger.checked = false;
+  const prucChk = document.getElementById('logPrucaloprideTaken');
+  if (prucChk) prucChk.checked = false;
+
+  const docChk = document.getElementById('logDocusateTaken');
+  if (docChk) docChk.checked = false;
 
   const electrolytes = document.getElementById('logElectrolytesTaken');
   if (electrolytes) electrolytes.checked = false;
@@ -8931,57 +9069,35 @@ function resetQuickLogModalToBlank() {
   const eaas = document.getElementById('logEaasTaken');
   if (eaas) eaas.checked = false;
 
-  // Senna Tea (Rescue Laxative Support) - NEUTRAL / BLANK
-  const sennaChk = document.getElementById('logSennaTea');
-  if (sennaChk) sennaChk.checked = false;
-  setSennaTeaQuick(null);
+  const extraMov = document.getElementById('logExtraMovementsNotes');
+  if (extraMov) extraMov.value = '';
 
-  // 3. Bowel Evacuation, Success & Frequency - BLANK (none selected)
-  selectMovementAm('');
-  selectMovementPm('');
+  // 3. Total Movements Today - RESET (0)
   setMovementFrequency(0);
-  selectBristol('');
-  const nuanceContainer = document.getElementById('stoolNuanceContainer');
-  if (nuanceContainer) nuanceContainer.classList.add('hidden');
-  const nuanceInput = document.getElementById('logStoolNuance');
-  if (nuanceInput) nuanceInput.value = '';
 
-  // 4. Diaphragm & APD Status - RESET (0 / 10)
-  const diaphragmReset = document.getElementById('logDiaphragmResetDone');
-  if (diaphragmReset) diaphragmReset.checked = false;
-
+  // 4. Bloating Slider - RESET (0 / 10)
   const diaphragmSlider = document.getElementById('logDiaphragm');
   if (diaphragmSlider) {
     diaphragmSlider.value = 0;
     updateDiaphragmSliderDisplay(0);
   }
 
-  // 5. Symptoms, Bloating, Gassiness & Puffiness Tags - ALL UNSELECTED / BLANK
+  // 5. Symptoms, Bloating, Inflammation & Hormone Tags - ALL UNSELECTED
   selectedTags.clear();
   document.querySelectorAll('#quickLogModal .tag-btn').forEach(btn => {
-    btn.classList.remove('selected', 'bg-brand-coral', 'text-white', 'border-brand-coral', 'bg-amber-600', 'border-amber-600', 'bg-sky-600', 'border-sky-600', 'shadow-xs');
+    btn.classList.remove('selected', 'bg-brand-coral', 'text-white', 'border-brand-coral', 'bg-amber-600', 'border-amber-600', 'bg-sky-600', 'border-sky-600', 'bg-rose-600', 'border-rose-600', 'shadow-xs');
     const text = btn.innerText.trim();
-    const isBloatTag = text.includes('Upper Tummy Bloating') || text.includes('Lower Tummy Bloating');
-    const isGasTag = text.includes('Gassiness') || text.includes('Burpiness') || text.includes('Trapped Wind') || text.includes('Can\'t Burp');
-
-    if (isBloatTag || isGasTag) {
+    const isHighlight = text.includes('Upper Tummy') || text.includes('Lower Tummy') || text.includes('Gassiness') || text.includes('Burpiness') || text.includes('Puffy') || text.includes('Facial Spots');
+    if (isHighlight) {
       btn.classList.add('bg-white', 'text-brand-textDark', 'border-brand-border');
     } else {
       btn.classList.add('bg-white', 'text-brand-textMuted');
     }
   });
 
-  // 6. Drinks, Mood, Sex Drive, Exercise & Notes - BLANK (none selected)
+  // 6. Drinks, Mood & Notes - BLANK
   selectAlcohol('');
   selectMood('');
-  selectSexDrive('');
-
-  if (typeof selectedExercises !== 'undefined' && selectedExercises.clear) {
-    selectedExercises.clear();
-    updateExerciseChipsUI();
-  }
-  const exerciseInput = document.getElementById('logExercise');
-  if (exerciseInput) exerciseInput.value = '';
 
   const noteInput = document.getElementById('logNote');
   if (noteInput) {
@@ -8999,25 +9115,32 @@ function openQuickLogModal(dateOverride) {
   const dateInput = document.getElementById('logDate');
   if (dateInput) dateInput.value = targetDate;
 
-  // Find if a previously saved user entry exists for targetDate
   const entry = logs.find(l => l.date === targetDate);
   const existingBanner = document.getElementById('quickLogExistingBanner');
 
-  if (entry && (entry.notes || entry.headspaceNotes || entry.temp || entry.movement || (entry.puffiness && entry.puffiness.length > 0) || entry.sennaTea !== null || entry.fastingAdherence)) {
-    // If Emma already logged for this date, load her entry so she never sees a blank screen that feels like data loss!
+  const hasSavedUserData = entry && (
+    entry.aceFlushDone || entry.flushWaterMl || entry.flushSolution || entry.flushNotes ||
+    entry.docusateTaken || entry.prucaloprideTaken || entry.eaasTaken || entry.electrolytesTaken ||
+    (Array.isArray(entry.rescueMeds) && entry.rescueMeds.length > 0) ||
+    (entry.movementFrequency && entry.movementFrequency > 0) || entry.extraMovementsNotes ||
+    entry.notes || entry.headspaceNotes || entry.temp || entry.movement ||
+    (entry.puffiness && entry.puffiness.length > 0) || entry.diaphragmBloat > 0
+  );
+
+  if (hasSavedUserData) {
     loadSavedCheckInIntoModal(targetDate);
     if (existingBanner) {
       existingBanner.innerHTML = `
         <div class="flex items-center gap-1.5 pr-2">
           <span>✨</span>
-          <span class="text-[11px] font-bold text-purple-950">Editing entry for ${entry.displayDate || targetDate}. Add or update anything, then tap Save.</span>
+          <span class="text-[11px] font-bold text-purple-950">Editing ${entry.displayDate || targetDate}. Update anything & tap Save.</span>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
-          <button type="button" onclick="promptDeleteDiaryEntry('${targetDate}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold border border-rose-200 rounded-xl text-[10px] active:scale-95 transition-all shadow-2xs flex items-center gap-1">
+          <button type="button" onclick="promptDeleteDiaryEntry('${targetDate}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold border border-rose-200 rounded-xl text-[10px] active:scale-95 transition-all shadow-2xs flex items-center gap-1 cursor-pointer">
             <i data-lucide="trash-2" class="w-3 h-3 text-rose-600"></i>
             <span>Delete</span>
           </button>
-          <button type="button" onclick="resetQuickLogModalToBlank()" class="px-2 py-1 bg-white hover:bg-slate-100 text-slate-700 font-bold border border-slate-300 rounded-xl text-[10px] active:scale-95 transition-all shadow-2xs">
+          <button type="button" onclick="resetQuickLogModalToBlank()" class="px-2 py-1 bg-white hover:bg-slate-100 text-slate-700 font-bold border border-slate-300 rounded-xl text-[10px] active:scale-95 transition-all shadow-2xs cursor-pointer">
             Clear
           </button>
         </div>
@@ -9025,7 +9148,6 @@ function openQuickLogModal(dateOverride) {
       existingBanner.classList.remove('hidden');
     }
   } else {
-    // Fresh unlogged date: open completely clean and blank
     resetQuickLogModalToBlank();
     if (existingBanner) existingBanner.classList.add('hidden');
   }
@@ -9066,11 +9188,14 @@ function loadSavedCheckInIntoModal(customDate) {
   const ouraHrv = document.getElementById('logOuraHrv');
   if (ouraHrv) ouraHrv.value = entry.ouraHrv || entry.hrv || '';
 
-  // 2. Morning Fasting Routine
-  selectFasting(entry.fastingAdherence || '');
+  // 2. ACE Morning Flush & Post-Surgery Routine
+  if (typeof populateAceFlushModalFields === 'function') populateAceFlushModalFields(entry);
 
-  const warmTrigger = document.getElementById('logWarmTrigger');
-  if (warmTrigger) warmTrigger.checked = !!entry.warmTrigger;
+  const prucChk = document.getElementById('logPrucaloprideTaken');
+  if (prucChk) prucChk.checked = !!(entry.prucaloprideTaken || (entry.puffiness && entry.puffiness.includes('🌊 Prucalopride Taken')));
+
+  const docChk = document.getElementById('logDocusateTaken');
+  if (docChk) docChk.checked = !!(entry.docusateTaken || (entry.puffiness && entry.puffiness.includes('💧 DulcoEase Taken')));
 
   const electrolytes = document.getElementById('logElectrolytesTaken');
   if (electrolytes) {
@@ -9089,31 +9214,12 @@ function loadSavedCheckInIntoModal(customDate) {
     );
   }
 
-  // Senna Tea
-  let sennaVal = null;
-  if (entry.sennaTea !== undefined && entry.sennaTea !== null) {
-    sennaVal = !!entry.sennaTea;
-  } else if (
-    (entry.puffiness && entry.puffiness.some(p => p.toLowerCase().includes('senna'))) ||
-    (entry.medNotes && entry.medNotes.toLowerCase().includes('senna'))
-  ) {
-    sennaVal = true;
-  }
-  setSennaTeaQuick(sennaVal);
-
-  // 3. Bowel Evacuation, Success & Frequency
-  selectMovementAm(entry.movementAmSuccess || '');
-  selectMovementPm(entry.movementPmSuccess || '');
+  // 3. Total Movements & Extra Movements Notes
   setMovementFrequency(entry.movementFrequency !== undefined && entry.movementFrequency !== null ? entry.movementFrequency : (entry.movement && entry.movement !== 'None' ? 1 : 0));
-  selectBristol(entry.bristol || '');
-  if (entry.stoolNuance) {
-    selectStoolNuance(entry.stoolNuance);
-  }
+  const extraMov = document.getElementById('logExtraMovementsNotes');
+  if (extraMov) extraMov.value = entry.extraMovementsNotes || '';
 
-  // 4. Diaphragm & APD Status
-  const diaphragmReset = document.getElementById('logDiaphragmResetDone');
-  if (diaphragmReset) diaphragmReset.checked = !!entry.diaphragmResetDone;
-
+  // 4. Bloating Slider
   const diaphragmSlider = document.getElementById('logDiaphragm');
   if (diaphragmSlider) {
     const dVal = (entry.diaphragmBloat !== undefined) ? entry.diaphragmBloat : 0;
@@ -9143,6 +9249,9 @@ function loadSavedCheckInIntoModal(customDate) {
       (text.includes('Gassiness') && (entry.gassiness || entry.puffiness?.some(p => p.toLowerCase().includes('gass') || p.toLowerCase().includes('trapped gas')) || entry.symptoms?.toLowerCase().includes('gass'))) ||
       (text.includes('Burpiness') && (entry.burpiness || entry.puffiness?.some(p => p.toLowerCase().includes('burp')) || entry.symptoms?.toLowerCase().includes('burp'))) ||
       (text.includes('Trapped Wind') && entry.puffiness?.some(p => p.toLowerCase().includes('trapped gas') || p.toLowerCase().includes('trapped wind'))) ||
+      (text.includes('Puffy Arms') && entry.puffiness?.some(p => p.toLowerCase().includes('puffy arms'))) ||
+      (text.includes('Puffy / Swollen Face') && entry.puffiness?.some(p => p.toLowerCase().includes('face') && (p.toLowerCase().includes('puffy') || p.toLowerCase().includes('swollen')))) ||
+      (text.includes('Facial Spots') && entry.puffiness?.some(p => p.toLowerCase().includes('spot'))) ||
       (text.includes('Spotting') && (entry.spotting || entry.puffiness?.some(p => p.toLowerCase().includes('spotting') || p.toLowerCase().includes('wipe')) || entry.symptoms?.toLowerCase().includes('spotting'))) ||
       (text.includes('Pelvic Cramp') && (entry.pelvicCramps || entry.puffiness?.some(p => p.toLowerCase().includes('cramp') || p.toLowerCase().includes('pelvic')) || entry.symptoms?.toLowerCase().includes('cramp'))) ||
       (text === "All Trousers/Bottoms Feeling Tight" && entry.puffiness && entry.puffiness.includes("Jeans Tight"))
@@ -9167,25 +9276,9 @@ function loadSavedCheckInIntoModal(customDate) {
     }
   });
 
-  // 6. Drinks, Mood, Sex Drive, Exercise & Notes
+  // 5. Drinks, Mood & Notes (Sex Drive & Exercise removed per Emma's post-ACE preferences)
   selectAlcohol(entry.alcohol || '');
   selectMood(entry.moods || entry.mood || '', true);
-  selectSexDrive(entry.sexDrive || '');
-
-  selectedExercises.clear();
-  if (entry.exercises && Array.isArray(entry.exercises)) {
-    entry.exercises.forEach(ex => selectedExercises.add(ex));
-  } else if (entry.exercise) {
-    const known = ['Reformer Pilates', 'Running', 'Cycling', 'Gentle Incline Walk', 'Gentle Strength', 'Rest & Mobility', 'Swimming'];
-    known.forEach(k => {
-      if (entry.exercise.toLowerCase().includes(k.toLowerCase())) {
-        selectedExercises.add(k);
-      }
-    });
-  }
-  updateExerciseChipsUI();
-  const exerciseInput = document.getElementById('logExercise');
-  if (exerciseInput) exerciseInput.value = entry.exercise || Array.from(selectedExercises).join(', ');
 
   const noteInput = document.getElementById('logNote');
   if (noteInput) {
@@ -9300,6 +9393,8 @@ function confirmDeleteDiaryEntry() {
   renderHistoryLogs();
   renderDashboardTrends();
   renderOuraChart();
+  if (typeof renderAceFlushHub === 'function') renderAceFlushHub(activeDateStr);
+  if (typeof renderFlushTrendsSection === 'function') renderFlushTrendsSection();
 
   const currentDayLog = logs.find(l => l.date === activeDateStr);
   renderDashboardHeadspaceCard(currentDayLog);
@@ -9968,121 +10063,37 @@ function updateDashboardCheckInBadge(entry) {
   const badge = document.getElementById('dashboardCheckInBadge');
   const summary = document.getElementById('dashboardCheckInSummary');
   const btnText = document.getElementById('dashboardCheckInBtnText');
-  const fStatus = document.getElementById('dashStatusFasting');
-  const sStatus = document.getElementById('dashStatusSalt');
+  const prucStatus = document.getElementById('dashStatusPrucalopride');
+  const docStatus = document.getElementById('dashStatusDocusate');
   const eaasStatus = document.getElementById('dashStatusEaas');
-  const senStatus = document.getElementById('dashStatusSenna');
-  const stStatus = document.getElementById('dashStatusStool');
-  const dStatus = document.getElementById('dashStatusDiaphragm');
+  const saltStatus = document.getElementById('dashStatusSalt');
+  const movStatus = document.getElementById('dashStatusMovementsCount');
+  const bloatStatus = document.getElementById('dashStatusDiaphragm');
+  const rescueRow = document.getElementById('dashRescueMedsRow');
 
-  if (entry) {
+  const hasUserLog = entry && (
+    entry.aceFlushDone || entry.flushWaterMl || entry.flushSolution || entry.docusateTaken ||
+    entry.prucaloprideTaken || entry.eaasTaken || entry.electrolytesTaken ||
+    (Array.isArray(entry.rescueMeds) && entry.rescueMeds.length > 0) ||
+    (entry.movementFrequency > 0) || (entry.diaphragmBloat > 0) ||
+    (entry.notes && !entry.notes.includes('Auto-created')) ||
+    (Array.isArray(entry.puffiness) && entry.puffiness.length > 0)
+  );
+
+  if (hasUserLog) {
     if (badge) {
       badge.innerText = "Logged Today ✨";
       badge.className = "text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200";
     }
-    if (btnText) btnText.innerText = "Update Check-In";
+    if (btnText) btnText.innerText = "Edit Check-In";
     if (summary) {
-      summary.innerHTML = `Logged at <strong>${entry.temp ? entry.temp + '°C' : 'Morning'}</strong> • Motility: <strong>${entry.movement || 'Recorded'}</strong>`;
-    }
-
-    if (fStatus) {
-      if (entry.fastingAdherence === 'kept_40') {
-        fStatus.innerText = "Kept 40m ✓";
-        fStatus.className = "font-extrabold text-emerald-700";
-      } else if (entry.fastingAdherence === 'broke_early') {
-        fStatus.innerText = "Broke Early ⚠️";
-        fStatus.className = "font-extrabold text-amber-700";
-      } else if (entry.fastingAdherence === 'not_taken') {
-        fStatus.innerText = "Skipped";
-        fStatus.className = "font-extrabold text-slate-500";
+      if (entry.aceFlushDone || entry.flushWaterMl || entry.flushSolution) {
+        const sol = typeof formatFlushSolutionLabel === 'function' ? formatFlushSolutionLabel(entry.flushSolution) : (entry.flushSolution || 'ACE Flush');
+        const out = typeof formatFlushOutputLabel === 'function' ? formatFlushOutputLabel(entry.flushOutput) : (entry.flushOutput || 'Logged');
+        summary.innerHTML = `Flush: <strong>${entry.flushWaterMl ? entry.flushWaterMl + 'mL ' : ''}${sol}</strong> • Outcome: <strong>${out}</strong>`;
       } else {
-        fStatus.innerText = "Pending";
-        fStatus.className = "font-extrabold text-slate-400";
+        summary.innerHTML = `Movements: <strong>${entry.movementFrequency ?? 0} today</strong> • Bloat: <strong>${entry.diaphragmBloat ?? 0}/10</strong>`;
       }
-    }
-
-    if (sStatus) {
-      const hasElectrolytes = entry.electrolytesTaken ?? entry.electrolyteBuffered ?? (entry.puffiness && (entry.puffiness.includes('⚡ Electrolytes Taken') || entry.puffiness.includes('⚡ Electrolyte & EAAs Taken')));
-      if (hasElectrolytes) {
-        sStatus.innerText = "Taken ✨";
-        sStatus.className = "font-extrabold text-emerald-700";
-      } else {
-        sStatus.innerText = "Pending";
-        sStatus.className = "font-extrabold text-slate-400";
-      }
-    }
-
-    if (eaasStatus) {
-      const hasEaas = entry.eaasTaken ?? (entry.puffiness && (entry.puffiness.includes('🧬 EAAs Taken') || entry.puffiness.includes('⚡ Electrolyte & EAAs Taken')));
-      if (hasEaas) {
-        eaasStatus.innerText = "Taken ✨";
-        eaasStatus.className = "font-extrabold text-emerald-700";
-      } else {
-        eaasStatus.innerText = "Pending";
-        eaasStatus.className = "font-extrabold text-slate-400";
-      }
-    }
-
-    if (senStatus) {
-      if (entry.sennaTea === true || (entry.puffiness && entry.puffiness.includes('🍵 Senna Tea Taken'))) {
-        senStatus.innerText = "Had 🍵";
-        senStatus.className = "font-extrabold text-emerald-700";
-      } else if (entry.sennaTea === false) {
-        senStatus.innerText = "None";
-        senStatus.className = "font-extrabold text-slate-400";
-      } else {
-        senStatus.innerText = "Pending";
-        senStatus.className = "font-extrabold text-slate-400";
-      }
-    }
-
-    if (stStatus) {
-      if (entry.movementFrequency !== undefined && entry.movementFrequency !== null && entry.movementFrequency > 0) {
-        let label = `${entry.movementFrequency}x`;
-        if (entry.movementAmSuccess && entry.movementAmSuccess !== 'none') {
-          const capAm = entry.movementAmSuccess.charAt(0).toUpperCase() + entry.movementAmSuccess.slice(1);
-          label += ` (AM: ${capAm})`;
-        } else if (entry.movementPmSuccess && entry.movementPmSuccess !== 'none') {
-          const capPm = entry.movementPmSuccess.charAt(0).toUpperCase() + entry.movementPmSuccess.slice(1);
-          label += ` (PM: ${capPm})`;
-        } else if (entry.stoolNuance === 'formed') {
-          label += ' Formed';
-        }
-        stStatus.innerText = label;
-        stStatus.className = "font-extrabold text-emerald-700";
-      } else if (entry.movementAmSuccess && entry.movementAmSuccess !== 'none') {
-        const capAm = entry.movementAmSuccess.charAt(0).toUpperCase() + entry.movementAmSuccess.slice(1);
-        stStatus.innerText = `AM: ${capAm}`;
-        stStatus.className = "font-extrabold text-emerald-700";
-      } else if (entry.movementPmSuccess && entry.movementPmSuccess !== 'none') {
-        const capPm = entry.movementPmSuccess.charAt(0).toUpperCase() + entry.movementPmSuccess.slice(1);
-        stStatus.innerText = `PM: ${capPm}`;
-        stStatus.className = "font-extrabold text-emerald-700";
-      } else if (entry.stoolNuance === 'formed') {
-        stStatus.innerText = "Bristol 4 ✨";
-        stStatus.className = "font-extrabold text-emerald-700";
-      } else if (entry.stoolNuance === 'bypass') {
-        stStatus.innerText = "Watery Bypass";
-        stStatus.className = "font-extrabold text-sky-700";
-      } else if (entry.bristol === 'hard') {
-        stStatus.innerText = "Hard Pellet";
-        stStatus.className = "font-extrabold text-amber-700";
-      } else if (entry.bristol === 'liquid') {
-        stStatus.innerText = "Liquid";
-        stStatus.className = "font-extrabold text-sky-700";
-      } else if (entry.bristol === 'none' || entry.movementFrequency === 0) {
-        stStatus.innerText = "None";
-        stStatus.className = "font-extrabold text-slate-600";
-      } else {
-        stStatus.innerText = entry.movement || "Pending";
-        stStatus.className = "font-extrabold text-slate-400";
-      }
-    }
-
-    if (dStatus) {
-      const bloatVal = Number(entry.diaphragmBloat ?? 0);
-      dStatus.innerText = `${bloatVal} / 10`;
-      dStatus.className = bloatVal <= 2 ? "font-extrabold text-emerald-700" : "font-extrabold text-brand-coral";
     }
   } else {
     if (badge) {
@@ -10091,14 +10102,51 @@ function updateDashboardCheckInBadge(entry) {
     }
     if (btnText) btnText.innerText = "Open Check-In";
     if (summary) {
-      summary.innerText = "One calm place for your vitals, 40-min fast, stool nuance & APD status.";
+      summary.innerText = "1-tap morning flush, DulcoEase, Prucalopride, EAAs, bloating & hormones.";
     }
-    if (fStatus) { fStatus.innerText = "Pending"; fStatus.className = "font-extrabold text-brand-textDark"; }
-    if (sStatus) { sStatus.innerText = "Pending"; sStatus.className = "font-extrabold text-brand-textDark"; }
-    if (eaasStatus) { eaasStatus.innerText = "Pending"; eaasStatus.className = "font-extrabold text-brand-textDark"; }
-    if (senStatus) { senStatus.innerText = "None"; senStatus.className = "font-extrabold text-brand-textDark"; }
-    if (stStatus) { stStatus.innerText = "Pending"; stStatus.className = "font-extrabold text-brand-textDark"; }
-    if (dStatus) { dStatus.innerText = "Pending"; dStatus.className = "font-extrabold text-brand-textDark"; }
+  }
+
+  const hasPruc = Boolean(entry?.prucaloprideTaken || entry?.puffiness?.includes('🌊 Prucalopride Taken'));
+  const hasDoc = Boolean(entry?.docusateTaken || entry?.puffiness?.includes('💧 DulcoEase Taken'));
+  const hasEaas = Boolean(entry?.eaasTaken || entry?.puffiness?.includes('🧬 EAAs Taken') || entry?.puffiness?.includes('⚡ Electrolyte & EAAs Taken'));
+  const hasSalt = Boolean(entry?.electrolytesTaken || entry?.electrolyteBuffered || entry?.puffiness?.includes('⚡ Electrolytes Taken') || entry?.puffiness?.includes('⚡ Electrolyte & EAAs Taken'));
+  const movCount = Number(entry?.movementFrequency || 0);
+  const bloatVal = Number(entry?.diaphragmBloat || 0);
+
+  if (prucStatus) {
+    prucStatus.innerText = hasPruc ? "Taken ✓" : "Tap";
+    prucStatus.className = hasPruc ? "font-extrabold text-purple-700" : "font-extrabold text-slate-400";
+  }
+  if (docStatus) {
+    docStatus.innerText = hasDoc ? "Taken ✓" : "Tap";
+    docStatus.className = hasDoc ? "font-extrabold text-sky-700" : "font-extrabold text-slate-400";
+  }
+  if (eaasStatus) {
+    eaasStatus.innerText = hasEaas ? "Taken ✓" : "Tap";
+    eaasStatus.className = hasEaas ? "font-extrabold text-indigo-700" : "font-extrabold text-slate-400";
+  }
+  if (saltStatus) {
+    saltStatus.innerText = hasSalt ? "Taken ✓" : "Tap";
+    saltStatus.className = hasSalt ? "font-extrabold text-amber-700" : "font-extrabold text-slate-400";
+  }
+  if (movStatus) {
+    movStatus.innerText = `${movCount} today`;
+    movStatus.className = movCount > 0 ? "font-extrabold text-emerald-700" : "font-extrabold text-brand-textDark";
+  }
+  if (bloatStatus) {
+    bloatStatus.innerText = `${bloatVal} / 10`;
+    bloatStatus.className = bloatVal <= 2 ? "font-extrabold text-emerald-700" : "font-extrabold text-brand-coral";
+  }
+
+  if (rescueRow) {
+    const rescues = Array.isArray(entry?.rescueMeds) ? entry.rescueMeds.filter(Boolean) : [];
+    if (rescues.length > 0) {
+      rescueRow.innerHTML = `<span class="font-bold text-amber-900">🧰 Rescue meds logged:</span> ${rescues.map(m => `<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-950 border border-amber-300 font-bold">${m}</span>`).join('')}`;
+      rescueRow.classList.remove('hidden');
+    } else {
+      rescueRow.innerHTML = '';
+      rescueRow.classList.add('hidden');
+    }
   }
 }
 
@@ -12645,99 +12693,86 @@ function handleQuickLogSubmit(e) {
   
   const dateVal = document.getElementById('logDate').value;
   unmarkDeletedDate(dateVal);
-  const tempVal = parseFloat(document.getElementById('logTemp').value) || null;
-  const ouraSleepVal = parseInt(document.getElementById('logOuraSleep')?.value, 10) || null;
-  const ouraRhrVal = parseInt(document.getElementById('logOuraRhr')?.value, 10) || null;
-  const ouraHrvVal = parseInt(document.getElementById('logOuraHrv')?.value, 10) || null;
 
-  const fastingVal = document.getElementById('logFastingAdherence')?.value || selectedFastingVal || '';
-  const warmTriggerVal = document.getElementById('logWarmTrigger')?.checked || false;
+  // ACE Flush fields
+  const flushDoneRaw = document.getElementById('logAceFlushDone')?.value;
+  const flushTimeVal = document.getElementById('logFlushTime')?.value || '';
+  const flushSolVal = document.getElementById('logFlushSolution')?.value || '';
+  const flushAdditiveVal = document.getElementById('logFlushAdditiveDose')?.value?.trim() || '';
+  const flushWaterRaw = document.getElementById('logFlushWaterMl')?.value;
+  const flushWaterMlVal = flushWaterRaw ? parseInt(flushWaterRaw, 10) : null;
+  const flushOnsetVal = document.getElementById('logFlushOnset')?.value || '';
+  const flushConsVal = document.getElementById('logFlushConsistency')?.value || '';
+  const flushOutVal = document.getElementById('logFlushOutput')?.value || '';
+  const flushOutcomesArr = Array.from(selectedFlushOutcomes || []);
+  const flushNotesVal = document.getElementById('logFlushNotes')?.value?.trim() || '';
+  const aceFlushDoneVal = flushDoneRaw === 'false'
+    ? false
+    : Boolean(flushDoneRaw === 'true' || flushSolVal || flushWaterMlVal || flushConsVal || flushOutVal || flushNotesVal);
+
+  // Daily Meds & Rescue Meds
+  const prucaloprideTaken = document.getElementById('logPrucaloprideTaken')?.checked || false;
+  const docusateTaken = document.getElementById('logDocusateTaken')?.checked || false;
   const electrolytesTaken = document.getElementById('logElectrolytesTaken')?.checked || false;
   const eaasTaken = document.getElementById('logEaasTaken')?.checked || false;
-  const sennaTeaTaken = selectedSennaTeaVal === true || (document.getElementById('logSennaTea')?.checked && selectedSennaTeaVal !== false) || false;
-  const diaphragmResetDone = document.getElementById('logDiaphragmResetDone')?.checked || false;
+  const rescueMedsArr = Array.from(selectedRescueMeds || []);
+  const sennaTeaTaken = rescueMedsArr.some(m => m.toLowerCase().includes('senna'));
+
+  // Movements & Rest of Day
+  const movementFreqRaw = document.getElementById('logMovementFrequency')?.value;
+  let movementFreqVal = (movementFreqRaw !== undefined && movementFreqRaw !== '' && movementFreqRaw !== null)
+    ? parseInt(movementFreqRaw, 10)
+    : 0;
+  // Auto-count at least 1 movement if flush produced output and counter was left at 0
+  if (movementFreqVal === 0 && aceFlushDoneVal && flushOutVal && flushOutVal !== 'none') {
+    movementFreqVal = 1;
+  }
+  const extraMovementsNotesVal = document.getElementById('logExtraMovementsNotes')?.value?.trim() || '';
+
+  // Bloating, Inflammation, Hormones, Drinks & Headspace
   const diaphragmVal = parseInt(document.getElementById('logDiaphragm')?.value || '0', 10);
-  const stoolNuance = document.getElementById('logStoolNuance')?.value || '';
   const alcoholVal = document.getElementById('logAlcohol')?.value || selectedAlcoholVal || '';
   const moodsArr = Array.from(selectedMoods || []);
   const moodVal = moodsArr.length > 0 ? moodsArr.join(',') : (document.getElementById('logMood')?.value || selectedMoodVal || '');
   const finalMoods = moodVal ? moodVal.split(',').map(m => m.trim()).filter(Boolean) : [];
-  const sexDriveVal = document.getElementById('logSexDrive')?.value || selectedSexDriveVal || '';
-  const movementAmVal = document.getElementById('logMovementAmSuccess')?.value || selectedMovementAmVal || '';
-  const movementPmVal = document.getElementById('logMovementPmSuccess')?.value || selectedMovementPmVal || '';
-  const movementFreqRaw = document.getElementById('logMovementFrequency')?.value;
-  const movementFreqVal = (movementFreqRaw !== undefined && movementFreqRaw !== '' && movementFreqRaw !== null)
-    ? parseInt(movementFreqRaw, 10)
-    : (selectedMovementFreqVal !== null && selectedMovementFreqVal !== undefined ? selectedMovementFreqVal : 0);
-
-  const exercisesArr = Array.from(selectedExercises || []);
-  const exerciseVal = exercisesArr.length > 0
-    ? exercisesArr.join(', ')
-    : (document.getElementById('logExercise')?.value?.trim() || '');
   const noteVal = document.getElementById('logNote')?.value?.trim() || '';
 
   let puffinessArr = Array.from(selectedTags);
   const upperTummyBloat = selectedTags.has('🎈 Upper Tummy Bloating') || selectedTags.has('Upper Tummy Bloating');
   const lowerTummyBloat = selectedTags.has('🫧 Lower Tummy Bloating') || selectedTags.has('Lower Tummy Bloating');
-  const hasGassiness = selectedTags.has('🫧 Gassiness') || selectedTags.has('Gassiness') || selectedTags.has('💨 Trapped Wind') || selectedTags.has('Trapped Wind') || selectedTags.has('Trapped Gas');
-  const hasBurpiness = selectedTags.has('🗣️ Burpiness') || selectedTags.has('Burpiness') || selectedTags.has('🔄 Can\'t Burp (Stuck Gas)') || selectedTags.has('Can\'t Burp');
+  const hasGassiness = selectedTags.has('🫧 Gassiness') || selectedTags.has('Gassiness') || selectedTags.has('💨 Trapped Wind') || selectedTags.has('Trapped Wind');
+  const hasBurpiness = selectedTags.has('🗣️ Burpiness') || selectedTags.has('Burpiness');
 
   if (alcoholVal === '1-2_wine') puffinessArr.push('🍷 1-2 Wine');
   if (alcoholVal === '3+_wine') puffinessArr.push('🥂 3+ Wine/Bubbles');
   if (alcoholVal === 'spirits') puffinessArr.push('🍸 Spirits');
-  if (sexDriveVal === 'high') puffinessArr.push('🔥 High Libido');
-  else if (sexDriveVal === 'mild') puffinessArr.push('❤️ Mild Libido');
-  else if (sexDriveVal === 'low') puffinessArr.push('🤍 Low/No Libido');
+  if (prucaloprideTaken) puffinessArr.push('🌊 Prucalopride Taken');
+  if (docusateTaken) puffinessArr.push('💧 DulcoEase Taken');
   if (electrolytesTaken) puffinessArr.push('⚡ Electrolytes Taken');
   if (eaasTaken) puffinessArr.push('🧬 EAAs Taken');
   if (sennaTeaTaken) puffinessArr.push('🍵 Senna Tea Taken');
-  if (fastingVal === 'kept_40') puffinessArr.push('⏱️ 40m Fast Kept');
-  if (warmTriggerVal) puffinessArr.push('☕ Warm Gastrocolic Trigger');
-  if (diaphragmResetDone) puffinessArr.push('🫁 Diaphragm Reset Done');
-  exercisesArr.forEach(ex => {
-    if (!puffinessArr.includes(ex)) puffinessArr.push(ex);
-  });
 
-  // Format date display with proper ordinal (1st, 2nd, 3rd, 31st)
-  const dateObj = new Date(dateVal);
-  const day = dateObj.getDate();
-  const dayOrd = (day % 10 === 1 && day !== 11) ? 'st' : ((day % 10 === 2 && day !== 12) ? 'nd' : ((day % 10 === 3 && day !== 13) ? 'rd' : 'th'));
-  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const displayDate = `${day}${dayOrd} ${monthNames[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+  // Map flush consistency back to legacy bristol for Oura/history chart continuity
+  let mappedBristol = '';
+  if (flushConsVal === 'formed_soft' || flushConsVal === 'soft_mushy') mappedBristol = 'normal';
+  else if (flushConsVal === 'liquid' || flushConsVal === 'water_only' || flushConsVal === 'mixed') mappedBristol = 'liquid';
+  else if (flushConsVal === 'hard_pebbles') mappedBristol = 'hard';
+  else if (flushConsVal === 'nothing') mappedBristol = 'none';
 
-  let bristolText = '';
-  if (selectedBristolVal === 'liquid') {
-    bristolText = stoolNuance === 'bypass' ? 'Watery bypass (liquid around solid plug)' : 'Watery liquid purge';
-  } else if (selectedBristolVal === 'normal') {
-    bristolText = stoolNuance === 'formed' ? 'Formed Bristol 4 (Step-down milestone)' : 'Satisfying movement';
-  } else if (selectedBristolVal === 'hard') {
-    bristolText = stoolNuance === 'hard' ? 'Hard / small pellet' : 'Hard / small';
-  } else if (selectedBristolVal === 'none') {
-    bristolText = 'None';
+  let movementParts = [];
+  if (aceFlushDoneVal) {
+    const solTxt = typeof formatFlushSolutionLabel === 'function' ? formatFlushSolutionLabel(flushSolVal) : (flushSolVal || 'ACE Flush');
+    const outTxt = typeof formatFlushOutputLabel === 'function' ? formatFlushOutputLabel(flushOutVal) : flushOutVal;
+    const consTxt = typeof formatFlushConsistencyLabel === 'function' ? formatFlushConsistencyLabel(flushConsVal) : flushConsVal;
+    movementParts.push(`ACE Flush${flushWaterMlVal ? ' ' + flushWaterMlVal + 'mL' : ''} (${solTxt}${flushAdditiveVal ? ' ' + flushAdditiveVal : ''})`);
+    if (outTxt) movementParts.push(outTxt);
+    if (consTxt) movementParts.push(consTxt);
   }
+  if (movementFreqVal > 0) movementParts.push(`${movementFreqVal}x total`);
+  const movementText = movementParts.join(' • ');
 
-  // Construct comprehensive motility description incorporating AM, PM, and Frequency
-  const amLabels = { none: 'AM: None', partial: 'AM: Partial', decent: 'AM: Decent', complete: 'AM: Full' };
-  const pmLabels = { none: 'PM: None', partial: 'PM: Partial', decent: 'PM: Decent', complete: 'PM: Full' };
-  
-  let motilityParts = [];
-  if (movementFreqVal > 0) {
-    motilityParts.push(`${movementFreqVal}x`);
-  }
-  if (movementAmVal && amLabels[movementAmVal]) {
-    motilityParts.push(amLabels[movementAmVal]);
-  }
-  if (movementPmVal && pmLabels[movementPmVal]) {
-    motilityParts.push(pmLabels[movementPmVal]);
-  }
-  if (bristolText && bristolText !== 'None') {
-    motilityParts.push(bristolText);
-  } else if (bristolText === 'None' && motilityParts.length === 0) {
-    motilityParts.push('None');
-  }
-
-  let movementText = motilityParts.length > 0 ? motilityParts.join(' • ') : (bristolText || '');
-
+  const dateObj = new Date(`${dateVal}T12:00:00Z`);
+  const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
   const cycleInfo = getCycleInfoForDate(dateVal);
 
   const moodLabels = {
@@ -12746,126 +12781,109 @@ function handleQuickLogSubmit(e) {
     edgy: '⚡ Edgy / Irritable',
     anxious: '🌪️ Anxious / Nervous',
     overthinking: '💭 Overthinking / Mind Racing',
-    flat: '☁️ Flat / Low Energy',
-    great: '☀️ Free & Calm'
+    flat: '☁️ Flat / Low Energy'
   };
-  const emotionText = finalMoods.length > 0
-    ? finalMoods.map(m => moodLabels[m] || m).join(' • ')
-    : (moodVal ? (moodLabels[moodVal] || moodVal) : '');
+  const emotionText = finalMoods.length > 0 ? finalMoods.map(m => moodLabels[m] || m).join(' • ') : '';
 
-  let medNotesText = '';
-  if (fastingVal === 'kept_40') {
-    medNotesText = "Morning Linaclotide taken with 40-min fast";
-  } else if (fastingVal === 'broke_early') {
-    medNotesText = "Linaclotide taken (fast broken early)";
-  } else if (fastingVal === 'not_taken') {
-    medNotesText = "Linaclotide skipped";
-  }
+  const medParts = [];
+  if (prucaloprideTaken) medParts.push('Prucalopride');
+  if (docusateTaken) medParts.push('DulcoEase (Docusate)');
+  if (rescueMedsArr.length > 0) medParts.push(`Rescue: ${rescueMedsArr.join(', ')}`);
+  const medNotesText = medParts.join(' • ');
 
   const existing = logs.find(l => l.date === dateVal);
 
   const newEntry = {
+    ...(existing || {}),
     id: dateVal,
     date: dateVal,
-    displayDate: cycleInfo.displayDate || displayDate,
-    month: monthNames[dateObj.getMonth()].toLowerCase(),
+    displayDate: cycleInfo.displayDate,
+    month: monthNames[dateObj.getUTCMonth()],
     cycleDay: cycleInfo.cycleDay,
     phase: cycleInfo.phase,
     phaseLabel: cycleInfo.phaseLabel,
-    temp: (tempVal !== null) ? tempVal : (existing?.isManualTemp ? existing.temp : null),
-    isManualTemp: (tempVal !== null) ? true : (existing?.isManualTemp ?? false),
-    ouraTempDev: (existing?.ouraTempDev !== undefined && existing?.ouraTempDev !== null) ? existing.ouraTempDev : (dateVal === '2026-09-08' ? -0.25 : null),
-    ouraSleep: (ouraSleepVal !== null) ? ouraSleepVal : (existing?.ouraSleep ?? null),
-    sleepScore: (ouraSleepVal !== null) ? ouraSleepVal : (existing?.sleepScore ?? null),
-    ouraRhr: (ouraRhrVal !== null) ? ouraRhrVal : (existing?.ouraRhr ?? null),
-    rhr: (ouraRhrVal !== null) ? ouraRhrVal : (existing?.rhr ?? null),
-    ouraHrv: (ouraHrvVal !== null) ? ouraHrvVal : (existing?.ouraHrv ?? null),
-    hrv: (ouraHrvVal !== null) ? ouraHrvVal : (existing?.hrv ?? null),
-    fastingAdherence: fastingVal || existing?.fastingAdherence || '',
-    warmTrigger: warmTriggerVal || existing?.warmTrigger || false,
-    electrolyteBuffered: electrolytesTaken || existing?.electrolyteBuffered || false,
-    electrolytesTaken: electrolytesTaken || existing?.electrolytesTaken || false,
-    eaasTaken: eaasTaken || existing?.eaasTaken || false,
-    sennaTea: selectedSennaTeaVal === true ? true : (selectedSennaTeaVal === false ? false : (existing?.sennaTea ?? null)),
-    diaphragmResetDone: diaphragmResetDone || existing?.diaphragmResetDone || false,
+    // ACE Morning Flush Data
+    aceFlushDone: aceFlushDoneVal,
+    flushTime: aceFlushDoneVal ? flushTimeVal : '',
+    flushSolution: aceFlushDoneVal ? flushSolVal : '',
+    flushAdditiveDose: aceFlushDoneVal ? flushAdditiveVal : '',
+    flushWaterMl: aceFlushDoneVal ? flushWaterMlVal : null,
+    flushOnset: aceFlushDoneVal ? flushOnsetVal : '',
+    flushConsistency: aceFlushDoneVal ? flushConsVal : '',
+    flushOutput: aceFlushDoneVal ? flushOutVal : '',
+    flushOutcomes: aceFlushDoneVal ? flushOutcomesArr : [],
+    flushNotes: aceFlushDoneVal ? flushNotesVal : '',
+    // Movements & Rest of Day
+    movementFrequency: movementFreqVal,
+    extraMovementsNotes: extraMovementsNotesVal,
     movement: movementText || existing?.movement || '',
-    movementAmSuccess: movementAmVal || existing?.movementAmSuccess || '',
-    movementPmSuccess: movementPmVal || existing?.movementPmSuccess || '',
-    movementFrequency: (movementFreqVal !== null && movementFreqVal !== undefined) ? movementFreqVal : (existing?.movementFrequency ?? (movementText && movementText !== 'None' ? 1 : 0)),
-    bristol: selectedBristolVal || existing?.bristol || '',
-    stoolNuance: stoolNuance || existing?.stoolNuance || '',
-    exercises: exercisesArr.length > 0 ? exercisesArr : (existing?.exercises || (exerciseVal ? [exerciseVal] : [])),
-    exercise: exerciseVal || existing?.exercise || 'Gentle',
-    diaphragmBloat: (diaphragmVal > 0) ? diaphragmVal : (existing?.diaphragmBloat ?? 0),
-    upperTummyBloat: upperTummyBloat || existing?.upperTummyBloat || false,
-    lowerTummyBloat: lowerTummyBloat || existing?.lowerTummyBloat || false,
-    gassiness: hasGassiness || existing?.gassiness || false,
-    burpiness: hasBurpiness || existing?.burpiness || false,
-    spotting: selectedTags.has('🩸 Light Spotting / Wipe') || selectedTags.has('Light Spotting / Wipe') || selectedTags.has('Spotting') || (existing?.spotting ?? false),
-    pelvicCramps: selectedTags.has('⚡ Period-Type Pelvic Cramps') || selectedTags.has('Period-Type Pelvic Cramps') || selectedTags.has('Pelvic Cramps') || (existing?.pelvicCramps ?? false),
-    puffiness: Array.from(new Set([...(existing?.puffiness || []), ...puffinessArr])),
-    emotions: emotionText || existing?.emotions || '',
-    moods: finalMoods.length > 0 ? finalMoods : (existing?.moods || (moodVal ? moodVal.split(',').map(m => m.trim()).filter(Boolean) : [])),
-    mood: moodVal || existing?.mood || '',
-    sexDrive: sexDriveVal || existing?.sexDrive || '',
-    alcohol: alcoholVal || existing?.alcohol || '',
-    symptoms: noteVal || (existing?.symptoms ? existing.symptoms.replace(/Auto-created from Oura Ring daily sync\.+\s*/gi, '').trim() : '') || (movementText ? movementText : "Daily check-in logged"),
-    medNotes: medNotesText || existing?.medNotes || '',
-    notes: noteVal || (existing?.notes ? existing.notes.replace(/Auto-created from Oura Ring daily sync\.+\s*/gi, '').trim() : '') || "Saved via Emma's Unified Daily Check-In.",
-    headspaceNotes: noteVal || (existing?.headspaceNotes ? existing.headspaceNotes.replace(/Auto-created from Oura Ring daily sync\.+\s*/gi, '').trim() : '') || '',
-    dailyFocus: {
-      linaclotide: (existing?.dailyFocus && typeof existing.dailyFocus.linaclotide === 'boolean')
-        ? existing.dailyFocus.linaclotide
-        : (fastingVal === 'kept_40' || existing?.linaclotideTaken || false),
-      warmMeals: (existing?.dailyFocus && typeof existing.dailyFocus.warmMeals === 'boolean')
-        ? existing.dailyFocus.warmMeals
-        : (warmTriggerVal || existing?.safeWarmMeals || false),
-      diaphragmRelease: (existing?.dailyFocus && typeof existing.dailyFocus.diaphragmRelease === 'boolean')
-        ? existing.dailyFocus.diaphragmRelease
-        : (diaphragmResetDone || existing?.diaphragmResetDone || false)
-    }
+    bristol: mappedBristol || existing?.bristol || '',
+    // Post-ACE Meds & Supplements
+    prucaloprideTaken,
+    docusateTaken,
+    electrolyteBuffered: electrolytesTaken,
+    electrolytesTaken,
+    eaasTaken,
+    sennaTea: sennaTeaTaken,
+    rescueMeds: rescueMedsArr,
+    medNotes: medNotesText,
+    // Bloating, Inflammation & Hormones (100% preserved!)
+    diaphragmBloat: diaphragmVal,
+    upperTummyBloat,
+    lowerTummyBloat,
+    gassiness: hasGassiness,
+    burpiness: hasBurpiness,
+    spotting: selectedTags.has('🩸 Light Spotting / Wipe') || selectedTags.has('Light Spotting / Wipe'),
+    pelvicCramps: selectedTags.has('⚡ Period-Type Pelvic Cramps') || selectedTags.has('Period-Type Pelvic Cramps'),
+    puffiness: Array.from(new Set(puffinessArr)),
+    emotions: emotionText,
+    moods: finalMoods,
+    mood: moodVal,
+    alcohol: alcoholVal,
+    symptoms: noteVal || flushNotesVal || movementText || existing?.symptoms || '',
+    notes: noteVal || flushNotesVal || existing?.notes || '',
+    headspaceNotes: noteVal || '',
+    _explicitSave: true,
+    updatedAt: new Date().toISOString()
   };
 
-  newEntry.updatedAt = new Date().toISOString();
-  // Cumulative union merge: guarantees newEntry is merged and no historical entry is dropped
-  logs = mergeLogs([newEntry], logs);
+  // Replace or insert cleanly and sync across ALL storage tiers (LocalStorage, IndexedDB, Render Server)
+  const idx = logs.findIndex(l => l.date === dateVal);
+  if (idx >= 0) logs[idx] = newEntry;
+  else logs.push(newEntry);
+  logs.sort((a, b) => new Date(b.date) - new Date(a.date));
+
   saveLogs(true);
   saveSingleCheckinToServer(newEntry);
 
-  // Sync to specialist tracking state
+  // Sync specialist tracking state
   const dState = getOrCreateDateSpecialistState(dateVal);
   dState.electrolyteBuffered = electrolytesTaken;
   dState.eaasTaken = eaasTaken;
   dState.sennaTea = sennaTeaTaken;
-  dState.diaphragmDone = diaphragmResetDone;
-  if (stoolNuance === 'bypass') dState.stoolType = 'bypass';
-  else if (stoolNuance === 'formed') dState.stoolType = 'formed';
-  else if (selectedBristolVal === 'hard') dState.stoolType = 'hard';
   saveSpecialistTracking();
   renderSpecialistTrackingUI();
 
-  // Update Stats, Headspace Card & Charts
+  // Refresh ALL UI cards, Flush Coach, Trends & Diary
   updateDashboardCheckInBadge(newEntry);
   updateDashboardStats(newEntry);
-  renderDashboardHeadspaceCard(newEntry, cycleInfo);
+  if (typeof renderAceFlushHub === 'function') renderAceFlushHub(dateVal);
+  if (typeof renderFlushTrendsSection === 'function') renderFlushTrendsSection();
   renderDashboardTrends();
   renderOuraChart();
   renderHistoryLogs();
   if (typeof renderCalendarDaysList === 'function') renderCalendarDaysList();
   if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip();
-  if (typeof renderDailyFocusUI === 'function') renderDailyFocusUI(dateVal);
 
   closeQuickLogModal();
 
-  if (stoolNuance === 'formed') {
+  if (aceFlushDoneVal && (flushOutVal === 'good' || flushOutVal === 'full')) {
     if (typeof confetti === 'function') {
-      confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
+      confetti({ particleCount: 55, spread: 65, origin: { y: 0.6 } });
     }
-    showDynamicToast("🎉 Formed Bristol 4 recorded! True colonic motility achieved without liquid bypass. Step 1 towards your 14-day medication step-down trial!");
-  } else if (stoolNuance === 'bypass') {
-    showDynamicToast("⚠️ Watery Bypass Logged: Fluid channeled around solid plug. Remember to hydrate & take electrolytes!");
+    showDynamicToast("🌟 Morning Flush Logged! Check your Tomorrow Suggestion on Today.");
   } else {
-    showDynamicToast("🌿 Check-In Saved! All vitals, motility, routine & sensations securely updated.");
+    showDynamicToast("💧 Check-In & Flush Saved permanently!");
   }
 }
 
@@ -12891,62 +12909,47 @@ function openDoctorExportModal() {
   const reportContainer = document.getElementById('doctorReportContent');
   const todayIso = getTodayISOString();
   const cInfo = getCycleInfoForDate(todayIso);
-  
+
+  const flushLogs = (Array.isArray(logs) ? logs : [])
+    .filter(l => l && (l.aceFlushDone || l.flushWaterMl || l.flushSolution))
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 14);
+
+  const flushTableText = flushLogs.length > 0
+    ? flushLogs.map(f => {
+        const sol = typeof formatFlushSolutionLabel === 'function' ? formatFlushSolutionLabel(f.flushSolution) : (f.flushSolution || 'Flush');
+        const onset = typeof formatFlushOnsetLabel === 'function' ? formatFlushOnsetLabel(f.flushOnset) : (f.flushOnset || '-');
+        const cons = typeof formatFlushConsistencyLabel === 'function' ? formatFlushConsistencyLabel(f.flushConsistency) : (f.flushConsistency || '-');
+        const out = typeof formatFlushOutputLabel === 'function' ? formatFlushOutputLabel(f.flushOutput) : (f.flushOutput || '-');
+        const resc = Array.isArray(f.rescueMeds) && f.rescueMeds.length > 0 ? ` | Rescue: ${f.rescueMeds.join(', ')}` : '';
+        return `  • ${f.date} (CD${f.cycleDay || '?'}) ${f.flushTime || ''}: ${f.flushWaterMl || '?'}mL ${sol}${f.flushAdditiveDose ? ' (' + f.flushAdditiveDose + ')' : ''} -> Onset: ${onset} | ${cons} | Vol: ${out} | Total BMs: ${f.movementFrequency ?? 0} | Bloat: ${f.diaphragmBloat ?? 0}/10${resc}${f.flushNotes ? ' | Note: ' + f.flushNotes : ''}`;
+      }).join('\n')
+    : '  • No post-ACE flushes logged yet.';
+
   const report = `
-CLINICAL SUMMARY & SPECIALIST REVIEW REPORT
+CLINICAL SUMMARY & POST-ACE GASTROENTEROLOGY REPORT
 PATIENT: Emma Butler | DOB: 1998 (Age 28) | NHS/Ref: EB-28-COLONIC
-PRIMARY DIAGNOSIS: Severe Slow-Transit Colonic Inertia / Abdominophrenic Dyssynergia (APD)
-ENDOCRINE STATUS: New Mirena 52mg IUS in situ (Fitted: 05 October 2026; replaced April 2021 IUS after 5.4 years)
+PRIMARY DIAGNOSIS: Severe Slow-Transit Colonic Inertia — Post-ACE (Antegrade Continence Enema) Surgery (Nov 2026)
+ENDOCRINE STATUS: New Mirena 52mg IUS in situ (Fitted: 05 October 2026; replaced April 2021 IUS)
 NEUROLOGICAL: Diagnosed ADHD (Adult Presentation)
 REPORT COMPILED: ${cInfo.displayDate} (Cycle Day ${cInfo.cycleDay} — ${cInfo.phaseLabel})
 
-1. CLINICAL SYNOPSIS & PHENOTYPE:
-Patient exhibits cycle-correlated motility slowing and visceral hypersensitivity. 
-Despite Mirena-induced amenorrhea (absence of overt menses), longitudinal Oura Ring nocturnal skin 
-temperature & basal thermal tracking demonstrate a remarkably punctual 28-day biphasic ovulatory cycle 
-(verified Cycle Day 1 resets on 19 Aug 2026, 16 Sep 2026, and 14 Oct 2026).
-Historically during the Luteal Phase (post-ovulatory progesterone peak, cycle days 17-28), patient suffered:
-- Colonic transit delay and smooth muscle relaxation.
-- Abdominophrenic Dyssynergia (APD): Paradoxical diaphragmatic descent and anterior abdominal 
-  wall protrusion in response to trapped fermentation gas and fluid in the splenic flexure.
-- Intercostal chest wall hyperinflation and upper ribcage restriction.
-- Secondary aldosterone-mediated systemic fluid retention (puffiness, pre-reset facial spots).
-- Accelerated dopamine clearance exacerbating adult ADHD executive dysfunction and sensory overwhelm.
+1. ACTIVE POST-ACE REGIMEN:
+- Morning Antegrade Continence Enema (ACE) Flush (warm water/saline ± Pico-Liquid or Sodium Enema, currently titrating optimal routine)
+- Prucalopride (Resolor) 2 mg daily (sole active daily prokinetic)
+- DulcoEase (Docusate Sodium) daily (stool softener to support smooth morning flush clearance)
+- Supplements: EAAs & Electrolytes (post-flush hydration support)
+- Paused Daily (Rescue/As-Needed Only): Oral Bisacodyl, Senna, Movicol, UDCA (Ursodeoxycholic Acid), Linaclotide, Pyridostigmine.
 
-2. ACTIVE MULTI-AGENT MOTILITY REGIMEN & POLYPHARMACY AUDIT:
-- Linaclotide (Constella) 290 mcg daily (GC-C secretagogue & visceral pain modulator)
-- Prucalopride (Resolor) 2 mg daily (5-HT4 propulsive prokinetic)
-- Pyridostigmine (Mestinon) 180 mg total daily (autonomic cholinergic enhancer)
-- Movicol (PEG 3350 + electrolytes) x4 sachets daily (osmotic bulk hydration)
-- Ursodeoxycholic Acid (UDCA) 250 mg daily (bile acid secretagogue)
-- Senna tea: anthraquinone stimulant (rescue only)
-[CLINICAL AUDIT NOTE]: Multi-secretagogue therapy (Linaclotide + Movicol + UDCA) draws high fluid 
-volumes into a slow-transit bowel. Strict morning fasting (30-45 min post-Linaclotide) prevents 
-paradoxical liquid bypass around retained distal stool.
+2. RECENT MORNING ACE FLUSH LOG (LAST ${flushLogs.length} FLUSHES):
+${flushTableText}
 
-3. CHRONOTHERAPY & LIFESTYLE INTERVENTIONS:
-- Morning Linaclotide Protocol: Strictly upon awakening on an empty stomach, 
-  with 350-400ml water and a 30-45 minute delay before morning caloric intake.
-- Mon-Thu Chrono-Nutrition Trial: Shifting main nutrient load to midday lunch (12:00-14:00) 
-  to align with peak colonic migrating motor complexes (MMC), coupled with a warm, light evening meal.
-- APD Diaphragmatic Biofeedback: 360-degree lateral costal breathing and left-lateral splenic 
-  flexure release post-prandially to interrupt paradoxical diaphragmatic descent.
-- Vagal Nerve & Trauma Recalibration: Weekly EMDR and somatic therapy with Amanda (Clapham).
+3. ENDOCRINE & OURA BIOMETRIC SUMMARY (NEW MIRENA 52MG — 05 OCT 2026):
+- Verified Cycle Day 1 Resets: 19 Aug 2026, 16 Sep 2026, 14 Oct 2026 (-0.68°C Oura drop), 10 Nov 2026 (-0.40°C Oura drop, 27-day cycle).
+- First full new-Mirena cycle (14 Oct – 9 Nov) demonstrated blunted/paused ovulation (clean mean -0.04°C) with markedly reduced mid-luteal GI bloating.
+- Clean cardiovascular baseline: RHR 37–41 bpm | HRV 55–70 ms.
 
-4. NEW MIRENA 52MG IUS REPLACEMENT UPDATE (05 OCTOBER 2026):
-Previous Mirena IUS (inserted 19 April 2021, 5.4 years duration) was removed and replaced with a new 
-52mg Mirena IUS on 05 October 2026 (Cycle Day 20). Restoring peak intrauterine levonorgestrel release 
-(~20 mcg/day) produced an immediate improvement in mid-luteal GI tolerance: on 07-08 October (Cycle Days 
-22-23), diaphragm bloat remained 1/10 ("not like usual luteal symptoms at all"). Corpus luteum involution 
-occurred cleanly on schedule on 14 October 2026 (Cycle Day 1), confirmed by a -0.68°C Oura temperature plunge.
-
-5. BIOMETRIC SIGNATURE (OURA RING & ORAL BBT VERIFIED):
-- Clean follicular cardiovascular baseline: RHR 36-39 bpm | HRV 64-76 ms | Oura temp -0.10°C to -0.38°C
-- Verified Ovulation Milestones: 02 Sep (CD15), 01 Oct (CD16: -0.44°C Oura nadir + Mittelschmerz cramps -> +0.15°C luteal shift)
-- Verified Cycle Day 1 Resets (28-day periodicity): 19 Aug (35.86°C crash), 16 Sep (-0.18°C Oura drop), 14 Oct (-0.68°C Oura plunge, 0/10 bloat)
-- Confounder calibration: Alcohol evenings transiently elevate RHR to 46-55 bpm, drop HRV to 17-34 ms, and spike temp +0.36°C to +0.85°C (filtered from endocrine staging).
-
-Report certified for medical records and consultant review.
+Report compiled for colorectal / gastroenterology consultant review.
   `.trim();
 
   reportContainer.innerText = report;
@@ -13743,7 +13746,7 @@ function renderOuraOvulationSimulatorCard() {
       headline: 'Silent Menstrual Reset • Progesterone Withdrawn',
       ouraReadout: '💍 Oura shows: Core nocturnal temperature drops down to or below personal baseline (-0.25°C to -0.45°C), accompanied by lower resting HR and recovering HRV.',
       bodySensation: 'Even without overt bleeding due to your Mirena IUD, local pelvic prostaglandins and baseline low hormones trigger the biological reset. Pelvic heaviness, looser stools ("period poops" or watery bypass), and low dopamine are 100% normal and temporary.',
-      motilityTip: 'Cocoon and rest. Keep mornings unhurried, sip warm electrolyte broths, take Linaclotide with a full glass of water, and give yourself grace. In ~3–4 days, your estrogen ramp begins!'
+      motilityTip: 'Cocoon and rest. Keep your morning ACE flush gentle and unhurried with warm water, keep Prucalopride & DulcoEase steady, sip electrolytes, and give yourself grace. In ~3–4 days, your estrogen ramp begins!'
     },
     follicular: {
       name: 'Rising Follicular Phase (Days 5–13)',
@@ -13773,7 +13776,7 @@ function renderOuraOvulationSimulatorCard() {
       headline: 'Progesterone Ignition • Ovulation Confirmed!',
       ouraReadout: '💍 Oura rule: 3 consecutive nights of elevated temperature above baseline mathematically confirms ovulation.',
       bodySensation: 'The collapsed follicle becomes the corpus luteum, pumping out thermogenic progesterone. Core nocturnal temperature leaps up. Progesterone begins relaxing smooth muscle tissue in the colon.',
-      motilityTip: 'The "switch" has flipped! Ovulation is in the rearview mirror. Increase warm fluids, keep your 40-min Linaclotide fast, and anticipate slower colonic motility.'
+      motilityTip: 'The "switch" has flipped! Ovulation is in the rearview mirror. Progesterone begins slowing gut transit, so keep DulcoEase + hydration steady and watch your morning ACE flush trends for any slight sluggishness.'
     },
     luteal_peak: {
       name: 'Luteal Plateau & Reset (Days 20–28)',
@@ -14906,7 +14909,7 @@ function getEmmaSilentPeriodAnalysis(targetDateStr) {
     signals,
     clinicalGuidance: {
       mirenaFact: "With Emma's fresh 52mg Mirena IUD (fitted 5th October 2026), levonorgestrel acts locally on the uterine endometrium to prevent lining build-up and heavy bleeding — and already cushioned her mid-luteal bloat! Meanwhile, Oura tracks her systemic ovarian rhythm passively overnight.",
-      comfortPlan: "Wear comfortable non-restricting waistbands, use a warm water bottle or travel heat patch across the lower pelvis for prostaglandin cramping, take morning Linaclotide with a full glass of water, and allow a 40-minute fast.",
+      comfortPlan: "Wear comfortable non-restricting waistbands, use a warm water bottle or travel heat patch across the lower pelvis for prostaglandin cramping, keep your morning ACE flush gentle with warm water, and replenish electrolytes + EAAs.",
       adhdPacing: "Dopamine and serotonin temporarily reset when progesterone and estrogen are at their lowest baseline. Do not force high executive-function tasks today; prioritize unhurried pacing and guilt-free downtime."
     }
   };
@@ -15099,7 +15102,7 @@ function renderOuraSilentPeriodSection(targetDateStr) {
             <span>🔥</span><span>Heat Patch for Pelvis</span>
           </span>
           <span class="text-[10px] font-black text-teal-900 bg-teal-100/80 border border-teal-200 px-2 py-0.5 rounded-lg flex items-center gap-1">
-            <span>💧</span><span>Linaclotide + Tall Water</span>
+            <span>💧</span><span>Warm ACE Flush + Electrolytes</span>
           </span>
           <span class="text-[10px] font-black text-purple-900 bg-purple-100/80 border border-purple-200 px-2 py-0.5 rounded-lg flex items-center gap-1">
             <span>🧠</span><span>ADHD Restorative Pacing</span>
@@ -15382,7 +15385,7 @@ function showRescueGuide(type) {
         </div>
         <div class="p-2.5 rounded-xl bg-rose-50/80 border border-rose-200">
           <strong class="text-rose-900 block font-bold">🚫 Skip: Beer, Cider & Sugary Mixers</strong>
-          <span class="text-rose-950">Ferments quickly in slow-transit bowels and pushes against your ribs. Keep Linaclotide for waking tomorrow morning (never late at night after drinks).</span>
+          <span class="text-rose-950">Ferments quickly in slow-transit bowels and pushes against your ribs. Sip extra water + Electrolytes before bed so tomorrow's morning flush runs smoothly.</span>
         </div>
       </div>
     `;
@@ -17262,10 +17265,10 @@ function copyTripForecastSummary() {
 ${days.map(d => `• ${d.shortDate} (${d.dayName}): Cycle Day ${d.dayNum} (${d.phaseLabel}) | Battery: ${d.battery}% | Gut Bloat: ${d.bloatScore}`).join('\n')}
 
 🧳 Trip Packing Essentials:
-• Linaclotide + Morning Travel Water Bottle
-• Senna Emergency Rescue Sachets
+• ACE Flush Kit + Pico-Liquid / Sodium Enema Supplies
+• Daily Prucalopride 2mg + DulcoEase (Docusate) + EAAs
+• Emergency Rescue Meds (Senna / Bisacodyl)
 • Stretchy Waistband Holiday Clothes & Flowy Outfits
-• Noise-canceling AirPods (Sensory Buffer)
 • Electrolyte sachets`;
   }
 
@@ -17327,6 +17330,1234 @@ window.getEmmaSilentPeriodAnalysis = getEmmaSilentPeriodAnalysis;
 window.getHistoricalAndFutureSilentPeriods = getHistoricalAndFutureSilentPeriods;
 window.renderOuraSilentPeriodSection = renderOuraSilentPeriodSection;
 window.scrollToSilentPeriodSection = scrollToSilentPeriodSection;
+
+// ============================================================================
+// POST-ACE MORNING FLUSH ENGINE, GASTRO NEXT-DAY COACH & TRENDS ANALYTICS
+// ============================================================================
+var selectedAceFlushDone = null;
+var selectedFlushSolution = '';
+var selectedFlushOnset = '';
+var selectedFlushConsistency = '';
+var selectedFlushOutput = '';
+var selectedFlushOutcomes = new Set();
+var selectedRescueMeds = new Set();
+var flushTrendsChartInstance = null;
+
+function escapeFlushHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatFlushSolutionLabel(sol) {
+  const map = {
+    water_only: 'Water / Saline Only',
+    pico_liquid: 'Water + Pico-Liquid',
+    sodium_enema: 'Water + Sodium Enema',
+    both_custom: 'Both / Custom Mix'
+  };
+  return map[sol] || sol || '';
+}
+
+function formatFlushOnsetLabel(onset) {
+  const map = {
+    lt_15: '< 15 min',
+    '15_30': '15–30 min',
+    '30_60': '30–60 min',
+    '1_2h': '1–2 hrs',
+    '2h_plus': '2+ hrs',
+    none: "Didn't kick in"
+  };
+  return map[onset] || onset || '';
+}
+
+function formatFlushConsistencyLabel(cons) {
+  const map = {
+    formed_soft: 'Soft Formed',
+    soft_mushy: 'Soft / Mushy',
+    liquid: 'Liquid',
+    water_only: 'Water Only',
+    mixed: 'Mixed',
+    hard_pebbles: 'Hard / Pebbles',
+    nothing: 'Nothing Came Out'
+  };
+  return map[cons] || cons || '';
+}
+
+function formatFlushOutputLabel(out) {
+  const map = {
+    none: 'None',
+    small: 'Small',
+    moderate: 'Medium',
+    good: 'Good Clear',
+    full: 'Full Clear'
+  };
+  return map[out] || out || '';
+}
+
+function getFlushOutputScore(out) {
+  const map = { none: 0, small: 1, moderate: 2, good: 3, full: 4 };
+  return (out in map) ? map[out] : null;
+}
+
+function isAceFlushEntry(l) {
+  return !!(
+    l &&
+    !isSyntheticTestEntry(l) &&
+    (l.aceFlushDone === true || l.flushWaterMl || l.flushSolution || l.flushConsistency || l.flushOutput || l.flushNotes)
+  );
+}
+
+function getSortedFlushLogs(ascending = true) {
+  const list = (logs || []).filter(isAceFlushEntry);
+  return list.sort((a, b) => ascending
+    ? new Date(a.date) - new Date(b.date)
+    : new Date(b.date) - new Date(a.date)
+  );
+}
+
+function getLastFlushEntry(excludeDateStr) {
+  const sortedDesc = getSortedFlushLogs(false);
+  return sortedDesc.find(l => !excludeDateStr || l.date !== excludeDateStr) || null;
+}
+
+function setAceFlushDone(val) {
+  selectedAceFlushDone = val;
+  const hidden = document.getElementById('logAceFlushDone');
+  if (hidden) hidden.value = (val === true) ? 'true' : (val === false ? 'false' : '');
+
+  const yesBtn = document.getElementById('flushDoneBtn-yes');
+  const noBtn = document.getElementById('flushDoneBtn-no');
+  const details = document.getElementById('aceFlushDetailsFields');
+
+  if (yesBtn) {
+    yesBtn.classList.remove('bg-sky-600', 'text-white', 'border-sky-600', 'shadow-xs', 'bg-white', 'text-sky-950', 'border-sky-300');
+    if (val === true) {
+      yesBtn.classList.add('bg-sky-600', 'text-white', 'border-sky-600', 'shadow-xs');
+    } else {
+      yesBtn.classList.add('bg-white', 'text-sky-950', 'border-sky-300');
+    }
+  }
+  if (noBtn) {
+    noBtn.classList.remove('bg-slate-700', 'text-white', 'border-slate-700', 'shadow-xs', 'bg-white', 'text-brand-textMuted', 'border-brand-border');
+    if (val === false) {
+      noBtn.classList.add('bg-slate-700', 'text-white', 'border-slate-700', 'shadow-xs');
+    } else {
+      noBtn.classList.add('bg-white', 'text-brand-textMuted', 'border-brand-border');
+    }
+  }
+  if (details) {
+    if (val === false) {
+      details.classList.add('hidden');
+    } else {
+      details.classList.remove('hidden');
+    }
+  }
+}
+
+function setFlushTimePreset(hhmm) {
+  const input = document.getElementById('logFlushTime');
+  if (input) input.value = hhmm || '';
+  if (hhmm && selectedAceFlushDone !== true) setAceFlushDone(true);
+
+  document.querySelectorAll('.flush-time-btn').forEach(btn => {
+    const isMatch = btn.innerText.trim() === hhmm;
+    btn.classList.remove('bg-sky-600', 'text-white', 'border-sky-600', 'bg-white', 'text-sky-900', 'border-sky-200');
+    if (isMatch) {
+      btn.classList.add('bg-sky-600', 'text-white', 'border-sky-600');
+    } else {
+      btn.classList.add('bg-white', 'text-sky-900', 'border-sky-200');
+    }
+  });
+}
+
+function setFlushTimeNow() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  setFlushTimePreset(`${hh}:${mm}`);
+}
+
+function selectFlushSolution(sol) {
+  selectedFlushSolution = sol || '';
+  const hidden = document.getElementById('logFlushSolution');
+  if (hidden) hidden.value = selectedFlushSolution;
+  if (selectedFlushSolution && selectedAceFlushDone !== true) setAceFlushDone(true);
+
+  document.querySelectorAll('.flush-sol-btn').forEach(btn => {
+    btn.classList.remove('bg-sky-600', 'bg-purple-600', 'bg-teal-600', 'bg-amber-600', 'text-white', 'border-sky-600', 'border-purple-600', 'border-teal-600', 'border-amber-600', 'shadow-xs');
+    btn.classList.add('bg-white', 'text-brand-textDark', 'border-brand-border');
+  });
+
+  if (selectedFlushSolution) {
+    const activeBtn = document.getElementById(`flushSolBtn-${selectedFlushSolution}`);
+    if (activeBtn) {
+      activeBtn.classList.remove('bg-white', 'text-brand-textDark', 'border-brand-border');
+      if (selectedFlushSolution === 'pico_liquid') {
+        activeBtn.classList.add('bg-purple-600', 'text-white', 'border-purple-600', 'shadow-xs');
+      } else if (selectedFlushSolution === 'sodium_enema') {
+        activeBtn.classList.add('bg-teal-600', 'text-white', 'border-teal-600', 'shadow-xs');
+      } else if (selectedFlushSolution === 'both_custom') {
+        activeBtn.classList.add('bg-amber-600', 'text-white', 'border-amber-600', 'shadow-xs');
+      } else {
+        activeBtn.classList.add('bg-sky-600', 'text-white', 'border-sky-600', 'shadow-xs');
+      }
+    }
+  }
+
+  const addContainer = document.getElementById('flushAdditiveContainer');
+  const addLabel = document.getElementById('flushAdditiveLabel');
+  if (addContainer) {
+    const needsAdditive = selectedFlushSolution === 'pico_liquid' || selectedFlushSolution === 'sodium_enema' || selectedFlushSolution === 'both_custom';
+    if (needsAdditive) {
+      addContainer.classList.remove('hidden');
+      if (addLabel) {
+        if (selectedFlushSolution === 'pico_liquid') addLabel.innerText = 'How much Pico-Liquid did you add?';
+        else if (selectedFlushSolution === 'sodium_enema') addLabel.innerText = 'How much Sodium Enema did you use?';
+        else addLabel.innerText = 'What mix & laxative dose did you use?';
+      }
+    } else {
+      addContainer.classList.add('hidden');
+    }
+  }
+}
+
+function setFlushAdditivePreset(dose) {
+  const input = document.getElementById('logFlushAdditiveDose');
+  if (input) input.value = dose || '';
+  document.querySelectorAll('.flush-add-btn').forEach(btn => {
+    const txt = btn.innerText.trim().toLowerCase().replace('½', '1/2').replace(/\s+/g, '');
+    const target = (dose || '').toLowerCase().replace(/\s+/g, '');
+    const isMatch = target && (txt === target || (target.includes('tube') && txt.includes('tube')) || (target.includes('bottle') && txt.includes('bottle')));
+    btn.classList.remove('bg-purple-600', 'text-white', 'border-purple-600', 'bg-white', 'text-purple-900', 'border-purple-200');
+    if (isMatch) {
+      btn.classList.add('bg-purple-600', 'text-white', 'border-purple-600');
+    } else {
+      btn.classList.add('bg-white', 'text-purple-900', 'border-purple-200');
+    }
+  });
+}
+
+function setFlushWaterPreset(ml) {
+  const input = document.getElementById('logFlushWaterMl');
+  const numVal = (ml !== null && ml !== undefined && ml !== '') ? parseInt(ml, 10) : '';
+  if (input) input.value = numVal;
+  if (numVal && selectedAceFlushDone !== true) setAceFlushDone(true);
+
+  document.querySelectorAll('.flush-ml-btn').forEach(btn => {
+    const isMatch = numVal !== '' && parseInt(btn.innerText.trim(), 10) === numVal;
+    btn.classList.remove('bg-sky-600', 'text-white', 'border-sky-600', 'bg-white', 'text-sky-900', 'border-sky-200');
+    if (isMatch) {
+      btn.classList.add('bg-sky-600', 'text-white', 'border-sky-600');
+    } else {
+      btn.classList.add('bg-white', 'text-sky-900', 'border-sky-200');
+    }
+  });
+}
+
+function selectFlushOnset(val) {
+  selectedFlushOnset = val || '';
+  const hidden = document.getElementById('logFlushOnset');
+  if (hidden) hidden.value = selectedFlushOnset;
+  if (selectedFlushOnset && selectedAceFlushDone !== true) setAceFlushDone(true);
+
+  document.querySelectorAll('.flush-onset-btn').forEach(btn => {
+    btn.classList.remove('bg-sky-600', 'bg-amber-600', 'bg-rose-600', 'text-white', 'border-sky-600', 'border-amber-600', 'border-rose-600', 'shadow-xs');
+    btn.classList.add('bg-white', 'border-brand-border');
+    if (btn.id === 'flushOnsetBtn-none') {
+      btn.classList.add('text-brand-textMuted');
+      btn.classList.remove('text-brand-textDark');
+    } else {
+      btn.classList.add('text-brand-textDark');
+    }
+  });
+
+  if (selectedFlushOnset) {
+    const activeBtn = document.getElementById(`flushOnsetBtn-${selectedFlushOnset}`);
+    if (activeBtn) {
+      activeBtn.classList.remove('bg-white', 'text-brand-textDark', 'text-brand-textMuted', 'border-brand-border');
+      if (selectedFlushOnset === 'none') {
+        activeBtn.classList.add('bg-rose-600', 'text-white', 'border-rose-600', 'shadow-xs');
+      } else if (selectedFlushOnset === '1_2h' || selectedFlushOnset === '2h_plus') {
+        activeBtn.classList.add('bg-amber-600', 'text-white', 'border-amber-600', 'shadow-xs');
+      } else {
+        activeBtn.classList.add('bg-sky-600', 'text-white', 'border-sky-600', 'shadow-xs');
+      }
+    }
+  }
+}
+
+function selectFlushConsistency(val) {
+  selectedFlushConsistency = val || '';
+  const hidden = document.getElementById('logFlushConsistency');
+  if (hidden) hidden.value = selectedFlushConsistency;
+  if (selectedFlushConsistency && selectedAceFlushDone !== true) setAceFlushDone(true);
+
+  document.querySelectorAll('.flush-cons-btn').forEach(btn => {
+    btn.classList.remove('bg-emerald-600', 'bg-teal-600', 'bg-sky-600', 'bg-blue-600', 'bg-purple-600', 'bg-amber-600', 'bg-rose-600', 'text-white', 'border-emerald-600', 'border-teal-600', 'border-sky-600', 'border-blue-600', 'border-purple-600', 'border-amber-600', 'border-rose-600', 'shadow-xs');
+    btn.classList.add('bg-white', 'border-brand-border');
+  });
+
+  if (selectedFlushConsistency) {
+    const activeBtn = document.getElementById(`flushConsBtn-${selectedFlushConsistency}`);
+    if (activeBtn) {
+      activeBtn.classList.remove('bg-white', 'border-brand-border');
+      const colorMap = {
+        formed_soft: ['bg-emerald-600', 'border-emerald-600'],
+        soft_mushy: ['bg-teal-600', 'border-teal-600'],
+        liquid: ['bg-sky-600', 'border-sky-600'],
+        water_only: ['bg-blue-600', 'border-blue-600'],
+        mixed: ['bg-purple-600', 'border-purple-600'],
+        hard_pebbles: ['bg-amber-600', 'border-amber-600'],
+        nothing: ['bg-rose-600', 'border-rose-600']
+      };
+      const cls = colorMap[selectedFlushConsistency] || ['bg-sky-600', 'border-sky-600'];
+      activeBtn.classList.add(cls[0], cls[1], 'text-white', 'shadow-xs');
+    }
+    if (selectedFlushConsistency === 'nothing' && !selectedFlushOutput) {
+      selectFlushOutput('none');
+    }
+  }
+}
+
+function selectFlushOutput(val) {
+  selectedFlushOutput = val || '';
+  const hidden = document.getElementById('logFlushOutput');
+  if (hidden) hidden.value = selectedFlushOutput;
+  if (selectedFlushOutput && selectedAceFlushDone !== true) setAceFlushDone(true);
+
+  document.querySelectorAll('.flush-out-btn').forEach(btn => {
+    btn.classList.remove('bg-rose-600', 'bg-amber-600', 'bg-sky-600', 'bg-emerald-600', 'bg-emerald-700', 'text-white', 'border-rose-600', 'border-amber-600', 'border-sky-600', 'border-emerald-600', 'border-emerald-700', 'shadow-xs');
+    btn.classList.add('bg-white', 'border-brand-border');
+  });
+
+  if (selectedFlushOutput) {
+    const activeBtn = document.getElementById(`flushOutBtn-${selectedFlushOutput}`);
+    if (activeBtn) {
+      activeBtn.classList.remove('bg-white', 'border-brand-border');
+      const colorMap = {
+        none: ['bg-rose-600', 'border-rose-600'],
+        small: ['bg-amber-600', 'border-amber-600'],
+        moderate: ['bg-sky-600', 'border-sky-600'],
+        good: ['bg-emerald-600', 'border-emerald-600'],
+        full: ['bg-emerald-700', 'border-emerald-700']
+      };
+      const cls = colorMap[selectedFlushOutput] || ['bg-sky-600', 'border-sky-600'];
+      activeBtn.classList.add(cls[0], cls[1], 'text-white', 'shadow-xs');
+    }
+  }
+}
+
+function updateFlushOutcomeChipsUI() {
+  document.querySelectorAll('.flush-outcome-chip').forEach(btn => {
+    const val = btn.getAttribute('data-outcome') || btn.innerText.trim();
+    const isOn = selectedFlushOutcomes.has(val);
+    btn.classList.remove('bg-sky-600', 'text-white', 'border-sky-600', 'shadow-xs', 'bg-white', 'text-sky-950', 'border-sky-200');
+    if (isOn) {
+      btn.classList.add('bg-sky-600', 'text-white', 'border-sky-600', 'shadow-xs');
+    } else {
+      btn.classList.add('bg-white', 'text-sky-950', 'border-sky-200');
+    }
+  });
+}
+
+function toggleFlushOutcomeChip(btn) {
+  if (!btn) return;
+  const val = btn.getAttribute('data-outcome') || btn.innerText.trim();
+  if (selectedFlushOutcomes.has(val)) {
+    selectedFlushOutcomes.delete(val);
+  } else {
+    selectedFlushOutcomes.add(val);
+    if (selectedAceFlushDone !== true) setAceFlushDone(true);
+  }
+  updateFlushOutcomeChipsUI();
+}
+
+function appendExtraMovementChip(text) {
+  const input = document.getElementById('logExtraMovementsNotes');
+  if (!input || !text) return;
+  const current = input.value.trim();
+  if (!current) {
+    input.value = text;
+  } else if (!current.toLowerCase().includes(text.toLowerCase())) {
+    input.value = `${current} • ${text}`;
+  }
+}
+
+function updateRescueMedsUI() {
+  const label = document.getElementById('rescueMedsToggleLabel');
+  const drawer = document.getElementById('rescueMedsDrawer');
+  const list = Array.from(selectedRescueMeds);
+
+  document.querySelectorAll('.rescue-med-chip').forEach(btn => {
+    const med = btn.getAttribute('data-med') || btn.innerText.trim();
+    const isOn = selectedRescueMeds.has(med);
+    btn.classList.remove('bg-purple-600', 'text-white', 'border-purple-600', 'shadow-xs', 'bg-white', 'text-slate-700', 'border-slate-300');
+    if (isOn) {
+      btn.classList.add('bg-purple-600', 'text-white', 'border-purple-600', 'shadow-xs');
+    } else {
+      btn.classList.add('bg-white', 'text-slate-700', 'border-slate-300');
+    }
+  });
+
+  if (label) {
+    const isOpen = drawer && !drawer.classList.contains('hidden');
+    if (list.length > 0) {
+      label.innerText = `${list.length} selected ${isOpen ? '▴' : '▾'}`;
+    } else {
+      label.innerText = isOpen ? 'Hide ▴' : 'None ▾';
+    }
+  }
+}
+
+function toggleRescueMedsDrawer() {
+  const drawer = document.getElementById('rescueMedsDrawer');
+  if (!drawer) return;
+  drawer.classList.toggle('hidden');
+  updateRescueMedsUI();
+}
+
+function toggleRescueMedChip(btn) {
+  if (!btn) return;
+  const med = btn.getAttribute('data-med') || btn.innerText.trim();
+  if (selectedRescueMeds.has(med)) {
+    selectedRescueMeds.delete(med);
+  } else {
+    selectedRescueMeds.add(med);
+  }
+  updateRescueMedsUI();
+}
+
+function resetAceFlushModalFields() {
+  selectedAceFlushDone = null;
+  selectedFlushSolution = '';
+  selectedFlushOnset = '';
+  selectedFlushConsistency = '';
+  selectedFlushOutput = '';
+  selectedFlushOutcomes.clear();
+  selectedRescueMeds.clear();
+
+  setAceFlushDone(null);
+  setFlushTimePreset('');
+  selectFlushSolution('');
+  setFlushAdditivePreset('');
+  setFlushWaterPreset('');
+  selectFlushOnset('');
+  selectFlushConsistency('');
+  selectFlushOutput('');
+  updateFlushOutcomeChipsUI();
+
+  const notesEl = document.getElementById('logFlushNotes');
+  if (notesEl) notesEl.value = '';
+
+  const drawer = document.getElementById('rescueMedsDrawer');
+  if (drawer) drawer.classList.add('hidden');
+  updateRescueMedsUI();
+}
+
+function populateAceFlushModalFields(entry) {
+  resetAceFlushModalFields();
+  if (!entry) return;
+
+  const hasFlush = entry.aceFlushDone === true || !!(entry.flushWaterMl || entry.flushSolution || entry.flushConsistency || entry.flushOutput || entry.flushNotes);
+  if (entry.aceFlushDone === false) {
+    setAceFlushDone(false);
+  } else if (hasFlush) {
+    setAceFlushDone(true);
+    if (entry.flushTime) setFlushTimePreset(entry.flushTime);
+    if (entry.flushSolution) selectFlushSolution(entry.flushSolution);
+    if (entry.flushAdditiveDose) setFlushAdditivePreset(entry.flushAdditiveDose);
+    if (entry.flushWaterMl) setFlushWaterPreset(entry.flushWaterMl);
+    if (entry.flushOnset) selectFlushOnset(entry.flushOnset);
+    if (entry.flushConsistency) selectFlushConsistency(entry.flushConsistency);
+    if (entry.flushOutput) selectFlushOutput(entry.flushOutput);
+    if (Array.isArray(entry.flushOutcomes)) {
+      entry.flushOutcomes.forEach(o => selectedFlushOutcomes.add(o));
+      updateFlushOutcomeChipsUI();
+    }
+    const notesEl = document.getElementById('logFlushNotes');
+    if (notesEl) notesEl.value = entry.flushNotes || '';
+  }
+
+  // Restore Rescue Meds (including legacy sennaTea flag)
+  if (Array.isArray(entry.rescueMeds) && entry.rescueMeds.length > 0) {
+    entry.rescueMeds.forEach(m => selectedRescueMeds.add(m));
+  } else if (entry.sennaTea === true) {
+    selectedRescueMeds.add('Senna / Senna Tea');
+  }
+
+  const drawer = document.getElementById('rescueMedsDrawer');
+  if (drawer) {
+    if (selectedRescueMeds.size > 0) drawer.classList.remove('hidden');
+    else drawer.classList.add('hidden');
+  }
+  updateRescueMedsUI();
+}
+
+function repeatLastFlushSetup() {
+  const currentModalDate = document.getElementById('logDate')?.value || activeDateStr || getTodayISOString();
+  const prev = getLastFlushEntry(currentModalDate);
+  if (!prev) {
+    setAceFlushDone(true);
+    setFlushTimePreset('07:30');
+    selectFlushSolution('water_only');
+    setFlushWaterPreset(500);
+    showDynamicToast("💧 Ready for your first flush! Tap your solution, mL & outcome.", 3200);
+    return;
+  }
+
+  setAceFlushDone(true);
+  if (prev.flushTime) setFlushTimePreset(prev.flushTime);
+  if (prev.flushSolution) selectFlushSolution(prev.flushSolution);
+  if (prev.flushAdditiveDose) setFlushAdditivePreset(prev.flushAdditiveDose);
+  if (prev.flushWaterMl) setFlushWaterPreset(prev.flushWaterMl);
+
+  const solLabel = formatFlushSolutionLabel(prev.flushSolution) || 'Flush';
+  const mlText = prev.flushWaterMl ? `${prev.flushWaterMl} mL ` : '';
+  const doseText = prev.flushAdditiveDose ? ` (${prev.flushAdditiveDose})` : '';
+  showDynamicToast(`⚡ Copied setup from ${prev.displayDate?.split(',')[0] || prev.date}: ${mlText}${solLabel}${doseText}! Now just tap how it went.`, 3800);
+}
+
+function openFlushQuickLog(presetRepeat = false) {
+  const targetDate = activeDateStr || getTodayISOString();
+  openQuickLogModal(targetDate);
+  if (presetRepeat) {
+    repeatLastFlushSetup();
+  } else {
+    const existing = logs.find(l => l.date === targetDate);
+    if (!existing || existing.aceFlushDone === undefined) {
+      setAceFlushDone(true);
+    }
+  }
+  const flushSec = document.getElementById('modalAceFlushSection');
+  if (flushSec && typeof flushSec.scrollIntoView === 'function') {
+    setTimeout(() => flushSec.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+  }
+}
+
+// ============================================================================
+// BEST-PERFORMING FLUSH RECIPE DETECTOR (MULTI-DAY PATTERN LEARNING)
+// ============================================================================
+function scoreFlushQuality(entry) {
+  if (!entry || !isAceFlushEntry(entry)) return -1;
+  let score = 0;
+  const outScores = { none: 0, small: 15, moderate: 45, good: 80, full: 95 };
+  const consScores = { formed_soft: 30, soft_mushy: 25, mixed: 18, liquid: 10, water_only: 2, hard_pebbles: 5, nothing: 0 };
+  const onsetScores = { lt_15: 15, '15_30': 20, '30_60': 18, '1_2h': 8, '2h_plus': 2, none: 0 };
+
+  score += (outScores[entry.flushOutput] ?? 0);
+  score += (consScores[entry.flushConsistency] ?? 0);
+  score += (onsetScores[entry.flushOnset] ?? 0);
+
+  const outcomes = Array.isArray(entry.flushOutcomes) ? entry.flushOutcomes : [];
+  if (outcomes.includes('Felt empty & light')) score += 15;
+  if (outcomes.includes('Mild cramping')) score -= 12;
+  if (outcomes.includes('Delayed trickle later')) score -= 15;
+  if (outcomes.includes('Felt sicky')) score -= 18;
+  if (outcomes.includes('Needed 2nd flush')) score -= 15;
+
+  if (typeof entry.diaphragmBloat === 'number') {
+    if (entry.diaphragmBloat <= 2) score += 8;
+    else if (entry.diaphragmBloat >= 7) score -= 8;
+  }
+  return score;
+}
+
+function detectBestFlushRecipe(flushLogsList) {
+  const list = Array.isArray(flushLogsList) ? flushLogsList : getSortedFlushLogs(true);
+  if (list.length < 2) return null;
+
+  const buckets = {};
+  list.forEach(l => {
+    if (!l.flushSolution && !l.flushWaterMl) return;
+    const sol = l.flushSolution || 'water_only';
+    const ml = l.flushWaterMl ? `${l.flushWaterMl}mL` : '?mL';
+    const dose = l.flushAdditiveDose ? ` (${l.flushAdditiveDose})` : '';
+    const key = `${sol}|${ml}|${dose}`;
+    const q = scoreFlushQuality(l);
+    if (!buckets[key]) {
+      buckets[key] = {
+        key,
+        sol,
+        ml: l.flushWaterMl || null,
+        dose: l.flushAdditiveDose || '',
+        label: `${l.flushWaterMl ? l.flushWaterMl + ' mL • ' : ''}${formatFlushSolutionLabel(sol)}${dose}`,
+        count: 0,
+        totalScore: 0,
+        goodCount: 0,
+        lastTime: l.flushTime || ''
+      };
+    }
+    buckets[key].count++;
+    buckets[key].totalScore += q;
+    if (l.flushOutput === 'good' || l.flushOutput === 'full') buckets[key].goodCount++;
+    if (l.flushTime) buckets[key].lastTime = l.flushTime;
+  });
+
+  const ranked = Object.values(buckets)
+    .map(b => ({ ...b, avgScore: Math.round(b.totalScore / b.count) }))
+    .sort((a, b) => (b.avgScore - a.avgScore) || (b.goodCount - a.goodCount));
+
+  return (ranked.length > 0 && ranked[0].avgScore >= 60) ? ranked[0] : null;
+}
+
+// ============================================================================
+// WORLD-CLASS GASTROENTEROLOGY / ACE NEXT-DAY COACH
+// ============================================================================
+function generateGastroNextDayCoach(entry, allLogs, cycleInfo) {
+  const flushLogs = (allLogs || logs || []).filter(isAceFlushEntry).sort((a, b) => new Date(a.date) - new Date(b.date));
+  const cInfo = cycleInfo || (typeof getCycleInfoForDate === 'function' ? getCycleInfoForDate(entry?.date || activeDateStr || getTodayISOString()) : { cycleDay: 14, phase: 'follicular', phaseLabel: 'Cycle' });
+  const isLuteal = cInfo.phase === 'luteal' || (cInfo.cycleDay >= 17 && cInfo.cycleDay <= 28);
+  const isSilentReset = cInfo.phase === 'menstrual_follicular' || (cInfo.cycleDay >= 1 && cInfo.cycleDay <= 4);
+  const bestRecipe = detectBestFlushRecipe(flushLogs);
+
+  // Check if user has no flushes logged yet (Day 1 onboarding)
+  if (!entry || (!isAceFlushEntry(entry) && entry.aceFlushDone !== false)) {
+    return {
+      status: 'starter',
+      badge: 'Day-1 ACE Routine Guide',
+      badgeClass: 'bg-sky-100 text-sky-900 border-sky-200',
+      borderClass: 'border-sky-200 bg-gradient-to-br from-sky-50/80 via-white to-teal-50/50',
+      headline: 'Welcome to your ACE Flush Coach, Emma 💧',
+      summary: 'Finding your sweet-spot ACE flush usually takes 2–4 weeks of gentle tweaking — totally normal! Every flush you tap in teaches this coach what works best for your body.',
+      tomorrowAction: 'Start calm & consistent: use body-temperature water (~37°C, never cold), infuse slowly over 10–15 mins, and sit unhurried for 30–45 mins with your feet slightly raised on a stool.',
+      secondaryTip: 'Keep daily Prucalopride & DulcoEase steady — DulcoEase softens stool overnight so tomorrow morning’s flush glides smoothly instead of stalling.',
+      cycleNote: isLuteal
+        ? `Cycle Day ${cInfo.cycleDay} (Luteal): Progesterone naturally slows your colon right now — don't be discouraged if flushes feel slightly slower this week.`
+        : (isSilentReset ? `Cycle Day ${cInfo.cycleDay} (Silent Period Reset): Prostaglandins can make your bowel extra reactive — keep water warm and gentle.` : ''),
+      safetyAlert: '',
+      bestRecipe: null
+    };
+  }
+
+  // Case: Explicitly logged "No Flush Today"
+  if (entry.aceFlushDone === false) {
+    return {
+      status: 'rest',
+      badge: 'Rest Day • Resume Tomorrow',
+      badgeClass: 'bg-slate-100 text-slate-800 border-slate-200',
+      borderClass: 'border-slate-200 bg-gradient-to-br from-slate-50 via-white to-sky-50/40',
+      headline: 'Rest day logged — gentle reset tomorrow morning 🌿',
+      summary: 'Skipping a flush occasionally happens while you recover and settle into your new routine. Zero guilt — your colon responds best to calm consistency.',
+      tomorrowAction: 'Tonight: take your DulcoEase (Docusate) with a full glass of water so stool stays soft overnight, then aim for your usual morning flush time tomorrow.',
+      secondaryTip: bestRecipe
+        ? `Your best-performing setup so far is ${bestRecipe.label} — a great one to resume with tomorrow.`
+        : 'Tomorrow morning, stick to body-temperature water (~37°C) and give yourself an unhurried 45-minute window.',
+      cycleNote: isLuteal ? `Cycle Day ${cInfo.cycleDay} (Luteal): Progesterone can firm stool quickly if a day is missed, so DulcoEase tonight is extra helpful.` : '',
+      safetyAlert: '',
+      bestRecipe
+    };
+  }
+
+  const out = entry.flushOutput || '';
+  const cons = entry.flushConsistency || '';
+  const onset = entry.flushOnset || '';
+  const sol = entry.flushSolution || 'water_only';
+  const ml = entry.flushWaterMl ? Number(entry.flushWaterMl) : null;
+  const dose = entry.flushAdditiveDose || '';
+  const bloat = typeof entry.diaphragmBloat === 'number' ? entry.diaphragmBloat : 0;
+  const moves = typeof entry.movementFrequency === 'number' ? entry.movementFrequency : 0;
+  const outcomes = Array.isArray(entry.flushOutcomes) ? entry.flushOutcomes : [];
+
+  const hasCramping = outcomes.includes('Mild cramping');
+  const hasSicky = outcomes.includes('Felt sicky');
+  const hasLeakage = outcomes.includes('Delayed trickle later');
+  const neededSecond = outcomes.includes('Needed 2nd flush');
+  const feltLight = outcomes.includes('Felt empty & light');
+  const residualGas = outcomes.includes('Residual wind/gas');
+
+  // Check consecutive zero-output days (safety guardrail)
+  const recentUpToEntry = flushLogs.filter(l => l.date <= entry.date).slice(-3);
+  let zeroStreak = 0;
+  for (let i = recentUpToEntry.length - 1; i >= 0; i--) {
+    const r = recentUpToEntry[i];
+    if (r.flushOutput === 'none' || r.flushConsistency === 'nothing') zeroStreak++;
+    else break;
+  }
+
+  const safetyAlert = zeroStreak >= 2
+    ? `⚠️ ${zeroStreak} flushes in a row with no output: please check in with your colorectal / ACE nurse team before increasing doses further (and seek prompt review if you have severe pain, fever, or vomiting).`
+    : '';
+
+  const cycleNote = isLuteal
+    ? `Cycle Day ${cInfo.cycleDay} (Luteal • High Progesterone): Progesterone naturally slows colonic waves right now — needing slightly warmer/slower flushes or steady DulcoEase is 100% hormonal biology.`
+    : (isSilentReset
+      ? `Cycle Day ${cInfo.cycleDay} (Silent Period Reset): Prostaglandins can make the bowel twitchier or looser for 2–3 days — keep flush volume and stimulant additive gentle.`
+      : `Cycle Day ${cInfo.cycleDay} (${cInfo.phaseLabel?.split('•')[0]?.trim() || 'Follicular'}): Estrogen supports smoother gut rhythm — great window to lock in a steady morning habit.`);
+
+  // 1. OVER-STIMULATED / CRAMPING / DELAYED LEAKAGE / EXCESS LIQUID MOVEMENTS
+  if (hasSicky || hasCramping || hasLeakage || (cons === 'liquid' && moves >= 4)) {
+    let tweak = '';
+    if (hasLeakage && !hasCramping && !hasSicky) {
+      const lowerMl = ml && ml >= 600 ? `try trimming flush water slightly from ${ml} mL to ${ml - 100}–${ml - 150} mL` : 'keep your water volume on the gentler side';
+      tweak = `To stop that annoying later trickle: sit an extra 10–15 mins on the loo with your feet raised on a footstool (gentle clockwise tummy massage helps clear trapped tail-end water), and tomorrow ${lowerMl}.`;
+    } else {
+      const trimAdditive = (sol !== 'water_only')
+        ? `slightly ease back your ${sol === 'pico_liquid' ? 'Pico-Liquid' : sol === 'sodium_enema' ? 'Sodium Enema' : 'laxative'} dose (within your team's range)`
+        : (ml && ml >= 600 ? `trim water slightly from ${ml} mL to ${Math.max(400, ml - 150)} mL` : 'slow your infusion rate down to 10–15 mins');
+      tweak = `Tomorrow’s 1 small tweak: use strictly body-temperature water (~37°C — cool water triggers cramps/nausea), infuse slower over 10–15 mins, and ${trimAdditive}.`;
+    }
+    const secondary = !entry.electrolytesTaken
+      ? 'Sip Electrolytes + EAAs today to replace fluid/salts and prevent post-flush fatigue or headaches.'
+      : 'Great job taking Electrolytes — keep fluids warm and gentle for the rest of today.';
+
+    return {
+      status: 'overstimulated',
+      badge: 'Ease Back Gently Tomorrow',
+      badgeClass: 'bg-amber-100 text-amber-950 border-amber-300',
+      borderClass: 'border-amber-200 bg-gradient-to-br from-amber-50/80 via-white to-orange-50/40',
+      headline: hasLeakage ? 'Good clear, with tail-end liquid lingering 💧' : 'Your bowel got a little over-stimulated today 🤕',
+      summary: hasLeakage
+        ? 'A delayed trickle usually means a pocket of flush water stayed higher up in the colon and dropped down once you stood up and moved around.'
+        : 'Cramping, nausea, or lots of liquid visits usually means the flush went in slightly too fast, too cool, or a notch stronger than your colon needed today.',
+      tomorrowAction: tweak,
+      secondaryTip: secondary,
+      cycleNote,
+      safetyAlert,
+      bestRecipe
+    };
+  }
+
+  // 2. WINNING GOLDILOCKS FLUSH!
+  const isWinning = (out === 'good' || out === 'full') &&
+    (cons === 'formed_soft' || cons === 'soft_mushy' || cons === 'mixed') &&
+    (onset === 'lt_15' || onset === '15_30' || onset === '30_60' || !onset);
+
+  if (isWinning) {
+    const setupSummary = `${ml ? ml + ' mL ' : ''}${formatFlushSolutionLabel(sol)}${dose ? ' (' + dose + ')' : ''}${entry.flushTime ? ' at ' + entry.flushTime : ''}`;
+    return {
+      status: 'winning',
+      badge: '🏆 Goldilocks Flush!',
+      badgeClass: 'bg-emerald-100 text-emerald-950 border-emerald-300',
+      borderClass: 'border-emerald-200 bg-gradient-to-br from-emerald-50/85 via-white to-teal-50/50',
+      headline: 'Textbook clear — repeat this exact recipe tomorrow! ✨',
+      summary: `Soft, well-cleared output (${formatFlushOutputLabel(out)} • ${formatFlushConsistencyLabel(cons)})${feltLight ? ' and feeling empty & light' : ''} without cramping or leakage is the exact goal of ACE irrigation.`,
+      tomorrowAction: `Don't change a single variable tomorrow: repeat ${setupSummary} for 3–5 mornings in a row so your colon learns this exact rhythm on autopilot.`,
+      secondaryTip: !entry.docusateTaken || !entry.prucaloprideTaken
+        ? 'Keep daily Prucalopride + DulcoEase ticked consistently so tomorrow stays just as smooth.'
+        : 'Keep your Prucalopride, DulcoEase, EAAs & Electrolytes right where they are — you nailed the synergy today!',
+      cycleNote,
+      safetyAlert,
+      bestRecipe
+    };
+  }
+
+  // 3. WATERY BYPASS / CLEAR WATER RETURN
+  if (cons === 'water_only' || (cons === 'liquid' && (out === 'small' || out === 'none') && bloat >= 4)) {
+    let tweak = '';
+    if (sol === 'water_only') {
+      tweak = `Water ran past firmer stool without triggering a strong wave. Tomorrow, change ONE thing: add your team-advised starter dose of Pico-Liquid or Sodium Enema to warm (~37°C) water${ml ? ` (keep water around ${ml} mL first)` : ''}.`;
+    } else {
+      const nextMl = ml ? Math.min(1500, ml + 150) : 750;
+      tweak = `Water slid around firmer stool. Tonight is key: take DulcoEase (Docusate) + water to soften overnight. Tomorrow morning, infuse body-temp water slowly (try nudging up to ~${nextMl} mL if within your team's cap) and sit 45 mins with feet raised.`;
+    }
+    return {
+      status: 'bypass',
+      badge: 'Watery Bypass Pattern',
+      badgeClass: 'bg-sky-100 text-sky-950 border-sky-300',
+      borderClass: 'border-sky-200 bg-gradient-to-br from-sky-50/85 via-white to-indigo-50/40',
+      headline: 'Flush water came back mostly clear — stool is sitting higher up 💧',
+      summary: 'Very common early after ACE surgery! When stool is a bit dry or sluggish, warm water can slide straight around it instead of sweeping it down.',
+      tomorrowAction: tweak,
+      secondaryTip: !entry.docusateTaken
+        ? 'Priority tonight: take DulcoEase (Docusate) with a full glass of water so stool softens before tomorrow’s flush.'
+        : 'Great job taking DulcoEase — add an extra glass of warm water tonight and keep daily Prucalopride steady.',
+      cycleNote,
+      safetyAlert,
+      bestRecipe
+    };
+  }
+
+  // 4. SLUGGISH / HARD / NOTHING CAME OUT / VERY SLOW (>2h or didn't kick in) / NEEDED 2ND FLUSH
+  if (out === 'none' || out === 'small' || cons === 'nothing' || cons === 'hard_pebbles' || onset === 'none' || onset === '2h_plus' || neededSecond) {
+    let tweak = '';
+    if (sol === 'water_only') {
+      const nextMl = ml ? Math.min(1500, ml + 200) : 750;
+      tweak = `Tomorrow, tweak ONLY ONE thing (within your surgical team's advised cap): either add your prescribed Pico-Liquid / Sodium Enema to stimulate a propulsive wave, OR bump warm water gently to ~${nextMl} mL.`;
+    } else if (ml && ml < 1000) {
+      const nextMl = Math.min(1250, ml + 150);
+      tweak = `Since you already used ${formatFlushSolutionLabel(sol)}${dose ? ' (' + dose + ')' : ''}, tomorrow try nudging warm (~37°C) water from ${ml} mL → ${nextMl} mL (if within your team's max) and give yourself 45–60 calm minutes with feet raised on a footstool.`;
+    } else {
+      tweak = `Keep warm water steady${ml ? ` at ${ml} mL` : ''} and focus on overnight softening tonight (DulcoEase + extra water + daily Prucalopride). If sluggishness repeats tomorrow, check with your ACE nurse about adjusting your Pico-Liquid / Sodium Enema dose.`;
+    }
+
+    const secondary = !entry.docusateTaken
+      ? 'Make sure DulcoEase (Docusate) is taken tonight with plenty of water — it works best overnight to break up pebble/dry stool.'
+      : (bloat >= 6
+        ? 'Because bloat is elevated today, keep meals warm & light tonight — and use your Rescue Meds drawer only if your team advised an evening booster (e.g. Senna / Movicol).'
+        : 'Stay well hydrated today (water + Electrolytes) so your colon isn’t pulling moisture out of tomorrow’s stool.');
+
+    return {
+      status: 'sluggish',
+      badge: 'Gentle Nudge Tomorrow',
+      badgeClass: 'bg-purple-100 text-purple-950 border-purple-300',
+      borderClass: 'border-purple-200 bg-gradient-to-br from-purple-50/80 via-white to-rose-50/40',
+      headline: out === 'none' || cons === 'nothing' ? 'Flush didn’t clear today — totally fixable, zero panic 🌿' : 'Partial / slow clear today — your colon needs a tiny nudge 🐢',
+      summary: 'A sluggish or firm flush almost always comes down to two things: stool slightly dry overnight, or needing a touch more warm water / gentle stimulant to wake the colon.',
+      tomorrowAction: tweak,
+      secondaryTip: secondary,
+      cycleNote,
+      safetyAlert,
+      bestRecipe
+    };
+  }
+
+  // 5. SOLID MODERATE / GOOD LIQUID PROGRESS
+  const nextGentleMl = ml && ml < 1000 ? `${ml + 100}–${ml + 150} mL` : null;
+  return {
+    status: 'moderate',
+    badge: '👍 Solid Progress',
+    badgeClass: 'bg-teal-100 text-teal-950 border-teal-300',
+    borderClass: 'border-teal-200 bg-gradient-to-br from-teal-50/80 via-white to-sky-50/40',
+    headline: 'Really encouraging clear — your routine is taking shape 👍',
+    summary: `You got a ${formatFlushOutputLabel(out) || 'decent'} result (${formatFlushConsistencyLabel(cons) || 'recorded'})${onset ? ' in ' + formatFlushOnsetLabel(onset) : ''}. Your bowel is learning the morning signal!`,
+    tomorrowAction: (bloat >= 4 || residualGas) && nextGentleMl
+      ? `Hold your exact solution tomorrow, or try a tiny water nudge up to ${nextGentleMl} (within your team's cap) to help clear that last bit of wind & fullness.`
+      : 'Hold this exact setup for 1–2 more mornings to see if your clear becomes even fuller as your colon settles into the habit.',
+    secondaryTip: !entry.electrolytesTaken
+      ? 'Top up with Electrolytes + EAAs today to keep energy high and bloating calm.'
+      : 'Keep Prucalopride, DulcoEase, EAAs & Electrolytes ticking over — consistency beats perfection!',
+    cycleNote,
+    safetyAlert,
+    bestRecipe
+  };
+}
+
+// ============================================================================
+// TODAY HUB: MORNING ACE FLUSH CARD & GASTRO NEXT-DAY COACH RENDERER
+// ============================================================================
+function renderAceFlushHub(targetDateStr) {
+  const container = document.getElementById('aceFlushHubContainer');
+  if (!container) return;
+
+  const dStr = targetDateStr || activeDateStr || getTodayISOString();
+  const entry = logs.find(l => l.date === dStr && !isSyntheticTestEntry(l)) || null;
+  const lastFlush = getLastFlushEntry(dStr);
+  const cycleInfo = typeof getCycleInfoForDate === 'function' ? getCycleInfoForDate(dStr) : null;
+
+  const todayHasFlush = entry && isAceFlushEntry(entry);
+  const todayNoFlush = entry && entry.aceFlushDone === false;
+  const coachSourceEntry = (todayHasFlush || todayNoFlush) ? entry : lastFlush;
+  const coach = generateGastroNextDayCoach(coachSourceEntry, logs, cycleInfo);
+  const isShowingYesterdayCoach = !todayHasFlush && !todayNoFlush && !!lastFlush;
+
+  const lastRepeatLabel = lastFlush
+    ? `${lastFlush.flushWaterMl ? lastFlush.flushWaterMl + 'mL ' : ''}${formatFlushSolutionLabel(lastFlush.flushSolution).replace('Water + ', '') || 'Flush'}`
+    : '';
+
+  const totalFlushes = getSortedFlushLogs(true).length;
+
+  let topStatusHtml = '';
+  if (todayHasFlush) {
+    const solText = formatFlushSolutionLabel(entry.flushSolution) || 'ACE Flush';
+    const doseText = entry.flushAdditiveDose ? ` (${escapeFlushHtml(entry.flushAdditiveDose)})` : '';
+    const mlText = entry.flushWaterMl ? `${entry.flushWaterMl} mL` : 'Vol not set';
+    const onsetText = formatFlushOnsetLabel(entry.flushOnset);
+    const consText = formatFlushConsistencyLabel(entry.flushConsistency);
+    const outText = formatFlushOutputLabel(entry.flushOutput);
+    const outcomes = Array.isArray(entry.flushOutcomes) ? entry.flushOutcomes : [];
+
+    topStatusHtml = `
+      <div class="p-3.5 rounded-2xl bg-white/95 border border-sky-200/90 space-y-2.5 shadow-2xs">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-200 text-[10px] font-black">✅ Flush Logged</span>
+            ${entry.flushTime ? `<span class="text-[11px] font-extrabold text-sky-950">⏰ ${escapeFlushHtml(entry.flushTime)}</span>` : ''}
+          </div>
+          <button type="button" onclick="openFlushQuickLog(false)" class="px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-200 text-[10px] font-extrabold active:scale-95 transition-all cursor-pointer">
+            ✏️ Edit Flush
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-[11px]">
+          <div class="p-2 rounded-xl bg-sky-50/70 border border-sky-100">
+            <span class="text-[9px] font-bold uppercase text-sky-700 block">Solution & Dose</span>
+            <span class="font-extrabold text-sky-950 leading-tight block mt-0.5">${escapeFlushHtml(solText)}${doseText}</span>
+          </div>
+          <div class="p-2 rounded-xl bg-sky-50/70 border border-sky-100">
+            <span class="text-[9px] font-bold uppercase text-sky-700 block">Liquid & Kick-In</span>
+            <span class="font-extrabold text-sky-950 leading-tight block mt-0.5">${escapeFlushHtml(mlText)}${onsetText ? ` • ${escapeFlushHtml(onsetText)}` : ''}</span>
+          </div>
+          <div class="p-2 rounded-xl bg-teal-50/70 border border-teal-100">
+            <span class="text-[9px] font-bold uppercase text-teal-700 block">Consistency</span>
+            <span class="font-extrabold text-teal-950 leading-tight block mt-0.5">${escapeFlushHtml(consText || 'Not tapped')}</span>
+          </div>
+          <div class="p-2 rounded-xl bg-emerald-50/70 border border-emerald-100">
+            <span class="text-[9px] font-bold uppercase text-emerald-700 block">Amount Out</span>
+            <span class="font-extrabold text-emerald-950 leading-tight block mt-0.5">${escapeFlushHtml(outText || 'Not tapped')}</span>
+          </div>
+        </div>
+
+        ${(outcomes.length > 0 || entry.flushNotes) ? `
+          <div class="pt-1 flex flex-wrap items-center gap-1.5">
+            ${outcomes.map(o => `<span class="px-2 py-0.5 rounded-lg bg-sky-100/80 text-sky-950 border border-sky-200 text-[10px] font-bold">${escapeFlushHtml(o)}</span>`).join('')}
+            ${entry.flushNotes ? `<span class="text-[11px] text-slate-700 italic">"${escapeFlushHtml(entry.flushNotes)}"</span>` : ''}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  } else if (todayNoFlush) {
+    topStatusHtml = `
+      <div class="p-3 rounded-2xl bg-white/95 border border-slate-200 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-300 text-[10px] font-black">🚫 No Flush Logged Today</span>
+          <span class="text-[11px] text-brand-textMuted">Rest day saved to your timeline</span>
+        </div>
+        <button type="button" onclick="openFlushQuickLog(false)" class="px-2.5 py-1 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-900 border border-sky-200 text-[10px] font-extrabold cursor-pointer">
+          ✏️ Update
+        </button>
+      </div>
+    `;
+  } else {
+    topStatusHtml = `
+      <div class="flex flex-col sm:flex-row gap-2">
+        <button type="button" onclick="openFlushQuickLog(false)" class="flex-1 py-3 px-4 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-extrabold shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer">
+          <span class="text-base">💧</span>
+          <span>Log Morning ACE Flush (20 sec)</span>
+        </button>
+        ${lastFlush ? `
+          <button type="button" onclick="openFlushQuickLog(true)" class="py-3 px-4 rounded-2xl bg-white hover:bg-sky-50 text-sky-950 border-2 border-sky-300 text-xs font-extrabold shadow-2xs active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0">
+            <span>⚡</span>
+            <span>Repeat Last (${escapeFlushHtml(lastRepeatLabel)})</span>
+          </button>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <div class="bg-gradient-to-br from-sky-50/90 via-white to-teal-50/60 border-2 border-sky-200/90 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3.5 animate-fadeIn">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-sky-600 text-white flex items-center justify-center text-lg shadow-2xs shrink-0">
+            💧
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-sm font-black text-sky-950">Morning ACE Flush</h3>
+              <span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-sky-100 text-sky-900 border border-sky-200">
+                ${totalFlushes} Logged Total
+              </span>
+            </div>
+            <p class="text-[11px] text-sky-900/75">
+              1-tap flush log + personal gastro next-day coaching
+            </p>
+          </div>
+        </div>
+        <button type="button" onclick="switchTab('history'); filterCycle('flushes');" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-sky-50 text-sky-900 border border-sky-200 text-[10px] font-extrabold shadow-2xs active:scale-95 transition-all cursor-pointer shrink-0">
+          📈 Flush Trends
+        </button>
+      </div>
+
+      <!-- Today's Flush Action / Summary -->
+      ${topStatusHtml}
+
+      <!-- World-Class Gastro Coach Card -->
+      <div class="p-3.5 rounded-2xl border ${coach.borderClass} space-y-2 shadow-2xs">
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <span class="text-[10px] font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <span>🩺</span>
+            <span>${isShowingYesterdayCoach ? `Gastro Coach • Plan for Today (from ${escapeFlushHtml(lastFlush.displayDate?.split(',')[0] || lastFlush.date)})` : 'Gastro Coach • Suggestion for Tomorrow'}</span>
+          </span>
+          <span class="text-[9px] font-black px-2 py-0.5 rounded-full border ${coach.badgeClass}">
+            ${escapeFlushHtml(coach.badge)}
+          </span>
+        </div>
+
+        <p class="text-xs font-extrabold text-brand-textDark leading-snug">
+          ${escapeFlushHtml(coach.headline)}
+        </p>
+        <p class="text-[11px] text-brand-textMuted leading-relaxed">
+          ${escapeFlushHtml(coach.summary)}
+        </p>
+
+        <div class="p-2.5 rounded-xl bg-white/90 border border-sky-200/80 space-y-1.5">
+          <div class="text-[11px] text-slate-900 leading-relaxed">
+            <span class="font-black text-sky-900">👉 Next-Day Tweak:</span> ${escapeFlushHtml(coach.tomorrowAction)}
+          </div>
+          ${coach.secondaryTip ? `
+            <div class="text-[11px] text-slate-700 leading-relaxed">
+              <span class="font-bold text-purple-900">💊 Support:</span> ${escapeFlushHtml(coach.secondaryTip)}
+            </div>
+          ` : ''}
+          ${coach.cycleNote ? `
+            <div class="text-[10px] text-rose-900/90 leading-relaxed pt-0.5 border-t border-slate-100">
+              <span class="font-bold">🌸 Hormone Context:</span> ${escapeFlushHtml(coach.cycleNote)}
+            </div>
+          ` : ''}
+        </div>
+
+        ${coach.safetyAlert ? `
+          <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-300 text-[11px] font-bold text-rose-950 leading-relaxed">
+            ${escapeFlushHtml(coach.safetyAlert)}
+          </div>
+        ` : ''}
+
+        ${coach.bestRecipe ? `
+          <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-emerald-50/90 border border-emerald-200 text-[10px]">
+            <span class="font-extrabold text-emerald-950">🏆 Best Setup So Far: ${escapeFlushHtml(coach.bestRecipe.label)}</span>
+            <span class="font-bold text-emerald-800 shrink-0">${coach.bestRecipe.goodCount}/${coach.bestRecipe.count} strong clears</span>
+          </div>
+        ` : ''}
+
+        <p class="text-[9.5px] text-slate-500 italic">
+          Change only 1 variable at a time and stay within your colorectal/ACE team's advised liquid & laxative limits.
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================================
+// DIARY TAB: PERMANENT ACE FLUSH TRENDS & ANALYTICS CARD
+// ============================================================================
+function renderFlushTrendsSection() {
+  const container = document.getElementById('flushTrendsContainer');
+  if (!container) return;
+
+  const flushLogs = getSortedFlushLogs(true);
+  const totalFlushes = flushLogs.length;
+  const totalAllLogs = (logs || []).filter(l => !isSyntheticTestEntry(l)).length;
+
+  if (totalFlushes === 0) {
+    container.innerHTML = `
+      <div class="bg-gradient-to-br from-sky-50/90 via-white to-teal-50/60 p-4 sm:p-5 rounded-3xl border border-sky-200 shadow-xs space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">📈</span>
+            <div>
+              <h3 class="font-extrabold text-sm text-sky-950">ACE Flush Trends & Routine Tracker</h3>
+              <p class="text-[11px] text-sky-900/75">Every morning flush saves permanently here so we can spot what works best.</p>
+            </div>
+          </div>
+          <button type="button" onclick="openFlushQuickLog(false)" class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-[11px] font-extrabold shadow-2xs cursor-pointer shrink-0">
+            💧 Log First Flush
+          </button>
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-sky-100 text-[10px]">
+          <span class="font-bold text-emerald-800">🔒 ${totalAllLogs} historical entries permanently secured on phone + server</span>
+          <button type="button" onclick="downloadJsonBackup()" class="px-2.5 py-1 rounded-lg bg-white hover:bg-sky-50 border border-sky-200 text-sky-900 font-bold cursor-pointer">
+            📥 Download Backup (JSON)
+          </button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const goodOrFull = flushLogs.filter(l => l.flushOutput === 'good' || l.flushOutput === 'full').length;
+  const successRate = Math.round((goodOrFull / totalFlushes) * 100);
+  const mlVals = flushLogs.map(l => Number(l.flushWaterMl)).filter(v => !isNaN(v) && v > 0);
+  const avgMl = mlVals.length > 0 ? Math.round(mlVals.reduce((a, b) => a + b, 0) / mlVals.length) : null;
+  const bloatVals = flushLogs.map(l => l.diaphragmBloat).filter(v => typeof v === 'number' && !isNaN(v));
+  const avgBloat = bloatVals.length > 0 ? (bloatVals.reduce((a, b) => a + b, 0) / bloatVals.length).toFixed(1) : '--';
+  const moveVals = flushLogs.map(l => l.movementFrequency).filter(v => typeof v === 'number' && !isNaN(v));
+  const avgMoves = moveVals.length > 0 ? (moveVals.reduce((a, b) => a + b, 0) / moveVals.length).toFixed(1) : '--';
+  const bestRecipe = detectBestFlushRecipe(flushLogs);
+
+  const recent21 = flushLogs.slice(-21);
+
+  container.innerHTML = `
+    <div class="bg-gradient-to-br from-sky-50/90 via-white to-teal-50/60 p-4 sm:p-5 rounded-3xl border border-sky-200 shadow-xs space-y-3.5 animate-fadeIn">
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📈</span>
+          <div>
+            <h3 class="font-black text-sm text-sky-950">ACE Flush Trends & Routine Tracker</h3>
+            <p class="text-[11px] text-sky-900/75">Tracking liquid volume, clear quality & bloating across all logged flushes</p>
+          </div>
+        </div>
+        <button type="button" onclick="downloadJsonBackup()" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-sky-50 border border-sky-200 text-sky-900 text-[10px] font-extrabold shadow-2xs cursor-pointer">
+          📥 Backup JSON (${totalAllLogs} logs)
+        </button>
+      </div>
+
+      <!-- 4 KPI Tiles -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+        <div class="p-2.5 rounded-2xl bg-white border border-sky-100 shadow-2xs">
+          <span class="text-[9px] font-bold uppercase text-sky-700 block">Flushes Logged</span>
+          <span class="text-base font-black text-sky-950 block mt-0.5">${totalFlushes}</span>
+          <span class="text-[9px] text-brand-textMuted">${avgMl ? `Avg ${avgMl} mL` : 'Building baseline'}</span>
+        </div>
+        <div class="p-2.5 rounded-2xl bg-white border border-emerald-100 shadow-2xs">
+          <span class="text-[9px] font-bold uppercase text-emerald-700 block">Good / Full Clears</span>
+          <span class="text-base font-black text-emerald-700 block mt-0.5">${successRate}%</span>
+          <span class="text-[9px] text-brand-textMuted">${goodOrFull} of ${totalFlushes} flushes</span>
+        </div>
+        <div class="p-2.5 rounded-2xl bg-white border border-amber-100 shadow-2xs">
+          <span class="text-[9px] font-bold uppercase text-amber-800 block">Avg Bloat / Moves</span>
+          <span class="text-base font-black text-brand-coral block mt-0.5">${avgBloat} / 10</span>
+          <span class="text-[9px] text-brand-textMuted">🚽 ${avgMoves} moves/day</span>
+        </div>
+        <div class="p-2.5 rounded-2xl bg-white border border-purple-100 shadow-2xs">
+          <span class="text-[9px] font-bold uppercase text-purple-800 block">Best Setup So Far</span>
+          <span class="text-[11px] font-extrabold text-purple-950 block mt-0.5 leading-tight">${bestRecipe ? escapeFlushHtml(bestRecipe.label) : 'Log 2+ flushes'}</span>
+          <span class="text-[9px] text-brand-textMuted">${bestRecipe ? `${bestRecipe.goodCount}/${bestRecipe.count} strong` : 'Auto-learns pattern'}</span>
+        </div>
+      </div>
+
+      <!-- Trend Chart Canvas -->
+      <div class="bg-white rounded-2xl p-3 border border-sky-100 shadow-2xs">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-[10px] font-extrabold text-sky-950">Flush Volume (mL) vs Clear Quality & Bloat</span>
+          <span class="text-[9px] text-brand-textMuted">Last ${recent21.length} flush${recent21.length === 1 ? '' : 'es'}</span>
+        </div>
+        <div class="h-44 sm:h-52 w-full">
+          <canvas id="flushTrendsChart"></canvas>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Render Chart.js graph if available
+  const ctx = document.getElementById('flushTrendsChart');
+  if (ctx && typeof Chart !== 'undefined') {
+    if (flushTrendsChartInstance) {
+      try { flushTrendsChartInstance.destroy(); } catch (e) {}
+    }
+    const labels = recent21.map(l => {
+      const parts = l.date.split('-');
+      return `${parts[2]}/${parts[1]}`;
+    });
+    const waterData = recent21.map(l => l.flushWaterMl ? Number(l.flushWaterMl) : 0);
+    // Scale 0..4 clear score onto 0..10 axis (0, 2.5, 5, 7.5, 10) for easy visual overlay with bloat
+    const clearScaledData = recent21.map(l => {
+      const s = getFlushOutputScore(l.flushOutput);
+      return s !== null ? s * 2.5 : null;
+    });
+    const bloatData = recent21.map(l => (typeof l.diaphragmBloat === 'number') ? l.diaphragmBloat : null);
+
+    flushTrendsChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            type: 'bar',
+            label: 'Water (mL)',
+            data: waterData,
+            yAxisID: 'yMl',
+            backgroundColor: 'rgba(14, 165, 233, 0.22)',
+            borderColor: 'rgba(2, 132, 199, 0.7)',
+            borderWidth: 1.5,
+            borderRadius: 6
+          },
+          {
+            type: 'line',
+            label: 'Clear Quality (0–10)',
+            data: clearScaledData,
+            yAxisID: 'yScore',
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.12)',
+            borderWidth: 2.5,
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: '#10b981',
+            spanGaps: true
+          },
+          {
+            type: 'line',
+            label: 'Bloat (0–10)',
+            data: bloatData,
+            yAxisID: 'yScore',
+            borderColor: '#e07a5f',
+            borderDash: [4, 3],
+            borderWidth: 2,
+            tension: 0.3,
+            pointRadius: 3.5,
+            pointBackgroundColor: '#e07a5f',
+            spanGaps: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { boxWidth: 10, font: { size: 10, weight: 'bold' } }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const idx = context.dataIndex;
+                const row = recent21[idx];
+                if (context.dataset.label.startsWith('Clear Quality')) {
+                  return `Clear: ${formatFlushOutputLabel(row?.flushOutput) || 'N/A'} (${formatFlushConsistencyLabel(row?.flushConsistency) || ''})`;
+                }
+                if (context.dataset.label.startsWith('Water')) {
+                  const sol = formatFlushSolutionLabel(row?.flushSolution);
+                  return `Flush: ${context.parsed.y} mL${sol ? ' • ' + sol : ''}${row?.flushAdditiveDose ? ' (' + row.flushAdditiveDose + ')' : ''}`;
+                }
+                return `Bloat: ${context.parsed.y} / 10`;
+              }
+            }
+          }
+        },
+        scales: {
+          yScore: {
+            type: 'linear',
+            position: 'left',
+            min: 0,
+            max: 10,
+            ticks: { stepSize: 2.5, font: { size: 9 } },
+            title: { display: true, text: 'Clear / Bloat', font: { size: 9 } }
+          },
+          yMl: {
+            type: 'linear',
+            position: 'right',
+            min: 0,
+            suggestedMax: 1500,
+            grid: { drawOnChartArea: false },
+            ticks: { font: { size: 9 } },
+            title: { display: true, text: 'mL', font: { size: 9 } }
+          },
+          x: {
+            ticks: { font: { size: 9 } }
+          }
+        }
+      }
+    });
+  }
+}
+
+// Export Post-ACE Flush & Gastro Coach functions globally
+window.formatFlushSolutionLabel = formatFlushSolutionLabel;
+window.formatFlushOnsetLabel = formatFlushOnsetLabel;
+window.formatFlushConsistencyLabel = formatFlushConsistencyLabel;
+window.formatFlushOutputLabel = formatFlushOutputLabel;
+window.setAceFlushDone = setAceFlushDone;
+window.setFlushTimePreset = setFlushTimePreset;
+window.setFlushTimeNow = setFlushTimeNow;
+window.selectFlushSolution = selectFlushSolution;
+window.setFlushAdditivePreset = setFlushAdditivePreset;
+window.setFlushWaterPreset = setFlushWaterPreset;
+window.selectFlushOnset = selectFlushOnset;
+window.selectFlushConsistency = selectFlushConsistency;
+window.selectFlushOutput = selectFlushOutput;
+window.toggleFlushOutcomeChip = toggleFlushOutcomeChip;
+window.appendExtraMovementChip = appendExtraMovementChip;
+window.toggleRescueMedsDrawer = toggleRescueMedsDrawer;
+window.toggleRescueMedChip = toggleRescueMedChip;
+window.resetAceFlushModalFields = resetAceFlushModalFields;
+window.populateAceFlushModalFields = populateAceFlushModalFields;
+window.repeatLastFlushSetup = repeatLastFlushSetup;
+window.openFlushQuickLog = openFlushQuickLog;
+window.generateGastroNextDayCoach = generateGastroNextDayCoach;
+window.detectBestFlushRecipe = detectBestFlushRecipe;
+window.renderAceFlushHub = renderAceFlushHub;
+window.renderFlushTrendsSection = renderFlushTrendsSection;
+window.togglePrucaloprideQuick = togglePrucaloprideQuick;
+window.toggleDocusateQuick = toggleDocusateQuick;
+window.quickStepDailyMovements = quickStepDailyMovements;
 
 // ============================================================================
 // APP BOOTSTRAP: INITIALIZE AFTER ALL SCRIPTS & DOM LOAD
