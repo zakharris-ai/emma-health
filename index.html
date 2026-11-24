@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles.css?v=20261123-v40">
+  <link rel="stylesheet" href="styles.css?v=20261124-v41">
   <script>
     tailwind.config = {
       theme: {
@@ -777,7 +777,7 @@
   <!-- MODAL: UNIFIED COMPREHENSIVE DAILY CHECK-IN (STICKY SAVE + 2-MODE)-->
   <!-- ================================================================= -->
   <div id="quickLogModal" onclick="if(event.target === this) closeQuickLogModal()" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 hidden transition-opacity">
-    <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-lg w-full shadow-2xl border border-brand-border max-h-[92vh] flex flex-col overflow-hidden animate-slideUp">
+    <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-lg w-full shadow-2xl border border-brand-border max-h-[90vh] flex flex-col overflow-hidden animate-slideUp" style="max-height: 90dvh;">
       
       <!-- Sticky Modal Header + ADHD 2-Mode Switcher -->
       <div class="px-5 pt-4 pb-3 border-b border-brand-border bg-white shrink-0 space-y-2.5">
@@ -820,8 +820,8 @@
         </div>
       </div>
 
-      <form id="quickLogForm" onsubmit="handleQuickLogSubmit(event)" class="flex flex-col flex-1 min-h-0 text-left">
-        <div id="quickLogScrollBody" class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+      <form id="quickLogForm" novalidate onsubmit="handleQuickLogSubmit(event)" class="flex flex-col flex-1 min-h-0 overflow-hidden text-left">
+        <div id="quickLogScrollBody" class="flex-1 overflow-y-auto px-5 py-4 space-y-4" style="-webkit-overflow-scrolling: touch;">
         
         <!-- 1. DATE & OURA AUTO-SYNC SNAPSHOT -->
         <div class="flex items-center justify-between gap-2.5 p-2.5 rounded-2xl bg-brand-cream/70 border border-brand-border">
@@ -927,7 +927,7 @@
               <div class="flex items-center justify-between">
                 <label class="text-[10px] font-bold text-sky-950">💦 How Much Water / Flush Liquid (mL)?</label>
                 <div class="flex items-center gap-1">
-                  <input type="number" id="logFlushWaterMl" min="0" max="2500" step="50" placeholder="e.g. 750" class="w-20 text-xs font-extrabold text-right px-2 py-1 bg-white border border-sky-200 rounded-lg text-sky-950">
+                  <input type="number" id="logFlushWaterMl" min="0" step="1" inputmode="numeric" placeholder="e.g. 750" class="w-24 text-xs font-extrabold text-right px-2 py-1 bg-white border border-sky-200 rounded-lg text-sky-950">
                   <span class="text-[10px] font-bold text-sky-800">mL</span>
                 </div>
               </div>
@@ -1989,7 +1989,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=20261123-v40"></script>
+  <script src="app.js?v=20261124-v41"></script>
   <script>
     // Safeguard: Guarantee Lucide icons and logos render on first paint
     (function() {

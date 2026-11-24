@@ -1,5 +1,5 @@
 // Emma's Health & Gut Rhythm - Service Worker (Offline & Fast Load Support)
-const CACHE_NAME = 'emma-health-v40';
+const CACHE_NAME = 'emma-health-v41';
 const STATIC_ASSETS = [
   './',
   'index.html',

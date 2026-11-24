@@ -44,6 +44,7 @@ EXPIRED_OURA_TOKENS = {
 }
 LAST_EXCHANGED_OURA_CODES = {}
 OURA_REFRESH_LOCK = threading.Lock()
+DB_WRITE_LOCK = threading.Lock()
 
 def compute_cycle_info_for_date(date_str):
     try:
@@ -236,15 +237,10 @@ def merge_checkin_entries(existing, incoming):
 
     return merged
 
-def save_single_checkin_to_db(entry):
+def _upsert_checkin_on_cursor(cur, ph, entry):
     if not isinstance(entry, dict) or not entry.get('date'):
         return False
     d = entry.get('date')
-
-    conn = get_db_connection()
-    is_pg = hasattr(conn, 'status')
-    cur = conn.cursor()
-    ph = "%s" if is_pg else "?"
 
     # 1. Fetch existing record to perform lossless smart merge
     cur.execute(f"SELECT data_json FROM checkins WHERE date = {ph}", (d,))
@@ -282,8 +278,21 @@ def save_single_checkin_to_db(entry):
             updated_at=CURRENT_TIMESTAMP
     """
     cur.execute(query, (d, c_day, c_phase, b_stool, b_score, m_speed, a_pain, s_press, dj))
-    conn.commit()
-    conn.close()
+    return True
+
+def save_single_checkin_to_db(entry):
+    if not isinstance(entry, dict) or not entry.get('date'):
+        return False
+    with DB_WRITE_LOCK:
+        conn = get_db_connection()
+        try:
+            is_pg = hasattr(conn, 'status')
+            cur = conn.cursor()
+            ph = "%s" if is_pg else "?"
+            _upsert_checkin_on_cursor(cur, ph, entry)
+            conn.commit()
+        finally:
+            conn.close()
     return True
 
 def init_db():
@@ -913,51 +922,52 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             food_diary = payload.get('foodDiary')
             oura_token = payload.get('ouraToken')
 
-            # 1. Append and upsert all incoming logs
-            for log in logs:
-                if isinstance(log, dict) and log.get('date'):
-                    append_to_audit_ledger(log)
-                    save_single_checkin_to_db(log)
+            # 1 & 2. Atomically upsert all incoming logs + app state in a single transaction
+            with DB_WRITE_LOCK:
+                conn = get_db_connection()
+                try:
+                    is_pg = hasattr(conn, 'status')
+                    cur = conn.cursor()
+                    ph = "%s" if is_pg else "?"
 
-            # 2. Update app state records
-            conn = get_db_connection()
-            is_pg = hasattr(conn, 'status')
-            cur = conn.cursor()
-            ph = "%s" if is_pg else "?"
+                    for log in logs:
+                        if isinstance(log, dict) and log.get('date'):
+                            _upsert_checkin_on_cursor(cur, ph, log)
 
-            if chrono_trial is not None:
-                cur.execute(f"""
-                    INSERT INTO app_state (key, value, updated_at)
-                    VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
-                    ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
-                """, ('chrono_trial', json.dumps(chrono_trial)))
+                    if chrono_trial is not None:
+                        cur.execute(f"""
+                            INSERT INTO app_state (key, value, updated_at)
+                            VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
+                            ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+                        """, ('chrono_trial', json.dumps(chrono_trial)))
 
-            if specialist_tracking is not None:
-                cur.execute(f"""
-                    INSERT INTO app_state (key, value, updated_at)
-                    VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
-                    ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
-                """, ('specialist_tracking', json.dumps(specialist_tracking)))
+                    if specialist_tracking is not None:
+                        cur.execute(f"""
+                            INSERT INTO app_state (key, value, updated_at)
+                            VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
+                            ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+                        """, ('specialist_tracking', json.dumps(specialist_tracking)))
 
-            if food_diary is not None:
-                cur.execute(f"""
-                    INSERT INTO app_state (key, value, updated_at)
-                    VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
-                    ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
-                """, ('food_diary', json.dumps(food_diary)))
+                    if food_diary is not None:
+                        cur.execute(f"""
+                            INSERT INTO app_state (key, value, updated_at)
+                            VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
+                            ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=CURRENT_TIMESTAMP
+                        """, ('food_diary', json.dumps(food_diary)))
 
-            # Only seed oura_token if DB has NO token yet and incoming token is valid (never let stale client localStorage overwrite active DB token)
-            if oura_token and isinstance(oura_token, str):
-                clean_t = oura_token.strip().strip('"').strip("'")
-                if clean_t and clean_t not in EXPIRED_OURA_TOKENS:
-                    cur.execute(f"""
-                        INSERT INTO app_state (key, value, updated_at)
-                        VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
-                        ON CONFLICT(key) DO NOTHING
-                    """, ('oura_token', json.dumps(clean_t)))
+                    # Only seed oura_token if DB has NO token yet and incoming token is valid
+                    if oura_token and isinstance(oura_token, str):
+                        clean_t = oura_token.strip().strip('"').strip("'")
+                        if clean_t and clean_t not in EXPIRED_OURA_TOKENS:
+                            cur.execute(f"""
+                                INSERT INTO app_state (key, value, updated_at)
+                                VALUES ({ph}, {ph}, CURRENT_TIMESTAMP)
+                                ON CONFLICT(key) DO NOTHING
+                            """, ('oura_token', json.dumps(clean_t)))
 
-            conn.commit()
-            conn.close()
+                    conn.commit()
+                finally:
+                    conn.close()
 
             # 3. Persist complete cumulative database contents to disk snapshots
             self._update_disk_snapshots()

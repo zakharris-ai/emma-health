@@ -4371,10 +4371,14 @@ function loadLogs() {
   });
 }
 
-function saveLogs(immediate = false) {
+function saveLogs(immediate = false, skipServerSync = false) {
   // Guarantee clean deduplication and sorting
   logs = mergeLogs(logs, []);
-  localStorage.setItem('emma_health_logs', JSON.stringify(logs));
+  try {
+    localStorage.setItem('emma_health_logs', JSON.stringify(logs));
+  } catch (e) {
+    console.warn('LocalStorage primary save notice:', e);
+  }
 
   // Backup EVERY entry under its own immutable date key and permanent vault in LocalStorage
   try {
@@ -4397,15 +4401,18 @@ function saveLogs(immediate = false) {
   // Persist to IndexedDB
   persistLogsToIndexedDB(logs);
 
-  if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip();
-  if (typeof renderCalendarDaysList === 'function') renderCalendarDaysList();
+  try { if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip(); } catch (e) {}
+  try { if (typeof renderCalendarDaysList === 'function') renderCalendarDaysList(); } catch (e) {}
 
-  // Sync to server (immediate if user just saved check-in)
-  syncDataToServer(immediate);
+  // Sync to server (unless caller handles /api/save-checkin immediately)
+  if (!skipServerSync) {
+    syncDataToServer(immediate);
+  }
 }
 
 function saveSingleCheckinToServer(entry) {
   if (!entry || !entry.date) return;
+  updateSyncIndicator('syncing');
   try {
     fetch('/api/save-checkin', {
       method: 'POST',
@@ -4413,17 +4420,24 @@ function saveSingleCheckinToServer(entry) {
       body: JSON.stringify(entry),
       keepalive: true
     })
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
     .then(data => {
       if (data && data.ok) {
         updateSyncIndicator('synced', `Check-in for ${entry.date} permanently stored in cloud database`);
+      } else {
+        throw new Error(data?.error || 'Server rejected check-in');
       }
     })
     .catch(err => {
-      console.warn('Single check-in save fallback to queue:', err);
+      console.warn('Single check-in save fallback to full sync:', err);
+      syncDataToServer(true);
     });
   } catch (e) {
     console.warn('Single check-in fetch error:', e);
+    syncDataToServer(true);
   }
 }
 
@@ -4477,13 +4491,17 @@ function syncDataToServer(immediate = false) {
       ouraToken: localStorage.getItem('emma_oura_token') || ''
     };
 
+    // NOTE: Do NOT pass keepalive: true here — browser keepalive rejects bodies > 64 KiB
+    // and full log sync payloads exceed 100 KB, which caused silent TypeError: Failed to fetch!
     fetch('/api/sync-data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      keepalive: true
+      body: JSON.stringify(payload)
     })
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
     .then(data => {
       isSyncing = false;
       if (data && data.ok) {
@@ -12840,9 +12858,12 @@ function startExerciseVoiceInput() {
 }
 
 function handleQuickLogSubmit(e) {
-  e.preventDefault();
+  if (e && typeof e.preventDefault === 'function') e.preventDefault();
   
-  const dateVal = document.getElementById('logDate').value;
+  const rawDateVal = document.getElementById('logDate')?.value;
+  const dateVal = (rawDateVal && /^\d{4}-\d{2}-\d{2}$/.test(rawDateVal))
+    ? rawDateVal
+    : (activeDateStr || getTodayISOString());
   unmarkDeletedDate(dateVal);
 
   // ACE Flush fields
@@ -12851,7 +12872,10 @@ function handleQuickLogSubmit(e) {
   const flushSolVal = document.getElementById('logFlushSolution')?.value || '';
   const flushAdditiveVal = document.getElementById('logFlushAdditiveDose')?.value?.trim() || '';
   const flushWaterRaw = document.getElementById('logFlushWaterMl')?.value;
-  const flushWaterMlVal = flushWaterRaw ? parseInt(flushWaterRaw, 10) : null;
+  const parsedWaterMl = (flushWaterRaw !== undefined && flushWaterRaw !== null && String(flushWaterRaw).trim() !== '')
+    ? parseInt(String(flushWaterRaw).replace(/[^0-9]/g, ''), 10)
+    : NaN;
+  const flushWaterMlVal = !isNaN(parsedWaterMl) && parsedWaterMl > 0 ? parsedWaterMl : null;
   const flushOnsetVal = document.getElementById('logFlushOnset')?.value || '';
   const flushConsVal = document.getElementById('logFlushConsistency')?.value || '';
   const flushOutVal = document.getElementById('logFlushOutput')?.value || '';
@@ -13004,47 +13028,62 @@ function handleQuickLogSubmit(e) {
   else logs.push(newEntry);
   logs.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  saveLogs(true);
+  // 1. Save immediately to phone (LocalStorage + Permanent Vault + IndexedDB)
+  saveLogs(false, true);
+  // 2. Fast single-entry save to server (~1 KB, well within keepalive limit, zero lock race)
   saveSingleCheckinToServer(newEntry);
 
   // Sync specialist tracking state
-  const dState = getOrCreateDateSpecialistState(dateVal);
-  dState.electrolyteBuffered = electrolytesTaken;
-  dState.eaasTaken = eaasTaken;
-  dState.sennaTea = sennaTeaTaken;
-  saveSpecialistTracking();
-  renderSpecialistTrackingUI();
+  try {
+    const dState = getOrCreateDateSpecialistState(dateVal);
+    dState.electrolyteBuffered = electrolytesTaken;
+    dState.eaasTaken = eaasTaken;
+    dState.sennaTea = sennaTeaTaken;
+    saveSpecialistTracking();
+    renderSpecialistTrackingUI();
+  } catch (err) {
+    console.warn('Specialist state sync notice:', err);
+  }
 
   // Clear live flush timer if saving a flush for that same date
   if (aceFlushDoneVal && typeof clearLiveFlushTimerSilently === 'function') {
-    clearLiveFlushTimerSilently();
+    try { clearLiveFlushTimerSilently(); } catch (err) {}
   }
 
-  // Refresh ALL UI cards, Flush Coach, Trends & Diary
-  updateDashboardCheckInBadge(newEntry);
-  updateDashboardStats(newEntry);
-  if (typeof renderAceFlushHub === 'function') renderAceFlushHub(dateVal);
-  if (typeof renderFlushTrendsSection === 'function') renderFlushTrendsSection();
-  renderDashboardTrends();
-  renderOuraChart();
-  renderHistoryLogs();
-  if (typeof renderCalendarDaysList === 'function') renderCalendarDaysList();
-  if (aceFlushDoneVal && (flushOutVal === 'good' || flushOutVal === 'full') && typeof confetti === 'function') {
-    try { confetti({ particleCount: 45, spread: 65, origin: { y: 0.72 } }); } catch (err) {}
-  }
-  if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip();
-
+  // Close modal immediately so Emma gets instant tactile feedback!
   closeQuickLogModal();
+
+  // Refresh ALL UI cards, Flush Coach, Trends & Diary safely
+  try {
+    if (dateVal && dateVal !== activeDateStr && typeof applyActiveDate === 'function') {
+      applyActiveDate(dateVal);
+    } else {
+      updateDashboardCheckInBadge(newEntry);
+      updateDashboardStats(newEntry);
+      if (typeof renderAceFlushHub === 'function') renderAceFlushHub(dateVal);
+      if (typeof renderFlushTrendsSection === 'function') renderFlushTrendsSection();
+    }
+  } catch (err) { console.warn('Dashboard refresh notice:', err); }
+  try { renderDashboardTrends(); } catch (err) {}
+  try { renderOuraChart(); } catch (err) {}
+  try { renderHistoryLogs(); } catch (err) {}
+  try { if (typeof renderCalendarDaysList === 'function') renderCalendarDaysList(); } catch (err) {}
+  try { if (typeof renderRecentCheckInsStrip === 'function') renderRecentCheckInsStrip(); } catch (err) {}
+
+  // Background full-state sync after short debounce (no keepalive 64KB cap!)
+  syncDataToServer(false);
 
   if (aceFlushDoneVal && (flushOutVal === 'good' || flushOutVal === 'full')) {
     if (typeof confetti === 'function') {
-      confetti({ particleCount: 55, spread: 65, origin: { y: 0.6 } });
+      try { confetti({ particleCount: 55, spread: 65, origin: { y: 0.65 } }); } catch (err) {}
     }
-    showDynamicToast("🌟 Morning Flush Logged! Check your Tomorrow Suggestion on Today.");
+    showDynamicToast("🌟 Morning Flush Saved! Check your Tomorrow Suggestion on Today.", 4000);
   } else {
-    showDynamicToast("💧 Check-In & Flush Saved permanently!");
+    showDynamicToast("✅ Daily Check-In Saved permanently!", 3500);
   }
 }
+
+window.handleQuickLogSubmit = handleQuickLogSubmit;
 
 function updateDashboardStats(entry) {
   if (!entry) return;
